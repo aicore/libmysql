@@ -1,8 +1,8 @@
 {
-  "name": "@aicore/template-nodejs",
+  "name": "libmysql",
   "version": "1.0.5",
-  "description": "Template for nodejs with unit gulp build, test, coverage, code guardian, github and Other defaults",
-  "main": "index.js",
+  "description": "MySql Library used by core.ai to writ to DB",
+  "main": "src/index.js",
   "type": "module",
   "keywords": [
     "template",
@@ -37,7 +37,7 @@
     "type": "git",
     "url": "git+https://github.com/aicore/template-nodejs.git"
   },
-  "author": "Arun, core.ai",
+  "author": "charly, core.ai",
   "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/aicore/template-nodejs/issues"
@@ -52,5 +52,7 @@
     "husky": "7.0.4",
     "mocha": "9.2.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mysql2": "^2.3.3"
+  }
 }
