@@ -15,9 +15,23 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
+import {createTable, getValueForKey} from './utils/db.js';
 
 function helloWorld(name) {
     return "Hello World " + name;
 }
+
+async function demo() {
+    // getValueForKey('1', '2');
+    const table = 'test';
+    const key = 'customer';
+    const value = 'data';
+    const result = await createTable(table, key, value);
+    console.log(result);
+
+}
+
+demo();
+
 
 export default helloWorld;
