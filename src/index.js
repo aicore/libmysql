@@ -15,7 +15,7 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
-import {createTable} from './utils/db.js';
+import {createTable, put} from './utils/db.js';
 
 function helloWorld(name) {
     return "Hello World " + name;
@@ -26,22 +26,30 @@ async function demo() {
     const tableName = 'test';
     const nameOfPrimaryKey = 'customer';
     const nameOfJsonColumn = 'customer_data';
-    const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-    console.log(result);
-   /* const result2 = await putValueForKey({column: nameOfPrimaryKey, value: 'alice'}, {
-        column: nameOfJsonColumn,
-        value: {Age: 20, lastname: 'bob'}
-    }, tableName);
+    try {
+        const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+        console.log(result);
+    } catch (e) {
+
+        console.log(`exception is ++++++++++ ${e.stack}`);
+    }
+
+    const key = 'alice';
+    const value = {
+        'age': 100,
+        'country': 'US'
+    };
+    const result2 = await put(tableName, nameOfPrimaryKey, key, nameOfJsonColumn, JSON.stringify(value));
     console.log(result2);
+    /*
+        await putValueForKey({column: nameOfPrimaryKey, value: 'alice'}, {
+            column: nameOfJsonColumn,
+            value: {Age: 20, lastname: 'Dave'}
+        }, tableName);
+        const result3 = await getValueForKey({column: nameOfPrimaryKey, value: 'alice'}, nameOfJsonColumn, tableName);
+        console.log(result3);
 
-    await putValueForKey({column: nameOfPrimaryKey, value: 'alice'}, {
-        column: nameOfJsonColumn,
-        value: {Age: 20, lastname: 'Dave'}
-    }, tableName);
-    const result3 = await getValueForKey({column: nameOfPrimaryKey, value: 'alice'}, nameOfJsonColumn, tableName);
-    console.log(result3);
-
-    */
+        */
 
 }
 

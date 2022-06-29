@@ -12,16 +12,27 @@ function _isValidTableAttributes(tableAttributeName) {
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME);
 }
 
+function _isValidPrimaryKey(key) {
+    return isString(key) && key.length <= SIZE_OF_PRIMARY_KEY;
+}
+
+function _isValidJsonValue(value) {
+    return !(!value);
+}
+
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function (resolve, reject) {
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
+            //Todo: Emit metrics
         }
         if (!_isValidTableAttributes(nameOfPrimaryKey)) {
             reject('please provide valid name for primary key');
+            //Todo: Emit metrics
         }
         if (!_isValidTableAttributes(nameOfJsonColumn)) {
             reject('please provide valid name for json column');
+            //Todo: Emit metrics
         }
         try {
             const createTableSql = `CREATE TABLE ${tableName} 
@@ -39,10 +50,66 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
                     });
                 });
         } catch (e) {
-            const errorMessage = `execution occurred while creating table ${e}`;
+            const errorMessage = `execution occurred while creating table ${e.stack}`;
             console.error(errorMessage);
-            reject(e);
+            reject(errorMessage);
+            //Todo: Emit metrics
         }
+    });
+}
+
+export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn) {
+    return new Promise(function (resolve, reject) {
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
+            reject('please provide valid name for primary key');
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(nameOfJsonColumn)) {
+            reject('please provide valid name for json column');
+            //Todo: Emit metrics
+        }
+        if (!_isValidPrimaryKey(primaryKey)) {
+            reject('Please provide valid primary key');
+            //Todo: Emit metrics
+        }
+        if (!_isValidJsonValue(valueForJsonColumn)) {
+            reject('Please provide valid JSON');
+            //Todo: Emit metrics
+        }
+
+        try {
+            const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
+                                    values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
+            try {
+                CONNECTION.execute(updateQuery, [primaryKey, valueForJsonColumn, valueForJsonColumn],
+                    function (err, results, fields) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        resolve({
+                            results: results,
+                            fields: fields
+                        });
+                    });
+            } catch (e) {
+                const errorMessage = `Execution occurred while updating data ${e.stack}`;
+                console.error(errorMessage);
+                resolve(errorMessage);
+                //TODO: Emit Metrics
+            }
+
+        } catch (e) {
+            const errorMessage = `execution occurred while putting values to table ${e.stack}`;
+            console.error(errorMessage);
+            reject(errorMessage);
+            //Todo: Emit metrics
+        }
+
     });
 }
 
