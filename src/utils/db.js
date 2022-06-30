@@ -3,6 +3,7 @@ import mysql from "mysql2";
 import {isString} from "@aicore/libcommonutils";
 
 const CONNECTION = mysql.createConnection(getMySqlConfigs());
+
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
 const SIZE_OF_PRIMARY_KEY = 255;
@@ -152,43 +153,4 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
             //TODO: Emit Metrics
         }
     });
-
 }
-
-/*
-export function getValueForKey(key, column, table) {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT ${column} FROM ${table} WHERE ${key.column} = '${key.value}'`;
-        console.log(query);
-        client.query(query, (err, results, fields) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(results && results.length > 0 ? results[0] : null);
-        });
-    });
-}
-
-export function createTable(table, keyColumn, valueColumn) {
-    return new Promise((resolve, reject) => {
-        client.query(`CREATE TABLE ${table} (${keyColumn} VARCHAR(255) NOT NULL, ${valueColumn} JSON NOT NULL, PRIMARY KEY (${keyColumn}))`, (err, results, fields) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(results);
-        });
-    });
-}
-
-export function putValueForKey(key, value, table) {
-    return new Promise((resolve, reject) => {
-        client.query
-        client.query(`INSERT INTO ${table} (${key.column}, ${value.column}) VALUES ('${key.value}', '${JSON.stringify(value.value)}') ON DUPLICATE KEY UPDATE ${value.column} =  '${JSON.stringify(value.value)}'`, [key, value], (err, results, fields) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(results);
-        });
-    });
-}
-*/
