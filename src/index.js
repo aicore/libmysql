@@ -15,7 +15,7 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
-import {createTable, put} from './utils/db.js';
+import {createTable, get, put} from './utils/db.js';
 
 function helloWorld(name) {
     return "Hello World " + name;
@@ -26,7 +26,7 @@ async function demo() {
     const tableName = 'test';
     const nameOfPrimaryKey = 'customer';
     const nameOfJsonColumn = 'customer_data';
-    try {
+   try {
         const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
         console.log(result);
     } catch (e) {
@@ -39,8 +39,19 @@ async function demo() {
         'age': 100,
         'country': 'US'
     };
-    const result2 = await put(tableName, nameOfPrimaryKey, key, nameOfJsonColumn, JSON.stringify(value));
+
+    const result2 = await put(tableName, nameOfPrimaryKey, key, nameOfJsonColumn, value);
     console.log(result2);
+
+    try {
+        //console.log(nameOfJsonColumn);
+        const  result3 = await  get(tableName,nameOfPrimaryKey, key, nameOfJsonColumn);
+        //console.log(result3.results[0].customer_data.age);
+        console.log(result3);
+    } catch (e) {
+        console.log(e);
+    }
+
     /*
         await putValueForKey({column: nameOfPrimaryKey, value: 'alice'}, {
             column: nameOfJsonColumn,
