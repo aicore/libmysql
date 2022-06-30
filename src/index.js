@@ -22,7 +22,6 @@ function helloWorld(name) {
 }
 
 async function demo() {
-    // getValueForKey('1', '2');
     const tableName = 'test';
     const nameOfPrimaryKey = 'customer';
     const nameOfJsonColumn = 'customer_data';
@@ -51,16 +50,6 @@ async function demo() {
     } catch (e) {
         console.log(e);
     }
-
-    /*
-        await putValueForKey({column: nameOfPrimaryKey, value: 'alice'}, {
-            column: nameOfJsonColumn,
-            value: {Age: 20, lastname: 'Dave'}
-        }, tableName);
-        const result3 = await getValueForKey({column: nameOfPrimaryKey, value: 'alice'}, nameOfJsonColumn, tableName);
-        console.log(result3);
-
-        */
 
 }
 
