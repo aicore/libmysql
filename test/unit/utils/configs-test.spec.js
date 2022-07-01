@@ -12,6 +12,6 @@ describe('unit test for getMySqlConfigs', function () {
         const host = configs.host;
         const port = configs.port;
         expect(port).to.eql('3306');
-        expect(host).to.eql(host);
+        expect(host).to.eql('localhost');
     });
 });
