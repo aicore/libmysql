@@ -34,11 +34,7 @@ async function demo() {
     }
 
     const key = 'alice';
-    const value = {
-        'age': 100,
-        'country': 'US'
-    };
-
+    const value = new String('charly');
     const result2 = await put(tableName, nameOfPrimaryKey, key, nameOfJsonColumn, value);
     console.log(result2);
 
@@ -53,7 +49,7 @@ async function demo() {
 
 }
 
-demo();
+//demo();
 
 
 export default helloWorld;

@@ -7,19 +7,27 @@ const CONNECTION = mysql.createConnection(getMySqlConfigs());
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
 const SIZE_OF_PRIMARY_KEY = 255;
-const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w*$/);
+const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 function _isValidTableAttributes(tableAttributeName) {
-    return (isString(tableAttributeName) && tableAttributeName.length <
+    return (isString(tableAttributeName) && tableAttributeName.length <=
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableAttributeName));
 }
 
 function _isValidPrimaryKey(key) {
-    return isString(key) && key.length <= SIZE_OF_PRIMARY_KEY;
+    return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
 }
 
 function _isValidJsonValue(value) {
-    return !(!value);
+    if (!value) {
+        return false;
+    }
+    try {
+        JSON.parse(value);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 function _handleSqlQueryResponse(resolve, reject, err, results, fields) {
@@ -28,8 +36,7 @@ function _handleSqlQueryResponse(resolve, reject, err, results, fields) {
         return false;
     }
     resolve({
-        results: results,
-        fields: fields
+        results: results, fields: fields
     });
     return true;
 }
@@ -62,7 +69,6 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
                 });
         } catch (e) {
             const errorMessage = `execution occurred while creating table ${e.stack}`;
-            console.error(errorMessage);
             reject(errorMessage);
             //Todo: Emit metrics
         }
@@ -92,12 +98,10 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             //Todo: Emit metrics
         }
         if (!_isValidJsonValue(valueForJsonColumn)) {
-            reject('Please provide valid JSON');
+            reject('Please provide valid JSON String column');
             return;
             //Todo: Emit metrics
         }
-
-
         const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
                                     values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
         try {
@@ -107,7 +111,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
                     _handleSqlQueryResponse(resolve, reject, err, results, fields);
                 });
         } catch (e) {
-            const errorMessage = `Execution occurred while updating data ${e.stack}`;
+            const errorMessage = `Exception occurred while writing to database ${e.stack}`;
             console.error(errorMessage);
             resolve(errorMessage);
             //TODO: Emit Metrics
@@ -142,10 +146,11 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
         }
         try {
             const getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE ${nameOfPrimaryKey} = ?`;
-            CONNECTION.execute(getQuery, [primaryKey], function (err, results, fields) {
-                //TODO: emit success or failure metrics based on return value
-                _handleSqlQueryResponse(resolve, reject, err, results, fields);
-            });
+            CONNECTION.execute(getQuery, [primaryKey],
+                function (err, results, fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    _handleSqlQueryResponse(resolve, reject, err, results, fields);
+                });
         } catch (e) {
             const errorMessage = `Execution occurred while getting data ${e.stack}`;
             console.error(errorMessage);
