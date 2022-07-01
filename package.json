@@ -56,7 +56,7 @@
     "documentation": "13.2.5",
     "eslint": "8.18.0",
     "glob": "8.0.3",
-    "husky": "7.0.4",
+    "husky": "8.0.1",
     "mocha": "10.0.0",
     "@aicore/libtestutils": "1.0.9"
   },
