@@ -112,8 +112,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while writing to database ${e.stack}`;
-            console.error(errorMessage);
-            resolve(errorMessage);
+            reject(errorMessage);
             //TODO: Emit Metrics
         }
 

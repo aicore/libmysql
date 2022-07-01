@@ -566,12 +566,11 @@ describe('Unit tests for db.js', function () {
 
         mockedFunctions.connection.execute = saveExecute;
     });
-    /*
+
     it('put should fail when there is error in connecting to MySQL', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             throw  new Error('error');
-            callback(null, [], []);
         };
         const tableName = 'hello';
         const nameOfPrimaryKey = 'bob';
@@ -590,6 +589,6 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
 
-     */
+
 
 });

@@ -15,10 +15,4 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
-import {createTable, get, put} from './utils/db.js';
-
-function helloWorld(name) {
-    return "Hello World " + name;
-}
-
-export default helloWorld;
+export {createTable, get, put} from './utils/db.js';
