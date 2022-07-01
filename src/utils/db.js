@@ -2,6 +2,8 @@ import {getMySqlConfigs} from "./configs.js";
 import mysql from "mysql2";
 import {isString} from "@aicore/libcommonutils";
 
+// @INCLUDE_IN_API_DOCS
+
 const CONNECTION = mysql.createConnection(getMySqlConfigs());
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
