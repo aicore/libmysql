@@ -1,5 +1,4 @@
 /*global describe, it*/
-import mockedFunctions from './setup-mocks.js';
 import * as chai from 'chai';
 import {createTable} from "../../src/index.js";
 
