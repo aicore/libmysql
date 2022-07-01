@@ -20,7 +20,7 @@
     "lint:fix": "eslint --quiet --fix src test",
     "prepare": "husky install",
     "test": "npm run test:unit && npm run test:integ",
-    "test:unit": "mocha test/unit/*.spec.js test/unit/**/*.spec.js --timeout=3000",
+    "test:unit": "mocha mocha test/unit/setup-mocks.js test/unit/*.spec.js test/unit/**/*.spec.js --timeout=3000",
     "test:integ": "mocha test/integration/*.spec.js test/integration/**/*.spec.js --timeout=3000",
     "printReportsLink": "echo Detailed unit test coverage report: file:///$(pwd)/coverage-unit/index.html && echo Detailed integration test coverage report: file:///$(pwd)/coverage-integration/index.html",
     "mysql:install": "sudo apt install mysql-server -y ",
@@ -63,6 +63,6 @@
   "dependencies": {
     "mysql2": "^2.3.3",
     "uuid": "^8.3.2",
-    "@aicore/libcommonutils": "^1.0.7"
+    "@aicore/libcommonutils": "^1.0.8"
   }
 }
