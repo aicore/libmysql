@@ -1068,7 +1068,7 @@ describe('Unit tests for db.js', function () {
         const tableName = 'users';
         const nameOfPrimaryKey = 'id';
         const nameOfJsonColumn = 'customer_data';
-        const primaryKey =  {};
+        const primaryKey = {};
         let isExceptionOccurred = false;
         try {
             const result = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
@@ -1112,7 +1112,6 @@ describe('Unit tests for db.js', function () {
         const primaryKey = '100';
         const result = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(result.results[0].customer_data).to.eql('bob');
-        console.log(result);
         mockedFunctions.connection.execute = saveExecute;
     });
 
@@ -1127,7 +1126,7 @@ describe('Unit tests for db.js', function () {
         const primaryKey = '10';
         let isExceptionOccurred = false;
         try {
-          await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         } catch (e) {
 
             expect(e.split('\n')[0]).to.eql('Exception occurred while getting data Error:' +
