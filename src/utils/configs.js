@@ -1,4 +1,3 @@
-import mysql from 'mysql2';
 import {v4 as uuidv4} from 'uuid';
 
 /**
