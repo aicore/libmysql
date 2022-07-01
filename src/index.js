@@ -21,35 +21,4 @@ function helloWorld(name) {
     return "Hello World " + name;
 }
 
-async function demo() {
-    const tableName = 'test';
-    const nameOfPrimaryKey = 'customer';
-    const nameOfJsonColumn = 'customer_data';
-   try {
-        const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-        console.log(result);
-    } catch (e) {
-
-        console.log(`exception is ++++++++++ ${e.stack}`);
-    }
-
-    const key = 'alice';
-    const value = new String('charly');
-    const result2 = await put(tableName, nameOfPrimaryKey, key, nameOfJsonColumn, value);
-    console.log(result2);
-
-    try {
-        //console.log(nameOfJsonColumn);
-        const  result3 = await  get(tableName,nameOfPrimaryKey, key, nameOfJsonColumn);
-        //console.log(result3.results[0].customer_data.age);
-        console.log(result3);
-    } catch (e) {
-        console.log(e);
-    }
-
-}
-
-//demo();
-
-
 export default helloWorld;
