@@ -151,9 +151,8 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
                     _handleSqlQueryResponse(resolve, reject, err, results, fields);
                 });
         } catch (e) {
-            const errorMessage = `Execution occurred while getting data ${e.stack}`;
-            console.error(errorMessage);
-            resolve(errorMessage);
+            const errorMessage = `Exception occurred while getting data ${e.stack}`;
+            reject(errorMessage);
             //TODO: Emit Metrics
         }
     });
