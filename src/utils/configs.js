@@ -10,7 +10,6 @@ export function getMySqlConfigs() {
     const database = process.env.MY_SQL_SERVER_DB || 'a' + crypto.randomBytes(8).toString('hex');
     const user = process.env.MY_SQL_USER || 'b' + crypto.randomBytes(8).toString('hex');
     const password = process.env.MY_SQL_PASSWORD || 'c' + crypto.randomBytes(8).toString('hex');
-    ;
     return {
         'host': host,
         'port': port,
