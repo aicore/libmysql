@@ -4,9 +4,14 @@ import {isString} from "@aicore/libcommonutils";
 
 // @INCLUDE_IN_API_DOCS
 
-const config = getMySqlConfigs();
-console.log(`${JSON.stringify(config)}`);
-const CONNECTION = mysql.createConnection(config);
+//const config = getMySqlConfigs();
+//console.log(`${JSON.stringify(config)}`);
+let CONNECTION;
+
+export function init(config) {
+   CONNECTION = mysql.createConnection(config);
+}
+
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
