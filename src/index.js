@@ -16,3 +16,4 @@
  *
  */
 export {createTable, get, put} from './utils/db.js';
+export {getMySqlConfigs} from  './utils/configs.js';
