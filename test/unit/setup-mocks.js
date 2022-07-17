@@ -15,7 +15,8 @@ let mockedFunctions = {
                     warningStatus: 0
                 }
             }, undefined);
-        }
+        },
+        close : function (){}
     }
 };
 

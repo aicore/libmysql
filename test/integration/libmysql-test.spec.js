@@ -12,18 +12,22 @@
 
 // remove integration tests if you don't have them.
 // jshint ignore: start
-/*global describe, it*/
+/*global describe, it, after*/
 
 import * as assert from 'assert';
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
 import {createTable} from "../../src/index.js";
-import {init} from "../../src/utils/db.js";
+import {init, close} from "../../src/utils/db.js";
 
 
 let expect = chai.expect;
 
 describe('Integration: libMySql', function () {
+
+    after(function () {
+        close();
+    });
 
     it('should create table', async function () {
         try {
