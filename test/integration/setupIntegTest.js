@@ -1,7 +1,8 @@
 import {setUpMySQL} from '@aicore/libtestutils';
 
 let config = null;
-(async function () {
+
+async function _init() {
     config = await setUpMySQL();
     process.env.MY_SQL_SERVER = config.host;
     process.env.MY_SQL_SERVER_PORT = config.port;
@@ -10,11 +11,11 @@ let config = null;
     process.env.MY_SQL_PASSWORD = config.password;
     console.log(`${config}`);
 
-}());
+}
 
-export function getMySqlConfigs() {
+export async function getMySqlConfigs() {
     if (!config) {
-        throw  new Error('config not initialized');
+        await _init();
     }
     return config;
 }
