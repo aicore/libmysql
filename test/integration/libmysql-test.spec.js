@@ -26,7 +26,7 @@ describe('Integration: libMySql', function () {
     it('should create table', async function () {
         try {
             const configs = await getMySqlConfigs();
-            console.log(`${configs}`);
+            console.log(`${JSON.stringify(configs)}`);
             const result = await createTable('customer', 'id', 'details');
             console.log(`${result}`);
         } catch (e) {
