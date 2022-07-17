@@ -9,7 +9,7 @@ async function _init() {
     process.env.MY_SQL_SERVER_DB = config.database;
     process.env.MY_SQL_USER = config.user;
     process.env.MY_SQL_PASSWORD = config.password;
-    console.log(`${config}`);
+    console.log(`${JSON.stringify(config)}`);
 
 }
 
