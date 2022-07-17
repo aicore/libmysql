@@ -1,17 +1,15 @@
-import {getMySqlConfigs} from "@aicore/libcommonutils";
 import mysql from "mysql2";
 import {isString} from "@aicore/libcommonutils";
 
 // @INCLUDE_IN_API_DOCS
 
-//const config = getMySqlConfigs();
-//console.log(`${JSON.stringify(config)}`);
 let CONNECTION;
 
+//TODO: Add UT
 export function init(config) {
    CONNECTION = mysql.createConnection(config);
 }
-
+//TODO: Add UT
 export function close() {
     CONNECTION.close();
 }
