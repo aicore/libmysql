@@ -36,7 +36,7 @@ describe('Integration: libMySql', function () {
             init(configs);
 
             const result = await createTable('customer', 'id', 'details');
-            console.log(`${result}`);
+            console.log(`${JSON.stringify(result)}`);
         } catch (e) {
             console.log(`printing stack trace ${e.stack}`);
         }
