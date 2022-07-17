@@ -16,9 +16,16 @@
 
 import * as assert from 'assert';
 import * as chai from 'chai';
+import {getMySqlConfigs} from './setupIntegTest.js';
+import {createTable} from "../../src/index.js";
 
 let expect = chai.expect;
 
-describe('Integration: Hello world Tests', function() {
+describe('Integration: libMySql', function () {
 
+    it('should create table', async function () {
+        const configs = getMySqlConfigs();
+        const result = await createTable('customer', 'id', 'details');
+        console.log(`${result}`);
+    });
 });
