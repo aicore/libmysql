@@ -29,7 +29,7 @@ describe('Integration: libMySql', function () {
             const result = await createTable('customer', 'id', 'details');
             console.log(`${result}`);
         } catch (e) {
-            console.log(`${e}`);
+            console.log(`printing stack trace ${e.stack}`);
         }
 
     });
