@@ -1,7 +1,7 @@
 /*global describe, it, before, beforeEach*/
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
-import {createTable, get, put, init} from "../../../src/utils/db.js";
+import {createTable, get, put, init, close} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
@@ -1140,6 +1140,10 @@ describe('Unit tests for db.js', function () {
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it("close should pass", function (){
+        close();
     });
 
 });
