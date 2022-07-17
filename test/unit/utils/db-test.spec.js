@@ -1,7 +1,8 @@
-/*global describe, it*/
+/*global describe, it, before, beforeEach*/
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
-import {createTable, get, put} from "../../../src/utils/db.js";
+import {createTable, get, put, init} from "../../../src/utils/db.js";
+import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
 
@@ -27,6 +28,10 @@ function generateAValidString(len) {
 }
 
 describe('Unit tests for db.js', function () {
+    before(function () {
+        init(getMySqlConfigs());
+
+    });
     it('create table api should fail for invalid table name', async function () {
         try {
             const tableName = '';

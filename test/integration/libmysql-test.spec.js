@@ -18,6 +18,8 @@ import * as assert from 'assert';
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
 import {createTable} from "../../src/index.js";
+import {init} from "../../src/utils/db.js";
+
 
 let expect = chai.expect;
 
@@ -27,6 +29,8 @@ describe('Integration: libMySql', function () {
         try {
             const configs = await getMySqlConfigs();
             console.log(`${JSON.stringify(configs)}`);
+            init(configs);
+
             const result = await createTable('customer', 'id', 'details');
             console.log(`${result}`);
         } catch (e) {
