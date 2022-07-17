@@ -1,4 +1,4 @@
-import {getMySqlConfigs} from "./configs.js";
+import {getMySqlConfigs} from "@aicore/libcommonutils";
 import mysql from "mysql2";
 import {isString} from "@aicore/libcommonutils";
 

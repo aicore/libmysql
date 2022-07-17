@@ -58,10 +58,10 @@
     "glob": "8.0.3",
     "husky": "8.0.1",
     "mocha": "10.0.0",
-    "@aicore/libtestutils": "^1.0.11"
+    "@aicore/libtestutils": "1.0.13"
   },
   "dependencies": {
     "mysql2": "^2.3.3",
-    "@aicore/libcommonutils": "^1.0.8"
+    "@aicore/libcommonutils": "1.0.10"
   }
 }
