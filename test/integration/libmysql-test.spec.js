@@ -24,8 +24,13 @@ let expect = chai.expect;
 describe('Integration: libMySql', function () {
 
     it('should create table', async function () {
-        const configs = getMySqlConfigs();
-        const result = await createTable('customer', 'id', 'details');
-        console.log(`${result}`);
+        try {
+            const configs = getMySqlConfigs();
+            const result = await createTable('customer', 'id', 'details');
+            console.log(`${result}`);
+        } catch (e) {
+            console.log(`${e}`);
+        }
+
     });
 });
