@@ -12,14 +12,12 @@
 
 // remove integration tests if you don't have them.
 // jshint ignore: start
-/*global describe, it, after*/
+/*global describe, it, after, before*/
 
-import * as assert from 'assert';
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
 import {createTable, get, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
-
 
 let expect = chai.expect;
 
@@ -28,36 +26,30 @@ describe('Integration: libMySql', function () {
     after(function () {
         close();
     });
+    before(async function () {
+        const configs = await getMySqlConfigs();
+        console.log(`${JSON.stringify(configs)}`);
+        init(configs);
+
+    });
 
     it('should create table', async function () {
-        try {
-            const configs = await getMySqlConfigs();
-            console.log(`${JSON.stringify(configs)}`);
-            init(configs);
-            const tableName = 'customer';
-            const nameOfPrimaryKey = 'name';
-            const nameOfJsonColoumn = 'details';
 
-            const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColoumn);
-            console.log(`createTable ${JSON.stringify(result)}`);
-            const primaryKey = 'bob';
-            const valueOfJsonColoumn = {
-                'lastName': 'Alics',
-                'Age': 100,
-                'active': true
-            };
-            const putReturn = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn, JSON.stringify(valueOfJsonColoumn));
-            console.log(`Put return ${JSON.stringify(putReturn)}`);
-            const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn);
-            const results = getReturn.results[0].details;
-            expect(results.lastName).to.eql(valueOfJsonColoumn.lastName);
-            expect(results.Age).to.eql(valueOfJsonColoumn.Age);
-            expect(results.active).to.eql(valueOfJsonColoumn.active);
-
-            console.log(`get return ${JSON.stringify(getReturn)}`);
-        } catch (e) {
-            console.log(`printing stack trace ${JSON.stringify(e)}`);
-        }
-
+        const tableName = 'customer';
+        const nameOfPrimaryKey = 'name';
+        const nameOfJsonColumn = 'details';
+        await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+        const primaryKey = 'bob';
+        const valueOfJson = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const results = getReturn.results[0].details;
+        expect(results.lastName).to.eql(valueOfJson.lastName);
+        expect(results.Age).to.eql(valueOfJson.Age);
+        expect(results.active).to.eql(valueOfJson.active);
     });
 });
