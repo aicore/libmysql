@@ -88,7 +88,7 @@ describe('Integration: libMySql', function () {
                 'Age': 100,
                 'active': true
             };
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         } catch (e) {
             exceptionOccurred = true;
             console.log(`${JSON.stringify(e)}`);
