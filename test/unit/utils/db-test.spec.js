@@ -149,7 +149,7 @@ describe('Unit tests for db.js', function () {
         const nameOfPrimaryKey = 'test';
         const nameOfJsonColumn = 'customer';
         const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-        expect(result.results.ResultSetHeader.serverStatus).to.eql(2);
+        expect(result).to.eql(true);
     });
     it('create table api should fail when error happens', async function () {
 
@@ -581,7 +581,7 @@ describe('Unit tests for db.js', function () {
         const valueForJsonColumn = JSON.stringify(x);
 
         const result = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        expect(result.results.ResultSetHeader.serverStatus).to.eql(2);
+        expect(result).to.eql(true);
 
         mockedFunctions.connection.execute = saveExecute;
     });
@@ -1179,14 +1179,14 @@ describe('Unit tests for db.js', function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null,
-                [{customerData: 'bob'}], []);
+                {'details': [{customerData: 'bob'}]}, []);
         };
         const tableName = 'users';
         const nameOfPrimaryKey = 'id';
         const nameOfJsonColumn = 'customer_data';
         const primaryKey = '100';
         const result = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        expect(result.results[0].customerData).to.eql('bob');
+        expect(result.customerData).to.eql('bob');
         mockedFunctions.connection.execute = saveExecute;
     });
 
