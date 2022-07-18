@@ -96,6 +96,7 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
+                        console.error(`Error occurred while while creating table ${JSON.stringify(err)}`);
                         reject(err);
                         return;
                     }
@@ -147,6 +148,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
+                        console.error(`Error occurred while while put  ${JSON.stringify(err)}`);
                         reject(err);
                         return;
                     }
