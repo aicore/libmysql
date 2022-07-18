@@ -1,17 +1,45 @@
 import mysql from "mysql2";
-import {isString} from "@aicore/libcommonutils";
+import {isObject, isString} from "@aicore/libcommonutils";
 
 // @INCLUDE_IN_API_DOCS
 
-let CONNECTION;
+let CONNECTION = null;
 
 //TODO: Add UT
 export function init(config) {
-   CONNECTION = mysql.createConnection(config);
+
+    if (!isObject(config)) {
+        throw new Error('Please provide valid config');
+    }
+    if (!isString(config.host)) {
+        throw new Error('Please provide valid hostname');
+    }
+    if (!isString(config.port)) {
+        throw new Error('Please provide valid port');
+    }
+    if (!isString(config.user)) {
+        throw  new Error('Please provide valid user');
+    }
+    if (!isString(config.password)) {
+        throw new Error('Please provide valid password');
+    }
+    if (!isString(config.database)) {
+        throw new Error('Please provide valid database');
+    }
+    if (CONNECTION) {
+        console.log(`${CONNECTION}`);
+        throw  new Error('One connection is active please close it before reinitializing it');
+    }
+    CONNECTION = mysql.createConnection(config);
 }
+
 //TODO: Add UT
 export function close() {
+    if (!isObject(CONNECTION)) {
+        return;
+    }
     CONNECTION.close();
+    CONNECTION = null;
 }
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
@@ -53,6 +81,9 @@ function _handleSqlQueryResponse(resolve, reject, err, results, fields) {
 
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before createTable');
+        }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
             return;
@@ -87,6 +118,9 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
 
 export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn) {
     return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before put');
+        }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
             return;
@@ -132,7 +166,9 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
 
 export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
-
+        if (!CONNECTION) {
+            throw new Error('Please call init before get');
+        }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
             return;
