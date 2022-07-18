@@ -19,6 +19,7 @@ import {getMySqlConfigs} from './setupIntegTest.js';
 import {createTable, get, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
+import * as crypto from "crypto";
 
 let expect = chai.expect;
 
@@ -94,6 +95,31 @@ describe('Integration: libMySql', function () {
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
         }
         expect(exceptionOccurred).to.eql(true);
+    });
+    it('100 writes followed by read', async function () {
+        const tableName = 'customer';
+        const nameOfPrimaryKey = 'name';
+        const nameOfJsonColumn = 'details';
+        // const primaryKey = 'bob';
+        const valueOfJson = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        const numberOfWrites = 100;
+        const writePromises = [];
+        const primaryKeys = [];
+        for (let i = 0; i < numberOfWrites; i++) {
+            let primaryKey = crypto.randomBytes(4).toString('hex');
+            let retPromise = put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            writePromises.push(retPromise);
+            primaryKeys.push(primaryKey);
+        }
+        for (let promise in writePromises) {
+            await promise;
+        }
+        console.log(`writes executed successfully`);
+
     });
 
 });
