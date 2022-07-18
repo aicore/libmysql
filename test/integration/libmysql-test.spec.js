@@ -67,12 +67,33 @@ describe('Integration: libMySql', function () {
             const nameOfPrimaryKey = 'name';
             const nameOfJsonColumn = 'details';
             const primaryKey = 'raj';
-            const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-            expect(isObjectEmpty(getReturn)).to.eql(true);
+            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
         }
         expect(exceptionOccurred).to.eql(true);
     });
+
+    it('put  should throw exception table is not present', async function () {
+        let exceptionOccurred = false;
+        try {
+            const tableName = 'abc';
+            const nameOfPrimaryKey = 'name';
+            const nameOfJsonColumn = 'details';
+            const primaryKey = 'bob';
+            const valueOfJson = {
+                'lastName': 'Alice',
+                'Age': 100,
+                'active': true
+            };
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+        } catch (e) {
+            exceptionOccurred = true;
+            expect(e.code).to.eql('ER_NO_SUCH_TABLE');
+        }
+        expect(exceptionOccurred).to.eql(true);
+    });
+
 });
