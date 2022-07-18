@@ -115,10 +115,8 @@ describe('Integration: libMySql', function () {
             writePromises.push(retPromise);
             primaryKeys.push(primaryKey);
         }
-        for (let promise in writePromises) {
-            await promise;
-        }
-        console.log(`writes executed successfully`);
+        const putReturns = await Promise.all(writePromises);
+        console.log(`writes executed successfully ${JSON.stringify(putReturns)}`);
 
     });
 
