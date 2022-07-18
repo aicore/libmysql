@@ -104,10 +104,4 @@ describe('int test', function () {
         }
         expect(exceptionOccurred).to.eql(true);
     });
-
-
-    it("close should pass", function () {
-        close();
-    });
-
 });

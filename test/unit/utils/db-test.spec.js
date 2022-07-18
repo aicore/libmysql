@@ -32,6 +32,20 @@ describe('Unit tests for db.js', function () {
         close();
         init(getMySqlConfigs());
     });
+
+    it('create table api should fail  if connection not initialised', async function () {
+        try {
+            close();
+            const tableName = '';
+            const nameOfPrimaryKey = 'id';
+            const nameOfJsonColumn = 'column';
+            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+
+        } catch (e) {
+            expect(e.toString()).to.eql('Error: Please call init before createTable');
+        }
+    });
+
     it('create table api should fail for invalid table name', async function () {
         try {
             const tableName = '';
@@ -110,6 +124,26 @@ describe('Unit tests for db.js', function () {
             expect(e).to.eql('please provide valid name for json column');
         }
     });
+
+    it('createTable should fail when there is an external error', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            throw  new Error('error');
+            callback('err', [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'test';
+        const nameOfJsonColumn = 'customer';
+        // console.log(nameOfJsonColumn);
+        try {
+            const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+        } catch (e) {
+            const firstErrorLine = e.split('\n')[0];
+            expect(firstErrorLine).to.eql('execution occurred while creating table Error: error');
+        }
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
     it('create table api should pass for valid data', async function () {
         const tableName = 'hello';
         const nameOfPrimaryKey = 'test';
@@ -552,6 +586,41 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
 
+    it('put should fail if connection not initialise', async function () {
+        close();
+        let exceptionOccurred = false;
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, {
+                ResultSetHeader: {
+                    fieldCount: 0,
+                    affectedRows: 0,
+                    insertId: 0,
+                    info: '',
+                    serverStatus: 2,
+                    warningStatus: 0
+                }
+            }, {});
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer';
+        const primaryKey = generateStringSequence('a', 255);
+        const x = {
+            id: 'abc'
+        };
+        const valueForJsonColumn = JSON.stringify(x);
+
+        try {
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+        } catch (e) {
+            exceptionOccurred = true;
+            expect(e.toString()).to.eql('Error: Please call init before put');
+        }
+        expect(exceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
     it('put should fail when there is error in connecting to MySQL', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
@@ -572,6 +641,27 @@ describe('Unit tests for db.js', function () {
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
+    });
+    it('get should fail if connection is not initialized', async function () {
+        close();
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = '';
+        const nameOfPrimaryKey = 'test';
+        const nameOfJsonColumn = 'customer';
+        const primaryKey = '100';
+        let isExceptionOccurred = false;
+        try {
+            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        } catch (e) {
+            expect(e.toString()).to.eql('Error: Please call init before get');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
     });
 
     it('get should fail for empty table name', async function () {
