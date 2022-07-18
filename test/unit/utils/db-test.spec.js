@@ -1179,7 +1179,7 @@ describe('Unit tests for db.js', function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null,
-                {'details': [{customerData: 'bob'}]}, []);
+                [{customerData: 'bob'}], []);
         };
         const tableName = 'users';
         const nameOfPrimaryKey = 'id';
