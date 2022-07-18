@@ -62,6 +62,6 @@
   },
   "dependencies": {
     "mysql2": "^2.3.3",
-    "@aicore/libcommonutils": "1.0.10"
+    "@aicore/libcommonutils": "1.0.11"
   }
 }
