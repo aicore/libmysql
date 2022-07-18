@@ -18,6 +18,7 @@ import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
 import {createTable, get, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
+import {isObjectEmpty} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
 
@@ -51,5 +52,13 @@ describe('Integration: libMySql', function () {
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
 
+    });
+    it('get should return empty if data not present', async function () {
+        const tableName = 'customer';
+        const nameOfPrimaryKey = 'name';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = 'raj';
+        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        expect(isObjectEmpty(getReturn)).to.eql(true);
     });
 });
