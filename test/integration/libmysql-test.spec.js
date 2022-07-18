@@ -51,10 +51,8 @@ describe('Integration: libMySql', function () {
 
             const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn);
             console.log(`get return ${JSON.stringify(getReturn)}`);
-
-            console.log(`${JSON.stringify(result)}`);
         } catch (e) {
-            console.log(`printing stack trace ${e.stack}`);
+            console.log(`printing stack trace ${JSON.stringify(e)}`);
         }
 
     });
