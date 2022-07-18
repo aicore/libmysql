@@ -60,7 +60,8 @@ describe('Integration: libMySql', function () {
         const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(isObjectEmpty(getReturn)).to.eql(true);
     });
-    it('get should return empty if table is wrong  present', async function () {
+    it('get should throw exception table is not present', async function () {
+        let exceptionOccurred = false;
         try {
             const tableName = 'abc';
             const nameOfPrimaryKey = 'name';
@@ -69,7 +70,9 @@ describe('Integration: libMySql', function () {
             const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
             expect(isObjectEmpty(getReturn)).to.eql(true);
         } catch (e) {
-            console.log(`${JSON.stringify(e)}`);
+            exceptionOccurred = true;
+            expect(e.code).to.eql('ER_NO_SUCH_TABLE');
         }
+        expect(exceptionOccurred).to.eql(true);
     });
 });
