@@ -196,6 +196,7 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
                         reject(err);
                         return;
                     }
+                    console.log(`${JSON.stringify(results)}`);
                     if (results.details && results.details.length > 0) {
                         resolve(results.details[0]);
                         return;
