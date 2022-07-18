@@ -129,9 +129,11 @@ describe('Integration: libMySql', function () {
         expect(getReturns.length).to.eql(numberOfWrites);
         console.log((`${JSON.stringify(valueOfJson)}`));
         console.log(`********************************************`);
-        getReturns.forEach(value => {
-            console.log(`${JSON.stringify(value)}`);
-            expect(JSON.stringify(value) === JSON.stringify(valueOfJson)).to.eql(true);
+        getReturns.forEach(results => {
+            console.log(`${JSON.stringify(results)}`);
+            expect(results.lastName).to.eql(valueOfJson.lastName);
+            expect(results.Age).to.eql(valueOfJson.Age);
+            expect(results.active).to.eql(valueOfJson.active);
         });
 
     });
