@@ -103,7 +103,7 @@ describe('Integration: libMySql', function () {
         await testReadWrite(1000);
     });
     it('5000 writes followed by read', async function () {
-        await testReadWrite(5000);
+        await testReadWrite(2000);
     });
 
 
