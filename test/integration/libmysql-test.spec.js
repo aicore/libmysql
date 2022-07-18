@@ -106,7 +106,7 @@ describe('Integration: libMySql', function () {
             'Age': 100,
             'active': true
         };
-        const numberOfWrites = 10;
+        const numberOfWrites = 1;
         const writePromises = [];
         const primaryKeys = [];
         for (let i = 0; i < numberOfWrites; i++) {
