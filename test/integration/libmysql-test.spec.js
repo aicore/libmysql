@@ -120,7 +120,19 @@ describe('Integration: libMySql', function () {
         putReturns.forEach(returns => {
             expect(returns).to.eql(true);
         });
-        console.log(`writes executed successfully ${JSON.stringify(putReturns)}`);
+        const readPromises = [];
+        for (let i = 0; i < numberOfWrites; i++) {
+            let readPromise = get(tableName, nameOfPrimaryKey, primaryKeys[i], nameOfJsonColumn);
+            readPromises.push(readPromise);
+        }
+        const getReturns = await Promise.all(readPromises);
+        expect(getReturns.length).to.eql(numberOfWrites);
+        console.log((`${JSON.stringify(valueOfJson)}`));
+        console.log(`********************************************`);
+        getReturns.forEach(value => {
+            console.log(`${JSON.stringify(value)}`);
+            expect(JSON.stringify(value) === JSON.stringify(valueOfJson)).to.eql(true);
+        });
 
     });
 
