@@ -46,7 +46,6 @@ describe('Integration: libMySql', function () {
         };
         await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        console.log(`${JSON.stringify(getReturn)}`);
         const results = getReturn;
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
@@ -60,5 +59,17 @@ describe('Integration: libMySql', function () {
         const primaryKey = 'raj';
         const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(isObjectEmpty(getReturn)).to.eql(true);
+    });
+    it('get should return empty if table is wrong  present', async function () {
+        try {
+            const tableName = 'abc';
+            const nameOfPrimaryKey = 'name';
+            const nameOfJsonColumn = 'details';
+            const primaryKey = 'raj';
+            const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            expect(isObjectEmpty(getReturn)).to.eql(true);
+        } catch (e) {
+            console.log(`${JSON.stringify(e)}`);
+        }
     });
 });
