@@ -46,8 +46,7 @@ describe('Integration: libMySql', function () {
             'active': true
         };
         await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
-        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        const results = getReturn;
+        const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
@@ -111,11 +110,16 @@ describe('Integration: libMySql', function () {
         const primaryKeys = [];
         for (let i = 0; i < numberOfWrites; i++) {
             let primaryKey = crypto.randomBytes(4).toString('hex');
-            let retPromise = put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            let retPromise = put(tableName, nameOfPrimaryKey,
+                primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
             writePromises.push(retPromise);
             primaryKeys.push(primaryKey);
         }
         const putReturns = await Promise.all(writePromises);
+        expect(putReturns.length).to.eql(numberOfWrites);
+        putReturns.forEach(returns => {
+            expect(returns).to.eql(true);
+        });
         console.log(`writes executed successfully ${JSON.stringify(putReturns)}`);
 
     });
