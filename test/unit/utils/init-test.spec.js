@@ -1,9 +1,10 @@
 /*global describe, it, before, beforeEach*/
+import mockedFunctions from '../setup-mocks.js';
 import {close, init} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 import chai from "chai";
 let expect = chai.expect;
-describe('int test', function () {
+describe('init test', function () {
     before(function () {
         close();
     });
@@ -87,7 +88,6 @@ describe('int test', function () {
             const config = getMySqlConfigs();
             init(config);
         } catch (e) {
-            console.log(e.toString());
             exceptionOccurred = true;
         }
         expect(exceptionOccurred).to.eql(false);
