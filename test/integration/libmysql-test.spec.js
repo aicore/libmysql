@@ -76,7 +76,7 @@ describe('Integration: libMySql', function () {
         expect(exceptionOccurred).to.eql(true);
     });
 
-    it('put  should throw exception table is not present', async function () {
+    it('put should throw exception table is not present', async function () {
         let exceptionOccurred = false;
         try {
             const tableName = 'abc';
@@ -91,7 +91,6 @@ describe('Integration: libMySql', function () {
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         } catch (e) {
             exceptionOccurred = true;
-            console.log(`${JSON.stringify(e)}`);
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
         }
         expect(exceptionOccurred).to.eql(true);
