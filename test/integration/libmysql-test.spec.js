@@ -17,7 +17,7 @@
 import * as assert from 'assert';
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {createTable} from "../../src/index.js";
+import {createTable, get, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 
 
@@ -34,8 +34,24 @@ describe('Integration: libMySql', function () {
             const configs = await getMySqlConfigs();
             console.log(`${JSON.stringify(configs)}`);
             init(configs);
+            const tableName = 'customer';
+            const nameOfPrimaryKey = 'name';
+            const nameOfJsonColoumn = 'details';
 
-            const result = await createTable('customer', 'id', 'details');
+            const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColoumn);
+            console.log(`createTable ${JSON.stringify(result)}`);
+            const primaryKey = 'bob';
+            const valueOfJsonColoumn = {
+                'lastName': 'Alics',
+                'Age': 100,
+                'active': true
+            };
+            const putReturn = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn, valueOfJsonColoumn);
+            console.log(`Put return ${JSON.stringify(putReturn)}`);
+
+            const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn);
+            console.log(`get return ${JSON.stringify(getReturn)}`);
+
             console.log(`${JSON.stringify(result)}`);
         } catch (e) {
             console.log(`printing stack trace ${e.stack}`);
