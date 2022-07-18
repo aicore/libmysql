@@ -48,8 +48,12 @@ describe('Integration: libMySql', function () {
             };
             const putReturn = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn, JSON.stringify(valueOfJsonColoumn));
             console.log(`Put return ${JSON.stringify(putReturn)}`);
-
             const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn);
+            const results = getReturn.results[0].details;
+            expect(results.lastName).to.eql(valueOfJsonColoumn.lastName);
+            expect(results.Age).to.eql(valueOfJsonColoumn.Age);
+            expect(results.active).to.eql(valueOfJsonColoumn.active);
+
             console.log(`get return ${JSON.stringify(getReturn)}`);
         } catch (e) {
             console.log(`printing stack trace ${JSON.stringify(e)}`);
