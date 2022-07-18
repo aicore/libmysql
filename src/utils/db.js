@@ -68,17 +68,6 @@ function _isValidJsonValue(value) {
     }
 }
 
-function _handleSqlQueryResponse(resolve, reject, err, results, fields) {
-    if (err) {
-        reject(err);
-        return false;
-    }
-    resolve({
-        results: results, fields: fields
-    });
-    return true;
-}
-
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -104,9 +93,14 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
                                         (${nameOfPrimaryKey} VARCHAR(${SIZE_OF_PRIMARY_KEY}) NOT NULL PRIMARY KEY, 
                                         ${nameOfJsonColumn} JSON NOT NULL)`;
             CONNECTION.execute(createTableSql,
-                function (err, results, fields) {
+                function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
-                    _handleSqlQueryResponse(resolve, reject, err, results, fields);
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+
                 });
         } catch (e) {
             const errorMessage = `execution occurred while creating table ${e.stack}`;
@@ -150,9 +144,13 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
                                     values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
         try {
             CONNECTION.execute(updateQuery, [primaryKey, valueForJsonColumn, JSON.stringify(valueForJsonColumn)],
-                function (err, results, fields) {
+                function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
-                    _handleSqlQueryResponse(resolve, reject, err, results, fields);
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while writing to database ${e.stack}`;
@@ -192,9 +190,18 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
         try {
             const getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE ${nameOfPrimaryKey} = ?`;
             CONNECTION.execute(getQuery, [primaryKey],
-                function (err, results, fields) {
+                function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
-                    _handleSqlQueryResponse(resolve, reject, err, results, fields);
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    if (results.details && results.details.length > 0) {
+                        resolve(results.details[0]);
+                        return;
+                    }
+                    resolve({});
+
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;

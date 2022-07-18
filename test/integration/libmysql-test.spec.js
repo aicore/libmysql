@@ -34,21 +34,26 @@ describe('Integration: libMySql', function () {
 
     it('should create table add data and get data', async function () {
 
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
-        await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-        const primaryKey = 'bob';
-        const valueOfJson = {
-            'lastName': 'Alice',
-            'Age': 100,
-            'active': true
-        };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
-        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        const results = getReturn.results[0].details;
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+        try {
+            const tableName = 'customer';
+            const nameOfPrimaryKey = 'name';
+            const nameOfJsonColumn = 'details';
+            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            const primaryKey = 'bob';
+            const valueOfJson = {
+                'lastName': 'Alice',
+                'Age': 100,
+                'active': true
+            };
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            console.log(`${JSON.stringify(getReturn)}`);
+            const results = getReturn;
+            expect(results.lastName).to.eql(valueOfJson.lastName);
+            expect(results.Age).to.eql(valueOfJson.Age);
+            expect(results.active).to.eql(valueOfJson.active);
+        } catch (e) {
+            console.log(`${JSON.stringify(e)}`);
+        }
     });
 });
