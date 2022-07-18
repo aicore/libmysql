@@ -91,6 +91,7 @@ describe('Integration: libMySql', function () {
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         } catch (e) {
             exceptionOccurred = true;
+            console.log(`${JSON.stringify(e)}`);
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
         }
         expect(exceptionOccurred).to.eql(true);
