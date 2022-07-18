@@ -133,7 +133,46 @@ describe('Integration: libMySql', function () {
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
         });
+    });
 
+    it('10000 writes followed by read', async function () {
+        const tableName = 'customer';
+        const nameOfPrimaryKey = 'name';
+        const nameOfJsonColumn = 'details';
+        // const primaryKey = 'bob';
+        const valueOfJson = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        const numberOfWrites = 10000;
+        const writePromises = [];
+        const primaryKeys = [];
+        for (let i = 0; i < numberOfWrites; i++) {
+            let primaryKey = crypto.randomBytes(4).toString('hex');
+            let retPromise = put(tableName, nameOfPrimaryKey,
+                primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            writePromises.push(retPromise);
+            primaryKeys.push(primaryKey);
+        }
+        const putReturns = await Promise.all(writePromises);
+        expect(putReturns.length).to.eql(numberOfWrites);
+        putReturns.forEach(returns => {
+            expect(returns).to.eql(true);
+        });
+        const readPromises = [];
+        for (let i = 0; i < numberOfWrites; i++) {
+            let readPromise = get(tableName, nameOfPrimaryKey, primaryKeys[i], nameOfJsonColumn);
+            readPromises.push(readPromise);
+        }
+        const getReturns = await Promise.all(readPromises);
+        expect(getReturns.length).to.eql(numberOfWrites);
+        console.log((`${JSON.stringify(valueOfJson)}`));
+        getReturns.forEach(results => {
+            expect(results.lastName).to.eql(valueOfJson.lastName);
+            expect(results.Age).to.eql(valueOfJson.Age);
+            expect(results.active).to.eql(valueOfJson.active);
+        });
     });
 
 });
