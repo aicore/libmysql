@@ -101,8 +101,11 @@ describe('Integration: libMySql', function () {
 
     it('1000 writes followed by read', async function () {
         await testReadWrite(1000);
-
     });
+    it('5000 writes followed by read', async function () {
+        await testReadWrite(5000);
+    });
+
 
 });
 
@@ -116,7 +119,6 @@ async function testReadWrite(numberOfWrites) {
         'Age': 100,
         'active': true
     };
-
     const writePromises = [];
     const primaryKeys = [];
     for (let i = 0; i < numberOfWrites; i++) {
