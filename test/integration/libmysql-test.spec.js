@@ -22,7 +22,6 @@ import {init, close} from "../../src/utils/db.js";
 let expect = chai.expect;
 
 describe('Integration: libMySql', function () {
-
     after(function () {
         close();
     });
@@ -33,7 +32,7 @@ describe('Integration: libMySql', function () {
 
     });
 
-    it('should create table', async function () {
+    it('should create table add data and get data', async function () {
 
         const tableName = 'customer';
         const nameOfPrimaryKey = 'name';
