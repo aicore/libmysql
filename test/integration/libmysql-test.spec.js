@@ -128,9 +128,7 @@ describe('Integration: libMySql', function () {
         const getReturns = await Promise.all(readPromises);
         expect(getReturns.length).to.eql(numberOfWrites);
         console.log((`${JSON.stringify(valueOfJson)}`));
-        console.log(`********************************************`);
         getReturns.forEach(results => {
-            console.log(`${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
