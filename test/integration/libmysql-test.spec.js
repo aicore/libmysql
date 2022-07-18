@@ -46,7 +46,7 @@ describe('Integration: libMySql', function () {
                 'Age': 100,
                 'active': true
             };
-            const putReturn = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn, valueOfJsonColoumn);
+            const putReturn = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn, JSON.stringify(valueOfJsonColoumn));
             console.log(`Put return ${JSON.stringify(putReturn)}`);
 
             const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColoumn);
