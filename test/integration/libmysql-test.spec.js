@@ -35,7 +35,7 @@ describe('Integration: libMySql', function () {
 
     });
 
-   it('should create table add data and get data', async function () {
+    it('should create table add data and get data', async function () {
         const tableName = 'customer';
         const nameOfPrimaryKey = 'name';
         const nameOfJsonColumn = 'details';
@@ -46,77 +46,77 @@ describe('Integration: libMySql', function () {
             'Age': 100,
             'active': true
         };
-  /*      await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         console.log(`put get  ****************************${JSON.stringify(results)}`);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
 
-    */});
-   /*
-    it('get should return empty if data not present', async function () {
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
-        const primaryKey = 'raj';
-        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        expect(isObjectEmpty(getReturn)).to.eql(true);
     });
-    it('get should throw exception table is not present', async function () {
-        let exceptionOccurred = false;
-        try {
-            const tableName = 'abc';
-            const nameOfPrimaryKey = 'name';
-            const nameOfJsonColumn = 'details';
-            const primaryKey = 'raj';
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+    /*
+     it('get should return empty if data not present', async function () {
+         const tableName = 'customer';
+         const nameOfPrimaryKey = 'name';
+         const nameOfJsonColumn = 'details';
+         const primaryKey = 'raj';
+         const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+         expect(isObjectEmpty(getReturn)).to.eql(true);
+     });
+     it('get should throw exception table is not present', async function () {
+         let exceptionOccurred = false;
+         try {
+             const tableName = 'abc';
+             const nameOfPrimaryKey = 'name';
+             const nameOfJsonColumn = 'details';
+             const primaryKey = 'raj';
+             await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
 
-        } catch (e) {
-            exceptionOccurred = true;
-            expect(e.code).to.eql('ER_NO_SUCH_TABLE');
-        }
-        expect(exceptionOccurred).to.eql(true);
-    });
+         } catch (e) {
+             exceptionOccurred = true;
+             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
+         }
+         expect(exceptionOccurred).to.eql(true);
+     });
 
-    it('put should throw exception table is not present', async function () {
-        let exceptionOccurred = false;
-        try {
-            const tableName = 'abc';
-            const nameOfPrimaryKey = 'name';
-            const nameOfJsonColumn = 'details';
-            const primaryKey = 'bob';
-            const valueOfJson = {
-                'lastName': 'Alice',
-                'Age': 100,
-                'active': true
-            };
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
-        } catch (e) {
-            exceptionOccurred = true;
-            expect(e.code).to.eql('ER_NO_SUCH_TABLE');
-        }
-        expect(exceptionOccurred).to.eql(true);
-    });
-    it('100 writes followed by read', async function () {
-        await testReadWrite(100);
-    });
+     it('put should throw exception table is not present', async function () {
+         let exceptionOccurred = false;
+         try {
+             const tableName = 'abc';
+             const nameOfPrimaryKey = 'name';
+             const nameOfJsonColumn = 'details';
+             const primaryKey = 'bob';
+             const valueOfJson = {
+                 'lastName': 'Alice',
+                 'Age': 100,
+                 'active': true
+             };
+             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+         } catch (e) {
+             exceptionOccurred = true;
+             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
+         }
+         expect(exceptionOccurred).to.eql(true);
+     });
+     it('100 writes followed by read', async function () {
+         await testReadWrite(100);
+     });
 
-    it('1000 writes followed by read', async function () {
-        await testReadWrite(1000);
-    });
-    it('1500 writes followed by read', async function () {
-        await testReadWrite(1500);
-    });
+     it('1000 writes followed by read', async function () {
+         await testReadWrite(1000);
+     });
+     it('1500 writes followed by read', async function () {
+         await testReadWrite(1500);
+     });
 
-   */
+    */
 
     it('should be able to update data', async function () {
         try {
             const tableName = 'customer';
             const nameOfPrimaryKey = 'name';
             const nameOfJsonColumn = 'details';
-            const primaryKey = 'bob1';
+            const primaryKey = 'bob';
             let valueOfJson = {
                 'lastName': 'Alice',
                 'Age': 100,
