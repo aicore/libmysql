@@ -1185,7 +1185,8 @@ describe('Unit tests for db.js', function () {
         const nameOfPrimaryKey = 'id';
         const nameOfJsonColumn = 'customer_data';
         const primaryKey = '100';
-        const result = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const resultJson = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const result = JSON.parse(resultJson);
         expect(result.customerData).to.eql('bob');
         mockedFunctions.connection.execute = saveExecute;
     });

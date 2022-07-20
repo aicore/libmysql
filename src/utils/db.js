@@ -199,7 +199,7 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
                         return;
                     }
                     if (results && results.length > 0) {
-                        resolve(results[0][nameOfJsonColumn]);
+                        resolve(JSON.stringify(results[0][nameOfJsonColumn]));
                         return;
                     }
                     resolve({});
