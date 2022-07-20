@@ -35,7 +35,7 @@ describe('Integration: libMySql', function () {
 
     });
 
-  /*  it('should create table add data and get data', async function () {
+   it('should create table add data and get data', async function () {
         const tableName = 'customer';
         const nameOfPrimaryKey = 'name';
         const nameOfJsonColumn = 'details';
@@ -46,14 +46,15 @@ describe('Integration: libMySql', function () {
             'Age': 100,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+  /*      await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         console.log(`put get  ****************************${JSON.stringify(results)}`);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
 
-    });
+    */});
+   /*
     it('get should return empty if data not present', async function () {
         const tableName = 'customer';
         const nameOfPrimaryKey = 'name';
