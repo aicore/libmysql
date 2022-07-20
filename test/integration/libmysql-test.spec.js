@@ -125,6 +125,7 @@ describe('Integration: libMySql', function () {
             let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
             let results = JSON.parse(results1);
             console.log(`1 ****************************${JSON.stringify(results)}`);
+            console.log(`${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
