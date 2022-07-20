@@ -106,7 +106,33 @@ describe('Integration: libMySql', function () {
         await testReadWrite(1500);
     });
 
+    it('should be able to update data', async function () {
+        const tableName = 'customer';
+        const nameOfPrimaryKey = 'name';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = 'bob';
+        let valueOfJson = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        let results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        expect(results.lastName).to.eql(valueOfJson.lastName);
+        expect(results.Age).to.eql(valueOfJson.Age);
+        expect(results.active).to.eql(valueOfJson.active);
 
+        valueOfJson = {
+            'lastName': 'Alice',
+            'Age': 140,
+            'active': true
+        };
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        expect(results.lastName).to.eql(valueOfJson.lastName);
+        expect(results.Age).to.eql(valueOfJson.Age);
+        expect(results.active).to.eql(valueOfJson.active);
+    });
 });
 
 async function testReadWrite(numberOfWrites) {
