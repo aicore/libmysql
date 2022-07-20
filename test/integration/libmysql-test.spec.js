@@ -115,7 +115,7 @@ describe('Integration: libMySql', function () {
             const tableName = 'customer';
             const nameOfPrimaryKey = 'name';
             const nameOfJsonColumn = 'details';
-            const primaryKey = 'bob';
+            const primaryKey = 'bob1';
             let valueOfJson = {
                 'lastName': 'Alice',
                 'Age': 100,
@@ -131,7 +131,7 @@ describe('Integration: libMySql', function () {
             expect(results.active).to.eql(valueOfJson.active);
 
             valueOfJson = {
-                'lastName': 'Alice',
+                'lastName': 'Alice1',
                 'Age': 140,
                 'active': true
             };
