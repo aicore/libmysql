@@ -122,6 +122,7 @@ describe('Integration: libMySql', function () {
             };
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
             let results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            console.log(`1 ****************************${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
@@ -133,7 +134,7 @@ describe('Integration: libMySql', function () {
             };
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
             results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-            console.log(`****************************${JSON.stringify(results)}`);
+            console.log(`2 ****************************${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
