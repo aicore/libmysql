@@ -48,6 +48,7 @@ describe('Integration: libMySql', function () {
         };
         await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
         const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        console.log(`put get  ****************************${JSON.stringify(results)}`);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
@@ -121,7 +122,8 @@ describe('Integration: libMySql', function () {
                 'active': true
             };
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
-            let results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            let results = JSON.parse(results1);
             console.log(`1 ****************************${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
@@ -133,7 +135,8 @@ describe('Integration: libMySql', function () {
                 'active': true
             };
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
-            results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            results = JSON.parse(results2);
             console.log(`2 ****************************${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
