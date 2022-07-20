@@ -35,7 +35,7 @@ describe('Integration: libMySql', function () {
 
     });
 
-    it('should create table add data and get data', async function () {
+  /*  it('should create table add data and get data', async function () {
         const tableName = 'customer';
         const nameOfPrimaryKey = 'name';
         const nameOfJsonColumn = 'details';
@@ -108,10 +108,10 @@ describe('Integration: libMySql', function () {
         await testReadWrite(1500);
     });
 
+   */
+
     it('should be able to update data', async function () {
         try {
-
-
             const tableName = 'customer';
             const nameOfPrimaryKey = 'name';
             const nameOfJsonColumn = 'details';
@@ -124,7 +124,7 @@ describe('Integration: libMySql', function () {
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
             let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
             let results = JSON.parse(results1);
-            console.log(`1 ****************************${JSON.stringify(results)}`);
+            console.log(`1 ****************************${JSON.stringify(results1)}`);
             console.log(`${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
@@ -138,7 +138,8 @@ describe('Integration: libMySql', function () {
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
             let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
             results = JSON.parse(results2);
-            console.log(`2 ****************************${JSON.stringify(results)}`);
+            console.log(`2 ****************************${JSON.stringify(results2)}`);
+            console.log(`${JSON.stringify(results)}`);
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);

@@ -144,7 +144,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
         const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
                                     values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
         try {
-            CONNECTION.execute(updateQuery, [primaryKey, valueForJsonColumn, JSON.stringify(valueForJsonColumn)],
+            CONNECTION.execute(updateQuery, [primaryKey, valueForJsonColumn, valueForJsonColumn],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -199,7 +199,7 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
                         return;
                     }
                     if (results && results.length > 0) {
-                        resolve(JSON.stringify(results[0][nameOfJsonColumn]));
+                        resolve(results[0][nameOfJsonColumn]);
                         return;
                     }
                     resolve({});
