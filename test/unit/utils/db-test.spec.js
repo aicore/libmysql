@@ -1179,13 +1179,14 @@ describe('Unit tests for db.js', function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null,
-                [{'customer_data':{customerData: 'bob'}}], []);
+                [{'customer_data':JSON.stringify({customerData: 'bob'})}], []);
         };
         const tableName = 'users';
         const nameOfPrimaryKey = 'id';
         const nameOfJsonColumn = 'customer_data';
         const primaryKey = '100';
-        const result = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const resultJson = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const result = JSON.parse(resultJson);
         expect(result.customerData).to.eql('bob');
         mockedFunctions.connection.execute = saveExecute;
     });
