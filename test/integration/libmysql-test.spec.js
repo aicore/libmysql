@@ -109,33 +109,40 @@ describe('Integration: libMySql', function () {
 
     it('should be able to update data', async function () {
 
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
-        const primaryKey = 'bob';
-        let valueOfJson = {
-            'lastName': 'Alice',
-            'Age': 100,
-            'active': true
-        };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
-        let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        let results = JSON.parse(results1);
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+        try {
 
-        valueOfJson = {
-            'lastName': 'Alice1',
-            'Age': 140,
-            'active': true
-        };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
-        let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        results = JSON.parse(results2);
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+
+            const tableName = 'customer';
+            const nameOfPrimaryKey = 'name';
+            const nameOfJsonColumn = 'details';
+            const primaryKey = 'bob';
+            let valueOfJson = {
+                'lastName': 'Alice',
+                'Age': 100,
+                'active': true
+            };
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+            let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            console.log(`${results1.toString()}`);
+            let results = JSON.parse(results1);
+            expect(results.lastName).to.eql(valueOfJson.lastName);
+            expect(results.Age).to.eql(valueOfJson.Age);
+            expect(results.active).to.eql(valueOfJson.active);
+
+            valueOfJson = {
+                'lastName': 'Alice1',
+                'Age': 140,
+                'active': true
+            };
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+            let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            results = JSON.parse(results2);
+            expect(results.lastName).to.eql(valueOfJson.lastName);
+            expect(results.Age).to.eql(valueOfJson.Age);
+            expect(results.active).to.eql(valueOfJson.active);
+        } catch (e) {
+            console.log(`${JSON.stringify(e)}`);
+        }
 
     });
 });
