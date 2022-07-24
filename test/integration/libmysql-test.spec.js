@@ -141,7 +141,7 @@ describe('Integration: libMySql', function () {
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
         } catch (e) {
-            console.log(`${JSON.stringify(e)}`);
+            console.log(`*********************************${JSON.stringify(e)}`);
         }
 
     });
