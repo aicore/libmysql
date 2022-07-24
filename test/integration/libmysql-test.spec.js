@@ -45,7 +45,7 @@ describe('Integration: libMySql', function () {
             'Age': 100,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
@@ -89,7 +89,7 @@ describe('Integration: libMySql', function () {
                 'Age': 100,
                 'active': true
             };
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
@@ -118,7 +118,7 @@ describe('Integration: libMySql', function () {
             'Age': 100,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         let results1 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         let results = JSON.parse(results1);
         expect(results.lastName).to.eql(valueOfJson.lastName);
@@ -130,7 +130,7 @@ describe('Integration: libMySql', function () {
             'Age': 140,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         results = JSON.parse(results2);
         expect(results.lastName).to.eql(valueOfJson.lastName);
@@ -155,7 +155,7 @@ async function testReadWrite(numberOfWrites) {
     for (let i = 0; i < numberOfWrites; i++) {
         let primaryKey = crypto.randomBytes(4).toString('hex');
         let retPromise = put(tableName, nameOfPrimaryKey,
-            primaryKey, nameOfJsonColumn, JSON.stringify(valueOfJson));
+            primaryKey, nameOfJsonColumn, valueOfJson);
         writePromises.push(retPromise);
         primaryKeys.push(primaryKey);
     }
