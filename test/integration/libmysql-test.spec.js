@@ -136,7 +136,7 @@ describe('Integration: libMySql', function () {
             };
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
             let results2 = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-            results = JSON.parse(results2);
+            results = results2;
             expect(results.lastName).to.eql(valueOfJson.lastName);
             expect(results.Age).to.eql(valueOfJson.Age);
             expect(results.active).to.eql(valueOfJson.active);
