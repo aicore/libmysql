@@ -578,7 +578,7 @@ describe('Unit tests for db.js', function () {
         const x = {
             id: 'abc'
         };
-        const valueForJsonColumn = JSON.stringify(x);
+        const valueForJsonColumn = x;
 
         const result = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
         expect(result).to.eql(true);
@@ -630,7 +630,7 @@ describe('Unit tests for db.js', function () {
         const nameOfPrimaryKey = 'bob';
         const nameOfJsonColumn = 'customer';
         const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{}';
+        const valueForJsonColumn = {};
         let isExceptionOccurred = false;
         try {
             await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);

@@ -60,12 +60,15 @@ function _isValidJsonValue(value) {
     if (!value) {
         return false;
     }
-    try {
+    return isObject(value);
+    /*try {
         JSON.parse(value);
         return true;
     } catch (e) {
         return false;
     }
+
+     */
 }
 
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
@@ -136,11 +139,13 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             return;
             //Todo: Emit metrics
         }
+
         if (!_isValidJsonValue(valueForJsonColumn)) {
             reject('Please provide valid JSON String column');
             return;
             //Todo: Emit metrics
         }
+
         const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
                                     values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
         try {
