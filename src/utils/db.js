@@ -56,18 +56,6 @@ function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
 }
 
-function _isValidJsonValue(value) {
-    if (!value) {
-        return false;
-    }
-    try {
-        JSON.parse(value);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -136,11 +124,13 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidJsonValue(valueForJsonColumn)) {
+
+        if (!isObject(valueForJsonColumn)) {
             reject('Please provide valid JSON String column');
             return;
             //Todo: Emit metrics
         }
+
         const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
                                     values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
         try {
@@ -159,8 +149,6 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             reject(errorMessage);
             //TODO: Emit Metrics
         }
-
-
     });
 }
 
