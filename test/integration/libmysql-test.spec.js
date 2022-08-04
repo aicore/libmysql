@@ -16,7 +16,7 @@
 
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {createTable, get, put} from "../../src/index.js";
+import {createTable, deleteKey, get, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
@@ -50,6 +50,11 @@ describe('Integration: libMySql', function () {
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
+        // delete key
+        await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        const deletedValue = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        expect(isObjectEmpty(deletedValue)).to.eql(true);
+
 
     });
 

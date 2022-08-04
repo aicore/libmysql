@@ -152,6 +152,47 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
     });
 }
 
+export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before deleteKey');
+        }
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
+            reject('please provide valid name for primary key');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidPrimaryKey(primaryKey)) {
+            reject('Please provide valid primary key');
+            return;
+            //Todo: Emit metrics
+        }
+
+        const deleteQuery = `DELETE FROM ${tableName} WHERE ${nameOfPrimaryKey}= ?;`;
+        try {
+            CONNECTION.execute(deleteQuery, [primaryKey],
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        console.error(`Error occurred while while put  ${JSON.stringify(err)}`);
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+                });
+        } catch (e) {
+            const errorMessage = `Exception occurred while deleting key ${primaryKey}  from database ${e.stack}`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+}
+
 export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {

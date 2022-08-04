@@ -48,6 +48,7 @@
   },
   "homepage": "https://github.com/aicore/template-nodejs#readme",
   "devDependencies": {
+    "@aicore/libtestutils": "1.0.13",
     "@commitlint/cli": "17.0.3",
     "@commitlint/config-conventional": "17.0.3",
     "c8": "7.12.0",
@@ -58,10 +59,10 @@
     "glob": "8.0.3",
     "husky": "8.0.1",
     "mocha": "10.0.0",
-    "@aicore/libtestutils": "1.0.13"
+    "nyc": "^15.1.0"
   },
   "dependencies": {
-    "mysql2": "^2.3.3",
-    "@aicore/libcommonutils": "1.0.11"
+    "@aicore/libcommonutils": "1.0.11",
+    "mysql2": "^2.3.3"
   }
 }
