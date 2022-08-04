@@ -1,7 +1,7 @@
 /*global describe, it, beforeEach*/
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
-import {createTable, get, put, init, close} from "../../../src/utils/db.js";
+import {createTable, get, put, init, close, deleteKey} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
@@ -1210,6 +1210,317 @@ describe('Unit tests for db.js', function () {
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail if connection not initialise', async function () {
+        close();
+        let exceptionOccurred = false;
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, {
+                ResultSetHeader: {
+                    fieldCount: 0,
+                    affectedRows: 0,
+                    insertId: 0,
+                    info: '',
+                    serverStatus: 2,
+                    warningStatus: 0
+                }
+            }, {});
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer';
+        const primaryKey = generateStringSequence('a', 255);
+        const x = {
+            id: 'abc'
+        };
+        const valueForJsonColumn = JSON.stringify(x);
+
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            exceptionOccurred = true;
+            expect(e.toString()).to.eql('Error: Please call init before deleteKey');
+        }
+        expect(exceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail for empty table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = '';
+        const nameOfPrimaryKey = 'test';
+        const nameOfJsonColumn = 'customer';
+        const primaryKey = '100';
+        const valueForJsonColumn = '{}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+    it('deleteKey should fail for null table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = null;
+        const nameOfPrimaryKey = 'abc';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail for number table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 1;
+        const nameOfPrimaryKey = 'abc';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('put should fail for boolean table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = true;
+        const nameOfPrimaryKey = 'abc';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('deleteKey should fail for null name of primary key', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = null;
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('deleteKey should fail for empty ans name of primary key', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = '';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail for number as primary key', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 10;
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail for number if name of primary key length greater than 64', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = generateAValidString(65);
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail for number if name of primary key contain non alphanumeric', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = generateStringSequence('a', 40);
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '100q';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should fail null primary key', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = null;
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('Please provide valid primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('deleteKey should fail empty primary key', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = '';
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('Please provide valid primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('deleteKey should fail if length of primary key is greater than 255', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer1';
+        const primaryKey = generateStringSequence('a', 256);
+        const valueForJsonColumn = '{x:[]}';
+        let isExceptionOccurred = false;
+        try {
+            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        } catch (e) {
+            expect(e).to.eql('Please provide valid primary key');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteKey should pass for valid parameters', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, {
+                ResultSetHeader: {
+                    fieldCount: 0,
+                    affectedRows: 0,
+                    insertId: 0,
+                    info: '',
+                    serverStatus: 2,
+                    warningStatus: 0
+                }
+            }, {});
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'customer';
+        const primaryKey = generateStringSequence('a', 255);
+        const x = {
+            id: 'abc'
+        };
+        const valueForJsonColumn = x;
+
+        const result = await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        expect(result).to.eql(true);
+
         mockedFunctions.connection.execute = saveExecute;
     });
 
