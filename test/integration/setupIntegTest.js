@@ -1,9 +1,20 @@
 import {setUpMySQL} from '@aicore/libtestutils';
 
 let config = null;
+/*config = {
+    'host': 'localhost',
+    'port': '3306',
+    'database': 'testdb',
+    'user': 'root',
+    'password': '1234'
+
+};*/
 
 async function _init() {
-    config = await setUpMySQL();
+    if (!config) {
+        config = await setUpMySQL();
+    }
+
     process.env.MY_SQL_SERVER = config.host;
     process.env.MY_SQL_SERVER_PORT = config.port;
     process.env.MY_SQL_SERVER_DB = config.database;
@@ -14,8 +25,6 @@ async function _init() {
 }
 
 export async function getMySqlConfigs() {
-    if (!config) {
-        await _init();
-    }
+    await _init();
     return config;
 }
