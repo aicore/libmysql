@@ -284,7 +284,6 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
         }
         try {
             const queryParams = _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject);
-            const getQuery = queryParams.getQuery;
             CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
                 function (err, results, _fields) {
                     console.log(JSON.stringify(results));
@@ -295,7 +294,7 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
                     }
                     if (results && results.length > 0) {
                         const retResults = [];
-                        for (const result of results){
+                        for (const result of results) {
                             retResults.push(result[nameOfJsonColumn]);
                         }
                         resolve(retResults);
