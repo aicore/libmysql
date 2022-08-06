@@ -16,7 +16,7 @@
 
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {createTable, deleteKey, get, put} from "../../src/index.js";
+import {createTable, deleteKey, get, getFromNonIndex, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
@@ -50,6 +50,10 @@ describe('Integration: libMySql', function () {
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
+        const resultNonIndex = await getFromNonIndex(tableName, nameOfJsonColumn, {
+            'lastName': 'Alice',
+            'Age': 100
+        });
         // delete key
         await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
         const deletedValue = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
@@ -102,15 +106,32 @@ describe('Integration: libMySql', function () {
         expect(exceptionOccurred).to.eql(true);
     });
     it('100 writes followed by read', async function () {
-        await testReadWrite(100);
+        const results = await testReadWrite(100);
+        await deleteData(results);
     });
 
     it('1000 writes followed by read', async function () {
-        await testReadWrite(1000);
+        const results = await testReadWrite(1000);
+        await deleteData(results);
     });
     it('1500 writes followed by read', async function () {
-        await testReadWrite(1500);
+        const results = await testReadWrite(1500);
+        await deleteData(results);
+
     });
+
+    async function deleteData(results) {
+        const deletePromises = [];
+        for (let i = 0; i < results.primaryKeys.length; i++) {
+            let deletePromise = deleteKey(results.tableName, results.nameOfPrimaryKey, results.primaryKeys[i]);
+            deletePromises.push(deletePromise);
+        }
+        const deleteReturns = await Promise.all(deletePromises);
+        expect(deleteReturns.length).to.eql(deletePromises.length);
+        for (let i = 0; i < results.primaryKeys.length; i++) {
+            expect(deleteReturns[i]).to.eql(true);
+        }
+    }
 
     it('should be able to update data', async function () {
 
@@ -140,7 +161,23 @@ describe('Integration: libMySql', function () {
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
 
+        await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
 
+    });
+    it('should be able to do scan and return results from database', async function () {
+        const numberOfEntries = 100;
+        const results = await testReadWrite(numberOfEntries);
+        const scanResults = await getFromNonIndex(results.tableName, results.nameOfJsonColumn, {
+            'lastName': 'Alice',
+            'Age': 100
+        });
+        expect(scanResults.length).to.eql(numberOfEntries);
+        for (let i = 0; i < scanResults.length; i++) {
+            expect(scanResults[i].Age).to.eql(100);
+            expect(scanResults[i].active).to.eql(true);
+            expect(scanResults[i].lastName).to.eql('Alice');
+        }
+        await deleteData(results);
     });
 });
 
@@ -181,4 +218,11 @@ async function testReadWrite(numberOfWrites) {
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
     });
+    return {
+        'tableName': tableName,
+        'nameOfPrimaryKey': nameOfPrimaryKey,
+        'nameOfJsonColumn': nameOfJsonColumn,
+        'valueOfJson': valueOfJson,
+        'primaryKeys': primaryKeys
+    };
 }

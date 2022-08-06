@@ -15,4 +15,4 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
-export {createTable, get, put, deleteKey} from './utils/db.js';
+export {createTable, get, put, deleteKey, getFromNonIndex} from './utils/db.js';
