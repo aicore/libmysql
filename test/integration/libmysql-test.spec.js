@@ -212,7 +212,6 @@ async function testReadWrite(numberOfWrites) {
     }
     const getReturns = await Promise.all(readPromises);
     expect(getReturns.length).to.eql(numberOfWrites);
-    console.log((`${JSON.stringify(valueOfJson)}`));
     getReturns.forEach(results => {
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
