@@ -242,6 +242,27 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
     });
 }
 
+function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
+
+    let getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE `;
+    const valArray = [];
+    let numberOfEntries = Object.keys(queryObject).length;
+    for (const [key, value] of Object.entries(queryObject)) {
+        if (numberOfEntries > 1) {
+            getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ? and `;
+
+        } else {
+            getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ?`;
+        }
+        valArray.push(value);
+        numberOfEntries = numberOfEntries - 1;
+    }
+    return {
+        'getQuery': getQuery,
+        'valArray': valArray
+    };
+}
+
 export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -262,20 +283,9 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
             //Todo: Emit metrics
         }
         try {
-            let getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE `;
-            const valArray = [];
-            let numberOfEntries = Object.keys(queryObject).length;
-            for (const [key, value] of Object.entries(queryObject)) {
-                if (numberOfEntries > 1) {
-                    getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ? and `;
-
-                } else {
-                    getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ?`;
-                }
-                valArray.push(value);
-                numberOfEntries = numberOfEntries - 1;
-            }
-            CONNECTION.execute(getQuery, valArray,
+            const queryParams = _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject);
+            const getQuery = queryParams.getQuery;
+            CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
                 function (err, results, _fields) {
                     console.log(JSON.stringify(results));
                     //TODO: emit success or failure metrics based on return value
@@ -285,8 +295,8 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
                     }
                     if (results && results.length > 0) {
                         const retResults = [];
-                        for (let i = 0; i < results.length; i++) {
-                            retResults.push(results[i][nameOfJsonColumn]);
+                        for (const result of results){
+                            retResults.push(result[nameOfJsonColumn]);
                         }
                         resolve(retResults);
                         return;
