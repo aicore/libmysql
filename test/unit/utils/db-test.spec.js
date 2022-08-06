@@ -1,7 +1,7 @@
 /*global describe, it, beforeEach*/
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
-import {createTable, get, put, init, close, deleteKey} from "../../../src/utils/db.js";
+import {createTable, get, put, init, close, deleteKey, getFromNonIndex} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
@@ -1179,7 +1179,7 @@ describe('Unit tests for db.js', function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null,
-                [{'customer_data':JSON.stringify({customerData: 'bob'})}], []);
+                [{'customer_data': JSON.stringify({customerData: 'bob'})}], []);
         };
         const tableName = 'users';
         const nameOfPrimaryKey = 'id';
@@ -1524,5 +1524,229 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
 
+
+    it('getFromNonIndex should fail null query value', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, null);
+        } catch (e) {
+            expect(e).to.eql('please provide valid queryObject');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail String query value', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, 'hello');
+        } catch (e) {
+            expect(e).to.eql('please provide valid queryObject');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail boolean query value', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, true);
+        } catch (e) {
+            expect(e).to.eql('please provide valid queryObject');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail number query value', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, 10);
+        } catch (e) {
+            expect(e).to.eql('please provide valid queryObject');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('getFromNonIndex should fail invalid table Name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = '@';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail invalid nameOfJsonColumn', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'hello';
+        const nameOfJsonColumn = null;
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for json column');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+
+    it('getFromNonIndex should pass for valid parameters', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [{"details": {"Age": 100, "active": true, "lastName": "Alice"}}, {
+                "details": {
+                    "Age": 100,
+                    "active": true,
+                    "lastName": "Alice"
+                }
+            }], {});
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = generateStringSequence('a', 255);
+        const x = {
+            id: 'abc'
+        };
+        const valueForJsonColumn = x;
+
+        const result = await getFromNonIndex(tableName, nameOfJsonColumn, {
+            id: 'abc'
+        });
+        expect(result.length).to.eql(2);
+        for (let i = 0; i < result.length; i++) {
+            expect(result[i].Age).to.eql(100);
+            expect(result[i].active).to.eql(true);
+            expect(result[i].lastName).to.eql('Alice');
+        }
+
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should pass when empty string', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], {});
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = generateStringSequence('a', 255);
+
+        const result = await getFromNonIndex(tableName, nameOfJsonColumn, {
+            id: 'abc',
+            lastName: 'Alice'
+        });
+        expect(result.length).to.eql(0);
+
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail when exception occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            throw new Error('external');
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = generateStringSequence('a', 255);
+
+        let exceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, {
+                id: 'abc'
+            });
+        } catch (e) {
+            exceptionOccurred = true;
+
+        }
+
+        expect(exceptionOccurred).to.eql(true);
+
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('getFromNonIndex should fail if connection not initalized', async function () {
+        try {
+            close();
+            const tableName = '';
+            const nameOfPrimaryKey = 'id';
+            const nameOfJsonColumn = 'column';
+            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+
+        } catch (e) {
+            expect(e.toString()).to.eql('Error: Please call init before getFromNonIndex');
+        }
+    });
+
+    it('getFromNonIndex should fail when  error occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback({},[],{});
+
+        };
+        const tableName = 'hello';
+        const nameOfPrimaryKey = 'bob';
+        const nameOfJsonColumn = 'details';
+        const primaryKey = generateStringSequence('a', 255);
+
+        let exceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, {
+                id: 'abc'
+            });
+        } catch (e) {
+            exceptionOccurred = true;
+
+        }
+
+        expect(exceptionOccurred).to.eql(true);
+
+        mockedFunctions.connection.execute = saveExecute;
+    });
 
 });
