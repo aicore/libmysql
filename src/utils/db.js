@@ -286,7 +286,6 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
             const queryParams = _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject);
             CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
                 function (err, results, _fields) {
-                    console.log(JSON.stringify(results));
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
                         reject(err);
