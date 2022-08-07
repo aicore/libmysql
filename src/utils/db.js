@@ -324,7 +324,7 @@ export function deleteTable(tableName) {
         try {
             const deleteTableQuery = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
             CONNECTION.execute(deleteTableQuery,
-                function (err, results, _fields) {
+                function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
                         reject(err);
