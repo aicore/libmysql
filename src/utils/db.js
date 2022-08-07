@@ -179,7 +179,7 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while put  ${JSON.stringify(err)}`);
+                        console.error(`Error occurred while while delete key  ${JSON.stringify(err)}`);
                         reject(err);
                         return;
                     }
