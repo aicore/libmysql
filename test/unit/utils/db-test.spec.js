@@ -1,7 +1,7 @@
 /*global describe, it, beforeEach*/
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
-import {createTable, get, put, init, close, deleteKey, getFromNonIndex} from "../../../src/utils/db.js";
+import {createTable, get, put, init, close, deleteKey, getFromNonIndex, deleteTable} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
@@ -1605,7 +1605,9 @@ describe('Unit tests for db.js', function () {
         const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+            await getFromNonIndex(tableName, nameOfJsonColumn, {
+                id: 100
+            });
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -1613,6 +1615,24 @@ describe('Unit tests for db.js', function () {
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
+    it('getFromNonIndex should fail empty object', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = '@';
+        const nameOfJsonColumn = 'details';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+        } catch (e) {
+            expect(e).to.eql('please provide valid queryObject');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
 
     it('getFromNonIndex should fail invalid nameOfJsonColumn', async function () {
         const saveExecute = mockedFunctions.connection.execute;
@@ -1623,7 +1643,9 @@ describe('Unit tests for db.js', function () {
         const nameOfJsonColumn = null;
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+            await getFromNonIndex(tableName, nameOfJsonColumn, {
+                id: '10'
+            });
         } catch (e) {
             expect(e).to.eql('please provide valid name for json column');
             isExceptionOccurred = true;
@@ -1726,7 +1748,7 @@ describe('Unit tests for db.js', function () {
     it('getFromNonIndex should fail when  error occurs', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback({},[],{});
+            callback({}, [], {});
 
         };
         const tableName = 'hello';
@@ -1743,10 +1765,93 @@ describe('Unit tests for db.js', function () {
             exceptionOccurred = true;
 
         }
-
         expect(exceptionOccurred).to.eql(true);
-
         mockedFunctions.connection.execute = saveExecute;
     });
 
+    it('deleteTable should fail if connection not initialized', async function () {
+        try {
+            close();
+            const tableName = 'customer';
+
+            await deleteTable(tableName);
+
+        } catch (e) {
+            expect(e.toString()).to.eql('Error: Please call init before getFromNonIndex');
+        }
+    });
+
+    it('deleteTable should fail invalid table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+
+        };
+        const tableName = '@';
+
+        let exceptionOccurred = false;
+        try {
+            await deleteTable(tableName);
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            exceptionOccurred = true;
+        }
+        expect(exceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteTable should pass for valid table name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+
+        };
+        const tableName = 'hello';
+
+        let exceptionOccurred = false;
+        try {
+            const isSuccess = await deleteTable(tableName);
+            expect(isSuccess).to.eql(true);
+        } catch (e) {
+            exceptionOccurred = true;
+        }
+        expect(exceptionOccurred).to.eql(false);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteTable should fail if exception occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            throw new Error('exception occurred');
+
+        };
+        const tableName = 'hello';
+
+        let exceptionOccurred = false;
+        try {
+            const isSuccess = await deleteTable(tableName);
+        } catch (e) {
+            exceptionOccurred = true;
+        }
+        expect(exceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('deleteTable should fail if error occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback({}, [], []);
+
+        };
+        const tableName = 'hello';
+
+        let exceptionOccurred = false;
+        try {
+            const isSuccess = await deleteTable(tableName);
+        } catch (e) {
+            exceptionOccurred = true;
+        }
+        expect(exceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
 });
