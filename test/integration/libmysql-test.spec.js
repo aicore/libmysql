@@ -12,16 +12,20 @@
 
 // remove integration tests if you don't have them.
 // jshint ignore: start
-/*global describe, it, after, before*/
+/*global describe, it, after, before, beforeEach. afterEach */
 
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {createTable, deleteKey, get, getFromNonIndex, put} from "../../src/index.js";
+import {createTable, deleteKey, deleteTable, get, getFromNonIndex, put} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
 let expect = chai.expect;
+
+const tableName = 'customer';
+const nameOfPrimaryKey = 'name';
+const nameOfJsonColumn = 'details';
 
 describe('Integration: libMySql', function () {
     after(function () {
@@ -32,13 +36,18 @@ describe('Integration: libMySql', function () {
         console.log(`${JSON.stringify(configs)}`);
         init(configs);
 
+
+    });
+
+    beforeEach(async function () {
+
+        await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+    });
+    afterEach(async function () {
+        await deleteTable(tableName);
     });
 
     it('should create table add data and get data', async function () {
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
-        await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
         const primaryKey = 'bob';
         const valueOfJson = {
             'lastName': 'Alice',
@@ -63,9 +72,7 @@ describe('Integration: libMySql', function () {
     });
 
     it('get should return empty if data not present', async function () {
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
+
         const primaryKey = 'raj';
         const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
         expect(isObjectEmpty(getReturn)).to.eql(true);
@@ -73,11 +80,9 @@ describe('Integration: libMySql', function () {
     it('get should throw exception table is not present', async function () {
         let exceptionOccurred = false;
         try {
-            const tableName = 'abc';
-            const nameOfPrimaryKey = 'name';
-            const nameOfJsonColumn = 'details';
+
             const primaryKey = 'raj';
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get('HELLO', nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
 
         } catch (e) {
             exceptionOccurred = true;
@@ -89,16 +94,14 @@ describe('Integration: libMySql', function () {
     it('put should throw exception table is not present', async function () {
         let exceptionOccurred = false;
         try {
-            const tableName = 'abc';
-            const nameOfPrimaryKey = 'name';
-            const nameOfJsonColumn = 'details';
+
             const primaryKey = 'bob';
             const valueOfJson = {
                 'lastName': 'Alice',
                 'Age': 100,
                 'active': true
             };
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+            await put('hello', nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
@@ -135,9 +138,6 @@ describe('Integration: libMySql', function () {
 
     it('should be able to update data', async function () {
 
-        const tableName = 'customer';
-        const nameOfPrimaryKey = 'name';
-        const nameOfJsonColumn = 'details';
         const primaryKey = 'bob';
         let valueOfJson = {
             'lastName': 'Alice',
@@ -178,6 +178,12 @@ describe('Integration: libMySql', function () {
             expect(scanResults[i].lastName).to.eql('Alice');
         }
         await deleteData(results);
+    });
+
+    it('delete table should pass if table does not exit', async function () {
+        const isSuccess = await deleteTable('hello');
+        expect(isSuccess).to.eql(true);
+
     });
 });
 

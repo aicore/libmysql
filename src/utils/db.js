@@ -1,5 +1,5 @@
 import mysql from "mysql2";
-import {isObject, isString} from "@aicore/libcommonutils";
+import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 
 // @INCLUDE_IN_API_DOCS
 
@@ -268,7 +268,7 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
         if (!CONNECTION) {
             throw new Error('Please call init before getFromNonIndex');
         }
-        if (!isObject(queryObject)) {
+        if (!isObject(queryObject) || isObjectEmpty(queryObject)) {
             reject(`please provide valid queryObject`);
             return;
         }
@@ -307,4 +307,36 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
             //TODO: Emit Metrics
         }
     });
+}
+
+export function deleteTable(tableName) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before getFromNonIndex');
+        }
+
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+
+        try {
+            const deleteTableQuery = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
+            CONNECTION.execute(deleteTableQuery,
+                function (err, results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+                });
+        } catch (e) {
+            const errorMessage = `Exception occurred while getting data ${e.stack}`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+
 }
