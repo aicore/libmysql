@@ -284,23 +284,7 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
         }
         try {
             const queryParams = _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject);
-            CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
-                function (err, results, _fields) {
-                    //TODO: emit success or failure metrics based on return value
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    if (results && results.length > 0) {
-                        const retResults = [];
-                        for (const result of results) {
-                            retResults.push(result[nameOfJsonColumn]);
-                        }
-                        resolve(retResults);
-                        return;
-                    }
-                    resolve([]);
-                });
+            _queryIndex(queryParams, nameOfJsonColumn, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
             reject(errorMessage);
@@ -333,10 +317,165 @@ export function deleteTable(tableName) {
                     resolve(true);
                 });
         } catch (e) {
-            const errorMessage = `Exception occurred while getting data ${e.stack}`;
+            const errorMessage = `Exception occurred while getting data`;
             reject(errorMessage);
             //TODO: Emit Metrics
         }
     });
 
+}
+
+function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn) {
+
+    return `ALTER TABLE ${tableName} ADD COLUMN ${jsonField} ${dataTypeOfNewColumn}  GENERATED ALWAYS` +
+        ` AS (${nameOfJsonColumn}->>"$.${jsonField}");`;
+}
+
+function _buildCreateIndexQuery(tableName, nameOfJsonColumn, jsonField, isUnique) {
+    if (isUnique) {
+        return `CREATE UNIQUE INDEX  idx_${jsonField} ON ${tableName}(${jsonField});`;
+    }
+    return `CREATE INDEX  idx_${jsonField} ON ${tableName}(${jsonField});`;
+}
+
+/*
+    private function exporting this for testing
+ */
+export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonField, isUnique) {
+
+    try {
+        const indexQuery = _buildCreateIndexQuery(tableName, nameOfJsonColumn, jsonField, isUnique);
+        console.log(indexQuery);
+        CONNECTION.execute(indexQuery,
+            function (err, _results, _fields) {
+                //TODO: emit success or failure metrics based on return value
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(true);
+            });
+    } catch (e) {
+        const errorMessage = `Exception occurred while creating index for JSON field`;
+        reject(errorMessage);
+        //TODO: Emit Metrics
+    }
+}
+
+export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isUnique) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before createIndexForJsonField');
+        }
+
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(nameOfJsonColumn)) {
+            reject('please provide valid name for json column');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(jsonField)) {
+            reject('please provide valid name for json field');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!isString(dataTypeOfNewColumn)) {
+            reject('please provide valid  data type for json column');
+            return;
+        }
+
+        try {
+            const createColumnQuery = _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn);
+            CONNECTION.execute(createColumnQuery,
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    return _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonField, isUnique);
+                });
+        } catch (e) {
+            const errorMessage = `Exception occurred while creating column for JSON field`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+}
+
+function _prepareQueryOfIndexSearch(tableName, nameOfJsonColumn, queryObject) {
+    let getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE `;
+    const valArray = [];
+    let numberOfEntries = Object.keys(queryObject).length;
+    for (const [key, value] of Object.entries(queryObject)) {
+        if (numberOfEntries > 1) {
+            getQuery = getQuery + `${key} = ? and `;
+
+        } else {
+            getQuery = getQuery + `${key} = ?`;
+        }
+        valArray.push(value);
+        numberOfEntries = numberOfEntries - 1;
+
+    }
+    return {
+        'getQuery': getQuery,
+        'valArray': valArray
+    };
+}
+
+function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
+    CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
+        function (err, results, _fields) {
+            //TODO: emit success or failure metrics based on return value
+            if (err) {
+                reject(err);
+                return;
+            }
+            if (results && results.length > 0) {
+                const retResults = [];
+                for (const result of results) {
+                    retResults.push(result[nameOfJsonColumn]);
+                }
+                resolve(retResults);
+                return;
+            }
+            resolve([]);
+        });
+
+}
+
+export function getFromIndex(tableName, nameOfJsonColumn, queryObject) {
+
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            throw new Error('Please call init before findFromIndex');
+        }
+        if (!isObject(queryObject) || isObjectEmpty(queryObject)) {
+            reject(`please provide valid queryObject`);
+            return;
+        }
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidTableAttributes(nameOfJsonColumn)) {
+            reject('please provide valid name for json column');
+            return;
+            //Todo: Emit metrics
+        }
+        try {
+            const queryParams = _prepareQueryOfIndexSearch(tableName, nameOfJsonColumn, queryObject);
+            _queryIndex(queryParams, nameOfJsonColumn, resolve, reject);
+        } catch (e) {
+            const errorMessage = `Exception occurred while querying index`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
 }
