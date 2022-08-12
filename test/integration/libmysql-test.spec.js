@@ -16,7 +16,15 @@
 
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {createTable, deleteKey, deleteTable, get, getFromNonIndex, put} from "../../src/index.js";
+import {
+    createIndexForJsonField,
+    createTable,
+    deleteKey,
+    deleteTable, getFromIndex,
+    get,
+    getFromNonIndex,
+    put
+} from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
@@ -184,6 +192,25 @@ describe('Integration: libMySql', function () {
         const isSuccess = await deleteTable('hello');
         expect(isSuccess).to.eql(true);
 
+    });
+    it('create and validate Index should pass', async function () {
+        const numberOfEntries = 1000;
+        const results = await testReadWrite(numberOfEntries);
+        let isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'lastName', 'VARCHAR(50)', false);
+        expect(isSuccess).to.eql(true);
+        isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'Age', 'INT', false);
+        expect(isSuccess).to.eql(true);
+        const queryResults = await getFromIndex(tableName, nameOfJsonColumn, {
+            'lastName': 'Alice',
+            'Age': 100
+        });
+        expect(queryResults.length).to.eql(numberOfEntries);
+        queryResults.forEach(result => {
+            expect(result.lastName).to.eql('Alice');
+            expect(result.Age).to.eql(100);
+            expect(result.active).to.eql(true);
+        });
+        await deleteData(results);
     });
 });
 
