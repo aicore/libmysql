@@ -52,10 +52,18 @@ Returns **void**
 ## createTable
 
 This function helps to create a  table in database
+we have simplified our database schema, for us our database has only two columns
+
+1.  `primary key` column which is a varchar(255)
+2.  `json` column which stores values corresponding to primary key as `json`
+
+using this approach will simplify our database design by delegating the handling of semantics of data to application
+To speed up any query  we have provided an option to add secondary index for json fields using
+`createIndexForJsonField` api.
 
 ### How to use this function?.
 
-````javascript
+```javascript
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 const configs = getMySqlConfigs();
@@ -64,8 +72,7 @@ const tableName = 'customer';
 const nameOfPrimaryKey = 'name';
 const nameOfJsonColumn = 'details';
 await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-* ```
-````
+```
 
 ### Parameters
 
@@ -75,6 +82,20 @@ await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
 
 Returns **[Promise][3]** returns a `Promise` await on `Promise` to get status of `createTable`
 `on success` await will return `true`. `on failure` await will throw an `exception`.
+
+## put
+
+This function helps to put values to table
+
+### Parameters
+
+*   `tableName`  
+*   `nameOfPrimaryKey`  
+*   `primaryKey`  
+*   `nameOfJsonColumn`  
+*   `valueForJsonColumn`  
+
+Returns **[Promise][3]\<unknown>** 
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
