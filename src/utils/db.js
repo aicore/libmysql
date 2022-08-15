@@ -5,7 +5,45 @@ import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 
 let CONNECTION = null;
 
-//TODO: Add UT
+// @INCLUDE_IN_API_DOCS
+
+
+/** This function helps to initialize MySql Client
+ * This function should be called before calling any other functions in this library
+ *
+ * Best practice is to import @aicore/libcommonutils and call getMySqlConfigs() api to read values from
+ * environment variables
+ * ### Sample config
+ * ```json
+ *     {
+ *     "host": "localhost",
+ *     "port": "3306",
+ *     "database": "testdb",
+ *     "user" : "root",
+ *     "password": "1234"
+ *     }
+ *```
+ * ### Sample initialization code
+ * ```javascript
+ * // set  following  environment variables to access database securely
+ * // set MY_SQL_SERVER for mysql server
+ * // set MY_SQL_SERVER_PORT to set server port
+ * // set MY_SQL_SERVER_DB to set database
+ * // set MY_SQL_USER to specify database user
+ * // set MY_SQL_PASSWORD to set mysql password
+ *
+ * import {getMySqlConfigs} from "@aicore/libcommonutils";
+ *
+ * const configs = getMySqlConfigs();
+ * init(configs)
+ *
+ * ```
+ * @param {config} config -  config to configure MySQL
+ *
+ * @return {boolean}  true if connection is successful false otherwise
+ *
+ *
+ **/
 export function init(config) {
 
     if (!isObject(config)) {
@@ -30,7 +68,13 @@ export function init(config) {
         console.log(`${CONNECTION}`);
         throw  new Error('One connection is active please close it before reinitializing it');
     }
-    CONNECTION = mysql.createConnection(config);
+    try {
+        CONNECTION = mysql.createConnection(config);
+        return true;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
 }
 
 //TODO: Add UT
