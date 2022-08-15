@@ -212,6 +212,19 @@ describe('Integration: libMySql', function () {
         });
         await deleteData(results);
     });
+    it('create and validate Index return empty list if nothing matches', async function () {
+        const numberOfEntries = 1000;
+        let isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'lastName', 'VARCHAR(50)', false);
+        expect(isSuccess).to.eql(true);
+        isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'Age', 'INT', false);
+        expect(isSuccess).to.eql(true);
+        const queryResults = await getFromIndex(tableName, nameOfJsonColumn, {
+            'lastName': 'Alice',
+            'Age': 100
+        });
+        expect(queryResults.length).to.eql(0);
+
+    });
 });
 
 async function testReadWrite(numberOfWrites) {
