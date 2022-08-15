@@ -104,6 +104,13 @@ function _isValidPrimaryKey(key) {
 }
 
 /** This function helps to create a  table in database
+ * we have simplified our database schema, for us our database has only two columns
+ *  1. `primary key` column which is a varchar(255)
+ *  2. `json` column which stores values corresponding to primary key as `json`
+ * using this approach will simplify our database design by delegating the handling of semantics of data to application
+ * To speed up any query  we have provided an option to add secondary index for json fields using
+ * `createIndexForJsonField` api.
+ *
  * ### How to use this function?.
  * ```javascript
  * import {getMySqlConfigs} from "@aicore/libcommonutils";
@@ -114,7 +121,7 @@ function _isValidPrimaryKey(key) {
  * const nameOfPrimaryKey = 'name';
  * const nameOfJsonColumn = 'details';
  * await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
- * * ```
+ * ```
  *
  * @param {string} tableName  name of table to create
  * @param {string} nameOfPrimaryKey name of primary key
@@ -166,6 +173,15 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     });
 }
 
+/**
+ * This function helps to put values to table
+ * @param tableName
+ * @param nameOfPrimaryKey
+ * @param primaryKey
+ * @param nameOfJsonColumn
+ * @param valueForJsonColumn
+ * @return {Promise<unknown>}
+ */
 export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
