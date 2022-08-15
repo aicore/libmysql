@@ -104,11 +104,11 @@ function _isValidPrimaryKey(key) {
 }
 
 /** This function helps to create a  table in database
- * we have simplified our database schema, for us our database has only two columns
- *  1. `primary key` column which is a varchar(255)
- *  2. `json` column which stores values corresponding to primary key as `json`
- * using this approach will simplify our database design by delegating the handling of semantics of data to application
- * To speed up any query  we have provided an option to add secondary index for json fields using
+ * we have simplified our database schema, for us, our database has only two columns
+ *  1. `primary key` column, which is a varchar(255)
+ *  2. `JSON` column, which stores values corresponding to the primary key as `JSON`
+ * using this approach will simplify our database design by delegating the handling of the semantics of data to the application
+ * To speed up any query, we have provided an option to add a secondary index for JSON fields using
  * `createIndexForJsonField` api.
  *
  * ### How to use this function?.
@@ -173,14 +173,32 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     });
 }
 
+
 /**
- * This function helps to put values to table
- * @param tableName
- * @param nameOfPrimaryKey
- * @param primaryKey
- * @param nameOfJsonColumn
- * @param valueForJsonColumn
- * @return {Promise<unknown>}
+ * It takes a table name, a primary key, a json column name, and a json value, and inserts the json value into the json
+ * column. If the primary key already exists, it updates the json column with the new value
+ * ### Sample code
+ * ```javascript
+ * try {
+ *       const primaryKey = 'bob';
+ *       const valueOfJson = {
+ *           'lastName': 'Alice',
+ *           'Age': 100,
+ *           'active': true
+ *       };
+ *       await put('hello', nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+ *   } catch (e) {
+ *       console.error(JSON.stringify(e));
+ *  }
+ * ```
+ *
+ * @param {string} tableName - The name of the table in which you want to store the data.
+ * @param {string} nameOfPrimaryKey - The name of the primary key column in the table.
+ * @param {string} primaryKey - The primary key of the table.
+ * @param {string} nameOfJsonColumn - The name of the column in which you want to store the JSON string.
+ * @param {string} valueForJsonColumn - The JSON string that you want to store in the database.
+ * @returns {Promise} A promise on resolving the promise will return true it put is successful throws an exception
+ * otherwise
  */
 export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn) {
     return new Promise(function (resolve, reject) {
@@ -235,6 +253,27 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
     });
 }
 
+/**
+ * It deletes a row from the database based on the primary key
+ * ### Sample code
+ * ```javascript
+ * const tableName = 'customer';
+ * const nameOfPrimaryKey = 'name';
+ * const primaryKey = 'bob';
+ * try {
+ *    await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+ * } catch(e) {
+ *    console.error(JSON.stringify(e));
+ * }
+
+ * ```
+ *
+ * @param {string} tableName - The name of the table in which the key is to be deleted.
+ * @param {string} nameOfPrimaryKey - The name of the primary key in the table.
+ * @param {string} primaryKey - The primary key of the row you want to delete.
+ * @returns A promise `resolve` promise to get status of delete. promise will resolve to true
+ * for success and  throws an exception for failure.
+ */
 export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
