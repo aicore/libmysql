@@ -5,8 +5,8 @@
 This function helps to initialize MySql Client
 This function should be called before calling any other functions in this library
 
-Best practice is to import @aicore/libcommonutils and call getMySqlConfigs() api to read values from
-environment variables
+Best practice is to `import @aicore/libcommonutils` and call `getMySqlConfigs()` api to read values from of configs
+from environment variables.
 
 ### Sample config
 
@@ -26,7 +26,7 @@ environment variables
 // set  following  environment variables to access database securely
 // set MY_SQL_SERVER for mysql server
 // set MY_SQL_SERVER_PORT to set server port
-// set MY_SQL_SERVER_DB to set database
+// set MY_SQL_SERVER_DB to specify database where database operations are conducted
 // set MY_SQL_USER to specify database user
 // set MY_SQL_PASSWORD to set mysql password
 
@@ -43,4 +43,41 @@ init(configs)
 
 Returns **[boolean][1]** true if connection is successful false otherwise*
 
+## close
+
+This function helps to close the database connection
+
+Returns **void** 
+
+## createTable
+
+This function helps to create a  table in database
+
+### How to use this function?.
+
+````javascript
+import {getMySqlConfigs} from "@aicore/libcommonutils";
+
+const configs = getMySqlConfigs();
+init(configs)
+const tableName = 'customer';
+const nameOfPrimaryKey = 'name';
+const nameOfJsonColumn = 'details';
+await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+* ```
+````
+
+### Parameters
+
+*   `tableName` **[string][2]** name of table to create
+*   `nameOfPrimaryKey` **[string][2]** name of primary key
+*   `nameOfJsonColumn` **[string][2]** name of JsonColumn
+
+Returns **[Promise][3]** returns a `Promise` await on `Promise` to get status of `createTable`
+`on success` await will return `true`. `on failure` await will throw an `exception`.
+
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise

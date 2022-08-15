@@ -11,8 +11,8 @@ let CONNECTION = null;
 /** This function helps to initialize MySql Client
  * This function should be called before calling any other functions in this library
  *
- * Best practice is to import @aicore/libcommonutils and call getMySqlConfigs() api to read values from
- * environment variables
+ * Best practice is to `import @aicore/libcommonutils` and call `getMySqlConfigs()` api to read values from of configs
+ * from environment variables.
  * ### Sample config
  * ```json
  *     {
@@ -28,7 +28,7 @@ let CONNECTION = null;
  * // set  following  environment variables to access database securely
  * // set MY_SQL_SERVER for mysql server
  * // set MY_SQL_SERVER_PORT to set server port
- * // set MY_SQL_SERVER_DB to set database
+ * // set MY_SQL_SERVER_DB to specify database where database operations are conducted
  * // set MY_SQL_USER to specify database user
  * // set MY_SQL_PASSWORD to set mysql password
  *
@@ -77,7 +77,10 @@ export function init(config) {
     }
 }
 
-//TODO: Add UT
+/** This function helps to close the database connection
+ * @return {void}
+ *
+ */
 export function close() {
     if (!isObject(CONNECTION)) {
         return;
@@ -100,6 +103,26 @@ function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
 }
 
+/** This function helps to create a  table in database
+ * ### How to use this function?.
+ * ```javascript
+ * import {getMySqlConfigs} from "@aicore/libcommonutils";
+ *
+ * const configs = getMySqlConfigs();
+ * init(configs)
+ * const tableName = 'customer';
+ * const nameOfPrimaryKey = 'name';
+ * const nameOfJsonColumn = 'details';
+ * await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+ * * ```
+ *
+ * @param {string} tableName  name of table to create
+ * @param {string} nameOfPrimaryKey name of primary key
+ * @param {string} nameOfJsonColumn name of JsonColumn
+ * @return {Promise}  returns a `Promise` await on `Promise` to get status of `createTable`
+ * `on success` await will return `true`. `on failure` await will throw an `exception`.
+ *
+ */
 export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
