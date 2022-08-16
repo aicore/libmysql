@@ -8,19 +8,31 @@ This function should be called before calling any other functions in this librar
 Best practice is to `import @aicore/libcommonutils` and call `getMySqlConfigs()` api to read values from of configs
 from environment variables.
 
-### Sample config
+### Parameters
 
-```json
-    {
-    "host": "localhost",
-    "port": "3306",
-    "database": "testdb",
-    "user" : "root",
-    "password": "1234"
-    }
+*   `config` **[Object][1]** config to configure MySQL
+
+    *   `config.host` **[string][2]** mysql database hostname
+    *   `config.port` **[string][2]** port number of mysql db
+    *   `config.database` **[string][2]** name of database to connect
+    *   `config.user` **[string][2]** username of database
+    *   `config.password` **[string][2]** password of database username
+
+### Examples
+
+Sample config
+
+```javascript
+const config = {
+   "host": "localhost",
+   "port": "3306",
+   "database": "testdb",
+   "user" : "root",
+   "password": "1234"
+ };
 ```
 
-### Sample initialization code
+Sample initialization code
 
 ```javascript
 // set  following  environment variables to access database securely
@@ -34,14 +46,9 @@ import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 const configs = getMySqlConfigs();
 init(configs)
-
 ```
 
-### Parameters
-
-*   `config` **config** config to configure MySQL
-
-Returns **[boolean][1]** true if connection is successful false otherwise*
+Returns **[boolean][3]** true if connection is successful false otherwise*
 
 ## close
 
@@ -57,11 +64,19 @@ we have simplified our database schema, for us, our database has only two column
 1.  `primary key` column, which is a varchar(255)
 2.  `JSON` column, which stores values corresponding to the primary key as `JSON`
 
-using this approach will simplify our database design by delegating the handling of the semantics of data to the application
-To speed up any query, we have provided an option to add a secondary index for JSON fields using
-`createIndexForJsonField` api.
+using this approach will simplify our database design by delegating the handling of the semantics of
+data to the application.To speed up any query, we have provided an option to add a secondary index
+for JSON fields using `createIndexForJsonField` api.
 
-### How to use this function?.
+### Parameters
+
+*   `tableName` **[string][2]** name of table to create
+*   `nameOfPrimaryKey` **[string][2]** name of primary key
+*   `nameOfJsonColumn` **[string][2]** name of JsonColumn
+
+### Examples
+
+How to use this function?
 
 ```javascript
 import {getMySqlConfigs} from "@aicore/libcommonutils";
@@ -71,16 +86,14 @@ init(configs)
 const tableName = 'customer';
 const nameOfPrimaryKey = 'name';
 const nameOfJsonColumn = 'details';
-await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+try {
+  await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+} catch(e){
+    console.error(JSON.stringify(e));
+}
 ```
 
-### Parameters
-
-*   `tableName` **[string][2]** name of table to create
-*   `nameOfPrimaryKey` **[string][2]** name of primary key
-*   `nameOfJsonColumn` **[string][2]** name of JsonColumn
-
-Returns **[Promise][3]** returns a `Promise` await on `Promise` to get status of `createTable`
+Returns **[Promise][4]** returns a `Promise` await on `Promise` to get status of `createTable`
 `on success` await will return `true`. `on failure` await will throw an `exception`.
 
 ## put
@@ -88,7 +101,17 @@ Returns **[Promise][3]** returns a `Promise` await on `Promise` to get status of
 It takes a table name, a primary key, a json column name, and a json value, and inserts the json value into the json
 column. If the primary key already exists, it updates the json column with the new value
 
-### Sample code
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table in which you want to store the data.
+*   `nameOfPrimaryKey` **[string][2]** The name of the primary key column in the table.
+*   `primaryKey` **[string][2]** The primary key of the table.
+*   `nameOfJsonColumn` **[string][2]** The name of the column in which you want to store the JSON string.
+*   `valueForJsonColumn` **[string][2]** The JSON string that you want to store in the database.
+
+### Examples
+
+Sample code
 
 ```javascript
 try {
@@ -104,22 +127,22 @@ try {
  }
 ```
 
-### Parameters
-
-*   `tableName` **[string][2]** The name of the table in which you want to store the data.
-*   `nameOfPrimaryKey` **[string][2]** The name of the primary key column in the table.
-*   `primaryKey` **[string][2]** The primary key of the table.
-*   `nameOfJsonColumn` **[string][2]** The name of the column in which you want to store the JSON string.
-*   `valueForJsonColumn` **[string][2]** The JSON string that you want to store in the database.
-
-Returns **[Promise][3]** A promise on resolving the promise will return true it put is successful throws an exception
+Returns **[Promise][4]** A promise on resolving the promise will return true it put is successful throws an exception
 otherwise
 
 ## deleteKey
 
 It deletes a row from the database based on the primary key
 
-### Sample code
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table in which the key is to be deleted.
+*   `nameOfPrimaryKey` **[string][2]** The name of the primary key in the table.
+*   `primaryKey` **[string][2]** The primary key of the row you want to delete.
+
+### Examples
+
+Sample code
 
 ```javascript
 const tableName = 'customer';
@@ -130,20 +153,79 @@ try {
 } catch(e) {
    console.error(JSON.stringify(e));
 }
-
 ```
-
-### Parameters
-
-*   `tableName` **[string][2]** The name of the table in which the key is to be deleted.
-*   `nameOfPrimaryKey` **[string][2]** The name of the primary key in the table.
-*   `primaryKey` **[string][2]** The primary key of the row you want to delete.
 
 Returns **any** A promise `resolve` promise to get status of delete. promise will resolve to true
 for success and  throws an exception for failure.
 
-[1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+## get
+
+It takes in a table name, a primary key name, a primary key value, and a json column name, and returns a promise that
+resolves to the json column value
+
+### Parameters
+
+*   `tableName`  The name of the table in which the data is stored.
+*   `nameOfPrimaryKey`  The name of the primary key column in the table.
+*   `primaryKey`  The primary key of the row you want to get.
+*   `nameOfJsonColumn`  The name of the column in the table that contains the JSON data.
+
+Returns **any** A promise
+
+## getFromNonIndex
+
+It takes a table name, a column name, and a query object, and returns a promise that resolves to the result of a scan of
+the table
+
+### Parameters
+
+*   `tableName`  The name of the table you want to query.
+*   `nameOfJsonColumn`  The name of the column that contains the JSON data.
+*   `queryObject`  This is the object that you want to query.
+
+Returns **any** A promise
+
+## deleteTable
+
+It deletes a table from the database
+
+### Parameters
+
+*   `tableName`  The name of the table to be deleted.
+
+Returns **any** A promise that will resolve to true if the table is deleted, or reject with an error if the table is not
+deleted.
+
+## createIndexForJsonField
+
+It creates a new column in the table for the JSON field and then creates an index on that column
+
+### Parameters
+
+*   `tableName`  The name of the table in which you want to create the index.
+*   `nameOfJsonColumn`  The name of the JSON column in the table.
+*   `jsonField`  The name of the field in the JSON object that you want to index.
+*   `dataTypeOfNewColumn`  This is the data type of the new column that will be created.
+*   `isUnique`  If true, the index will be unique.
+
+Returns **any** A promise
+
+## getFromIndex
+
+It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
+
+### Parameters
+
+*   `tableName`  The name of the table in which the data is stored.
+*   `nameOfJsonColumn`  The name of the column in the table that contains the JSON data.
+*   `queryObject`  This is the object that you want to search for.
+
+Returns **any** A promise
+
+[1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
