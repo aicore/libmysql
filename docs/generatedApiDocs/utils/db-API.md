@@ -155,7 +155,7 @@ try {
 }
 ```
 
-Returns **any** A promise `resolve` promise to get status of delete. promise will resolve to true
+Returns **[Promise][4]** A promise `resolve` promise to get status of delete. promise will resolve to true
 for success and  throws an exception for failure.
 
 ## get
@@ -165,12 +165,29 @@ resolves to the json column value
 
 ### Parameters
 
-*   `tableName`  The name of the table in which the data is stored.
-*   `nameOfPrimaryKey`  The name of the primary key column in the table.
-*   `primaryKey`  The primary key of the row you want to get.
-*   `nameOfJsonColumn`  The name of the column in the table that contains the JSON data.
+*   `tableName` **[string][2]** The name of the table in which the data is stored.
+*   `nameOfPrimaryKey` **[string][2]** The name of the primary key column in the table.
+*   `primaryKey` **[string][2]** The primary key of the row you want to get.
+*   `nameOfJsonColumn` **[string][2]** The name of the column in the table that contains the JSON data.
 
-Returns **any** A promise
+### Examples
+
+sample code
+
+```javascript
+const tableName = 'customer';
+const nameOfPrimaryKey = 'name';
+const nameOfJsonColumn = 'details';
+const primaryKey = 'bob';
+try {
+    const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+    console.log(JSON.stringify(result));
+} catch(e){
+    console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][4]** A promise on resolve promise to get the value stored for primary key
 
 ## getFromNonIndex
 
@@ -179,11 +196,31 @@ the table
 
 ### Parameters
 
-*   `tableName`  The name of the table you want to query.
-*   `nameOfJsonColumn`  The name of the column that contains the JSON data.
-*   `queryObject`  This is the object that you want to query.
+*   `tableName` **[string][2]** The name of the table you want to query.
+*   `nameOfJsonColumn` **[string][2]** The name of the column that contains the JSON data.
+*   `queryObject` **[Object][1]** This is the object that you want to query.
 
-Returns **any** A promise
+### Examples
+
+sample code
+
+```javascript
+const tableName = 'customer';
+const nameOfJsonColumn = 'details';
+const queryObject = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+try {
+    const scanResults = await getFromNonIndex(tableName, nameOfJsonColumn, queryObject);
+    console.log(JSON.stringify(scanResults));
+} catch (e){
+    console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][4]** A promise; on promise resolution returns array of  matched object from json column. if there are
+no match returns empty array
 
 ## deleteTable
 
@@ -191,10 +228,23 @@ It deletes a table from the database
 
 ### Parameters
 
-*   `tableName`  The name of the table to be deleted.
+*   `tableName` **[string][2]** The name of the table to be deleted.
 
-Returns **any** A promise that will resolve to true if the table is deleted, or reject with an error if the table is not
-deleted.
+### Examples
+
+Sample code
+
+```javascript
+const tableName = 'customer';
+try{
+  await deleteTable(tableName);
+} catch(e){
+    console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][4]** A promise that will resolve to true if the table is deleted, or reject with an error
+if the table is not deleted.
 
 ## createIndexForJsonField
 
@@ -202,13 +252,37 @@ It creates a new column in the table for the JSON field and then creates an inde
 
 ### Parameters
 
-*   `tableName`  The name of the table in which you want to create the index.
-*   `nameOfJsonColumn`  The name of the JSON column in the table.
-*   `jsonField`  The name of the field in the JSON object that you want to index.
-*   `dataTypeOfNewColumn`  This is the data type of the new column that will be created.
-*   `isUnique`  If true, the index will be unique.
+*   `tableName` **[string][2]** The name of the table in which you want to create the index.
+*   `nameOfJsonColumn` **[string][2]** The name of the JSON column in the table.
+*   `jsonField` **[string][2]** The name of the field in the JSON object that you want to index.
+*   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column that will be created.
+    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][5] to know all supported data types
+*   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index.
 
-Returns **any** A promise
+### Examples
+
+Sample code
+
+```javascript
+const tableName = 'customer';
+const nameOfJsonColumn = 'customerDetails';
+let jsonfield = 'lastName';
+// supported data types can be found on https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+let dataTypeOfNewColumn = 'VARCHAR(50)';
+let isUnique = false;
+try{
+     await createIndexForJsonField(tableName, nameOfJsonColumn, jsonfield, dataTypeOfNewColumn, isUnique);
+     jsonfield = 'Age';
+     dataTypeOfNewColumn = 'INT';
+     isUnique = false;
+
+     await createIndexForJsonField(tableName, nameOfJsonColumn, jsonfield, dataTypeOfNewColumn, isUnique);
+} catch (e){
+     console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][4]** A promise
 
 ## getFromIndex
 
@@ -216,11 +290,31 @@ It takes a table name, a column name, and a query object, and returns a promise 
 
 ### Parameters
 
-*   `tableName`  The name of the table in which the data is stored.
-*   `nameOfJsonColumn`  The name of the column in the table that contains the JSON data.
-*   `queryObject`  This is the object that you want to search for.
+*   `tableName` **[string][2]** The name of the table in which the data is stored.
+*   `nameOfJsonColumn` **[string][2]** The name of the column in the table that contains the JSON data.
+*   `queryObject` **[Object][1]** This is the object that you want to search for.
 
-Returns **any** A promise
+### Examples
+
+Sample code
+
+```javascript
+const tableName = 'customer';
+const nameOfJsonColumn = 'customerDetails';
+const queryObject = {
+            'lastName': 'Alice',
+            'Age': 100
+            };
+try {
+     const queryResults = await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+     console.log(JSON.stringify(queryResults));
+} catch (e) {
+     console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][4]** A promise; on promise resolution returns array of matched  values in json column. if there are
+no matches returns empty array. if there are any errors will throw an exception
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
@@ -229,3 +323,5 @@ Returns **any** A promise
 [3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
 [4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+[5]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
