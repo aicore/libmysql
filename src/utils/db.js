@@ -276,7 +276,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
  * @param {string} tableName - The name of the table in which the key is to be deleted.
  * @param {string} nameOfPrimaryKey - The name of the primary key in the table.
  * @param {string} primaryKey - The primary key of the row you want to delete.
- * @returns A promise `resolve` promise to get status of delete. promise will resolve to true
+ * @returns {Promise}A promise `resolve` promise to get status of delete. promise will resolve to true
  * for success and  throws an exception for failure.
  */
 export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
@@ -323,11 +323,24 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
 /**
  * It takes in a table name, a primary key name, a primary key value, and a json column name, and returns a promise that
  * resolves to the json column value
- * @param tableName - The name of the table in which the data is stored.
- * @param nameOfPrimaryKey - The name of the primary key column in the table.
- * @param primaryKey - The primary key of the row you want to get.
- * @param nameOfJsonColumn - The name of the column in the table that contains the JSON data.
- * @returns A promise
+ * @example <caption> sample code </caption>
+ * const tableName = 'customer';
+ * const nameOfPrimaryKey = 'name';
+ * const nameOfJsonColumn = 'details';
+ * const primaryKey = 'bob';
+ * try {
+ *     const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+ *     console.log(JSON.stringify(result));
+ * } catch(e){
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ *
+ * @param {string} tableName - The name of the table in which the data is stored.
+ * @param {string} nameOfPrimaryKey - The name of the primary key column in the table.
+ * @param {string} primaryKey - The primary key of the row you want to get.
+ * @param {string} nameOfJsonColumn - The name of the column in the table that contains the JSON data.
+ * @returns {Promise} A promise on resolve promise to get the value stored for primary key
  */
 export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
@@ -402,10 +415,25 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
 /**
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to the result of a scan of
  * the table
- * @param tableName - The name of the table you want to query.
- * @param nameOfJsonColumn - The name of the column that contains the JSON data.
- * @param queryObject - This is the object that you want to query.
- * @returns A promise
+ * @example <caption> sample code </caption>
+ * const tableName = 'customer';
+ * const nameOfJsonColumn = 'details';
+ * const queryObject = {
+ *             'lastName': 'Alice',
+ *             'Age': 100
+ *         };
+ * try {
+ *     const scanResults = await getFromNonIndex(tableName, nameOfJsonColumn, queryObject);
+ *     console.log(JSON.stringify(scanResults));
+ * } catch (e){
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ * @param {string} tableName - The name of the table you want to query.
+ * @param {string}  nameOfJsonColumn - The name of the column that contains the JSON data.
+ * @param {Object} queryObject - This is the object that you want to query.
+ * @returns {Promise} - A promise; on promise resolution returns array of  matched object from json column. if there are
+ * no match returns empty array
  */
 export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
     return new Promise(function (resolve, reject) {
@@ -439,9 +467,17 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
 
 /**
  * It deletes a table from the database
- * @param tableName - The name of the table to be deleted.
- * @returns A promise that will resolve to true if the table is deleted, or reject with an error if the table is not
- * deleted.
+ * @example <caption> Sample code </caption>
+ * const tableName = 'customer';
+ * try{
+ *   await deleteTable(tableName);
+ * } catch(e){
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ * @param {string} tableName - The name of the table to be deleted.
+ * @returns {Promise} - A promise that will resolve to true if the table is deleted, or reject with an error
+ * if the table is not deleted.
  */
 export function deleteTable(tableName) {
     return new Promise(function (resolve, reject) {
@@ -514,12 +550,30 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 
 /**
  * It creates a new column in the table for the JSON field and then creates an index on that column
- * @param tableName - The name of the table in which you want to create the index.
- * @param nameOfJsonColumn - The name of the JSON column in the table.
- * @param jsonField - The name of the field in the JSON object that you want to index.
- * @param dataTypeOfNewColumn - This is the data type of the new column that will be created.
- * @param isUnique - If true, the index will be unique.
- * @returns A promise
+ * @example <caption> Sample code </caption>
+ * const tableName = 'customer';
+ * const nameOfJsonColumn = 'customerDetails';
+ * let jsonfield = 'lastName';
+ * // supported data types can be found on https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+ * let dataTypeOfNewColumn = 'VARCHAR(50)';
+ * let isUnique = false;
+ * try{
+ *      await createIndexForJsonField(tableName, nameOfJsonColumn, jsonfield, dataTypeOfNewColumn, isUnique);
+ *      jsonfield = 'Age';
+ *      dataTypeOfNewColumn = 'INT';
+ *      isUnique = false;
+ *
+ *      await createIndexForJsonField(tableName, nameOfJsonColumn, jsonfield, dataTypeOfNewColumn, isUnique);
+ * } catch (e){
+ *      console.error(JSON.stringify(e));
+ * }
+ * @param {string} tableName - The name of the table in which you want to create the index.
+ * @param {string} nameOfJsonColumn - The name of the JSON column in the table.
+ * @param {string} jsonField - The name of the field in the JSON object that you want to index.
+ * @param {string} dataTypeOfNewColumn - This is the data type of the new column that will be created.
+ * visit https://dev.mysql.com/doc/refman/8.0/en/data-types.html to know all supported data types
+ * @param {boolean} isUnique - If true, the json filed has to be unique for creating index.
+ * @returns {Promise} A promise
  */
 export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isUnique) {
     return new Promise(function (resolve, reject) {
@@ -613,10 +667,26 @@ function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
 
 /**
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
- * @param tableName - The name of the table in which the data is stored.
- * @param nameOfJsonColumn - The name of the column in the table that contains the JSON data.
- * @param queryObject - This is the object that you want to search for.
- * @returns A promise
+ * @example <caption> Sample code </caption>
+ * const tableName = 'customer';
+ * const nameOfJsonColumn = 'customerDetails';
+ * const queryObject = {
+ *             'lastName': 'Alice',
+ *             'Age': 100
+ *             };
+ * try {
+ *      const queryResults = await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+ *      console.log(JSON.stringify(queryResults));
+ * } catch (e) {
+ *      console.error(JSON.stringify(e));
+ * }
+ *
+ *
+ * @param {string} tableName - The name of the table in which the data is stored.
+ * @param {string} nameOfJsonColumn - The name of the column in the table that contains the JSON data.
+ * @param {Object} queryObject - This is the object that you want to search for.
+ * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
+ * no matches returns empty array. if there are any errors will throw an exception
  */
 export function getFromIndex(tableName, nameOfJsonColumn, queryObject) {
 
