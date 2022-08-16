@@ -1,22 +1,19 @@
-# template-nodejs
-A template project for nodejs. Has integrated linting, testing,
-coverage, reporting, GitHub actions for publishing to npm repository, dependency updates and other goodies.
-
-Easily use this template to quick start a production ready nodejs project template.
+# libmysql
+This library helps to connect to mysql and helps to run database query.
 
 ## Code Guardian
-[![<app> build verification](https://github.com/aicore/template-nodejs/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/template-nodejs/actions/workflows/build_verify.yml)
+[![<app> build verification](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml)
 
-<a href="https://sonarcloud.io/summary/new_code?id=aicore_template-nodejs-ts">
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=alert_status" alt="Sonar code quality check" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=security_rating" alt="Security rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=vulnerabilities" alt="vulnerabilities" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=coverage" alt="Code Coverage" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=bugs" alt="Code Bugs" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=reliability_rating" alt="Reliability Rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=sqale_rating" alt="Maintainability Rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=ncloc" alt="Lines of Code" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_template-nodejs-ts&metric=sqale_index" alt="Technical debt" />
+<a href="https://sonarcloud.io/project/issues?id=aicore_libmysql">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=alert_status" alt="Sonar code quality check" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=security_rating" alt="Security rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=vulnerabilities" alt="vulnerabilities" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=coverage" alt="Code Coverage" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=bugs" alt="Code Bugs" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=reliability_rating" alt="Reliability Rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_rating" alt="Maintainability Rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=ncloc" alt="Lines of Code" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_index" alt="Technical debt" />
 </a>
 
 
@@ -26,7 +23,7 @@ Easily use this template to quick start a production ready nodejs project templa
 3. In sonar cloud, enable Automatic analysis from `Administration
    Analysis Method` for the first time before a pull request is raised: ![image](https://user-images.githubusercontent.com/5336369/148695840-65585d04-5e59-450b-8794-54ca3c62b9fe.png)
 4. Check codacy runs on pull requests, set codacy defaults. You may remove codacy if sonar cloud is only needed.
-5. Update the above Code Guardian badges; change all `id=aicore_template-nodejs-ts` to the sonar id of your project fields. see this PR: https://github.com/aicore/libcache/pull/13
+5. Update the above Code Guardian badges; change all `id=aicore_libmysql` to the sonar id of your project fields. see this PR: https://github.com/aicore/libcache/pull/13
 
 # Commands available
 
