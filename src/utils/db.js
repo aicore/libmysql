@@ -13,18 +13,18 @@ let CONNECTION = null;
  *
  * Best practice is to `import @aicore/libcommonutils` and call `getMySqlConfigs()` api to read values from of configs
  * from environment variables.
- * ### Sample config
- * ```json
- *     {
- *     "host": "localhost",
- *     "port": "3306",
- *     "database": "testdb",
- *     "user" : "root",
- *     "password": "1234"
- *     }
- *```
- * ### Sample initialization code
- * ```javascript
+ * @example <caption> Sample config </caption>
+ *
+ *  const config = {
+ *    "host": "localhost",
+ *    "port": "3306",
+ *    "database": "testdb",
+ *    "user" : "root",
+ *    "password": "1234"
+ *  };
+ *
+ * @example <caption> Sample initialization code  </caption>
+ *
  * // set  following  environment variables to access database securely
  * // set MY_SQL_SERVER for mysql server
  * // set MY_SQL_SERVER_PORT to set server port
@@ -37,10 +37,14 @@ let CONNECTION = null;
  * const configs = getMySqlConfigs();
  * init(configs)
  *
- * ```
- * @param {config} config -  config to configure MySQL
  *
- * @return {boolean}  true if connection is successful false otherwise
+ * @param {Object} config -  config to configure MySQL
+ * @param {string} config.host - mysql database hostname
+ * @param {string} config.port - port number of mysql db
+ * @param {string} config.database - name of database to connect
+ * @param {string} config.user - username of database
+ * @param {string} config.password - password of database username
+ * @returns {boolean}  true if connection is successful false otherwise
  *
  *
  **/
@@ -107,12 +111,12 @@ function _isValidPrimaryKey(key) {
  * we have simplified our database schema, for us, our database has only two columns
  *  1. `primary key` column, which is a varchar(255)
  *  2. `JSON` column, which stores values corresponding to the primary key as `JSON`
- * using this approach will simplify our database design by delegating the handling of the semantics of data to the application
- * To speed up any query, we have provided an option to add a secondary index for JSON fields using
- * `createIndexForJsonField` api.
+ * using this approach will simplify our database design by delegating the handling of the semantics of
+ * data to the application.To speed up any query, we have provided an option to add a secondary index
+ * for JSON fields using `createIndexForJsonField` api.
  *
- * ### How to use this function?.
- * ```javascript
+ * @example <caption> How to use this function? </caption>
+ *
  * import {getMySqlConfigs} from "@aicore/libcommonutils";
  *
  * const configs = getMySqlConfigs();
@@ -120,8 +124,12 @@ function _isValidPrimaryKey(key) {
  * const tableName = 'customer';
  * const nameOfPrimaryKey = 'name';
  * const nameOfJsonColumn = 'details';
- * await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
- * ```
+ * try {
+ *   await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+ * } catch(e){
+ *     console.error(JSON.stringify(e));
+ * }
+ *
  *
  * @param {string} tableName  name of table to create
  * @param {string} nameOfPrimaryKey name of primary key
@@ -177,8 +185,8 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
 /**
  * It takes a table name, a primary key, a json column name, and a json value, and inserts the json value into the json
  * column. If the primary key already exists, it updates the json column with the new value
- * ### Sample code
- * ```javascript
+ * @example <caption> Sample code </caption>
+ *
  * try {
  *       const primaryKey = 'bob';
  *       const valueOfJson = {
@@ -190,7 +198,6 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
  *   } catch (e) {
  *       console.error(JSON.stringify(e));
  *  }
- * ```
  *
  * @param {string} tableName - The name of the table in which you want to store the data.
  * @param {string} nameOfPrimaryKey - The name of the primary key column in the table.
@@ -255,8 +262,8 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
 
 /**
  * It deletes a row from the database based on the primary key
- * ### Sample code
- * ```javascript
+ * @example <caption> Sample code </caption>
+ *
  * const tableName = 'customer';
  * const nameOfPrimaryKey = 'name';
  * const primaryKey = 'bob';
@@ -265,8 +272,6 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
  * } catch(e) {
  *    console.error(JSON.stringify(e));
  * }
-
- * ```
  *
  * @param {string} tableName - The name of the table in which the key is to be deleted.
  * @param {string} nameOfPrimaryKey - The name of the primary key in the table.
@@ -315,6 +320,15 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
     });
 }
 
+/**
+ * It takes in a table name, a primary key name, a primary key value, and a json column name, and returns a promise that
+ * resolves to the json column value
+ * @param tableName - The name of the table in which the data is stored.
+ * @param nameOfPrimaryKey - The name of the primary key column in the table.
+ * @param primaryKey - The primary key of the row you want to get.
+ * @param nameOfJsonColumn - The name of the column in the table that contains the JSON data.
+ * @returns A promise
+ */
 export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -385,6 +399,14 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
     };
 }
 
+/**
+ * It takes a table name, a column name, and a query object, and returns a promise that resolves to the result of a scan of
+ * the table
+ * @param tableName - The name of the table you want to query.
+ * @param nameOfJsonColumn - The name of the column that contains the JSON data.
+ * @param queryObject - This is the object that you want to query.
+ * @returns A promise
+ */
 export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -415,6 +437,12 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
     });
 }
 
+/**
+ * It deletes a table from the database
+ * @param tableName - The name of the table to be deleted.
+ * @returns A promise that will resolve to true if the table is deleted, or reject with an error if the table is not
+ * deleted.
+ */
 export function deleteTable(tableName) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -453,7 +481,7 @@ function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, data
         ` AS (${nameOfJsonColumn}->>"$.${jsonField}");`;
 }
 
-function _buildCreateIndexQuery(tableName, nameOfJsonColumn, jsonField, isUnique) {
+function _buildCreateIndexQuery(tableName, _nameOfJsonColumn, jsonField, isUnique) {
     if (isUnique) {
         return `CREATE UNIQUE INDEX  idx_${jsonField} ON ${tableName}(${jsonField});`;
     }
@@ -484,6 +512,15 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
     }
 }
 
+/**
+ * It creates a new column in the table for the JSON field and then creates an index on that column
+ * @param tableName - The name of the table in which you want to create the index.
+ * @param nameOfJsonColumn - The name of the JSON column in the table.
+ * @param jsonField - The name of the field in the JSON object that you want to index.
+ * @param dataTypeOfNewColumn - This is the data type of the new column that will be created.
+ * @param isUnique - If true, the index will be unique.
+ * @returns A promise
+ */
 export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isUnique) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -511,7 +548,10 @@ export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, 
         }
 
         try {
-            const createColumnQuery = _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn);
+            const createColumnQuery = _buildCreateJsonColumQuery(tableName,
+                nameOfJsonColumn,
+                jsonField,
+                dataTypeOfNewColumn);
             CONNECTION.execute(createColumnQuery,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
@@ -571,6 +611,13 @@ function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
 
 }
 
+/**
+ * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
+ * @param tableName - The name of the table in which the data is stored.
+ * @param nameOfJsonColumn - The name of the column in the table that contains the JSON data.
+ * @param queryObject - This is the object that you want to search for.
+ * @returns A promise
+ */
 export function getFromIndex(tableName, nameOfJsonColumn, queryObject) {
 
     return new Promise(function (resolve, reject) {
