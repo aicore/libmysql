@@ -1,7 +1,7 @@
 import {setUpMySQL} from '@aicore/libtestutils';
 
 let config = null;
-config = {
+/*config = {
     'host': 'localhost',
     'port': '3306',
     'database': 'testdb',
@@ -9,7 +9,7 @@ config = {
     'password': '1234'
 
 };
-
+*/
 async function _init() {
     if (!config) {
         config = await setUpMySQL();
