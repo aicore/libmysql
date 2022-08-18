@@ -1,11 +1,13 @@
 import mysql from "mysql2";
 import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
+import crypto from "crypto";
 
 // @INCLUDE_IN_API_DOCS
 
 let CONNECTION = null;
 
-// @INCLUDE_IN_API_DOCS
+export const PRIMARY_COLUMN = 'documentID';
+export const JSON_COLUMN = 'document';
 
 
 /** This function helps to initialize MySql Client
@@ -95,7 +97,7 @@ export function close() {
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
-const SIZE_OF_PRIMARY_KEY = 255;
+const SIZE_OF_PRIMARY_KEY = 128;
 const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 function _isValidTableAttributes(tableAttributeName) {
@@ -132,13 +134,11 @@ function _isValidPrimaryKey(key) {
  *
  *
  * @param {string} tableName  name of table to create
- * @param {string} nameOfPrimaryKey name of primary key
- * @param {string} nameOfJsonColumn name of JsonColumn
  * @return {Promise}  returns a `Promise` await on `Promise` to get status of `createTable`
  * `on success` await will return `true`. `on failure` await will throw an `exception`.
  *
  */
-export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
+export function createTable(tableName) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before createTable');
@@ -148,20 +148,10 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
-            reject('please provide valid name for primary key');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
-            return;
-            //Todo: Emit metrics
-        }
         try {
             const createTableSql = `CREATE TABLE ${tableName} 
-                                        (${nameOfPrimaryKey} VARCHAR(${SIZE_OF_PRIMARY_KEY}) NOT NULL PRIMARY KEY, 
-                                        ${nameOfJsonColumn} JSON NOT NULL)`;
+                                        (${PRIMARY_COLUMN} VARCHAR(${SIZE_OF_PRIMARY_KEY}) NOT NULL PRIMARY KEY, 
+                                        ${JSON_COLUMN} JSON NOT NULL)`;
             CONNECTION.execute(createTableSql,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
@@ -200,14 +190,11 @@ export function createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn) {
  *  }
  *
  * @param {string} tableName - The name of the table in which you want to store the data.
- * @param {string} nameOfPrimaryKey - The name of the primary key column in the table.
- * @param {string} primaryKey - The primary key of the table.
- * @param {string} nameOfJsonColumn - The name of the column in which you want to store the JSON string.
- * @param {string} valueForJsonColumn - The JSON string that you want to store in the database.
- * @returns {Promise} A promise on resolving the promise will return true it put is successful throws an exception
+ * @param {Object} document - The JSON string that you want to store in the database.
+ * @returns {Promise} A promise on resolving the promise will give documentID throws an exception
  * otherwise
  */
-export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn) {
+export function put(tableName, document) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before put');
@@ -217,32 +204,17 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
-            reject('please provide valid name for primary key');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidPrimaryKey(primaryKey)) {
-            reject('Please provide valid primary key');
+
+        if (!isObject(document)) {
+            reject('Please provide valid document');
             return;
             //Todo: Emit metrics
         }
 
-        if (!isObject(valueForJsonColumn)) {
-            reject('Please provide valid JSON String column');
-            return;
-            //Todo: Emit metrics
-        }
-
-        const updateQuery = `INSERT INTO ${tableName} (${nameOfPrimaryKey}, ${nameOfJsonColumn})
-                                    values(?,?) ON DUPLICATE KEY UPDATE ${nameOfJsonColumn}=?`;
+        const updateQuery = `INSERT INTO ${tableName} (${PRIMARY_COLUMN}, ${JSON_COLUMN}) values(?,?)`;
         try {
-            CONNECTION.execute(updateQuery, [primaryKey, valueForJsonColumn, valueForJsonColumn],
+            const documentID = createDocumentId();
+            CONNECTION.execute(updateQuery, [documentID, document],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -250,7 +222,7 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
                         reject(err);
                         return;
                     }
-                    resolve(true);
+                    resolve(documentID);
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while writing to database ${e.stack}`;
@@ -258,6 +230,10 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
             //TODO: Emit Metrics
         }
     });
+}
+
+function createDocumentId() {
+    return crypto.randomBytes(64).toString('hex');
 }
 
 /**
@@ -274,12 +250,11 @@ export function put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, v
  * }
  *
  * @param {string} tableName - The name of the table in which the key is to be deleted.
- * @param {string} nameOfPrimaryKey - The name of the primary key in the table.
- * @param {string} primaryKey - The primary key of the row you want to delete.
+ * @param {string} documentID -  document id to be deleted
  * @returns {Promise}A promise `resolve` promise to get status of delete. promise will resolve to true
  * for success and  throws an exception for failure.
  */
-export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
+export function deleteKey(tableName, documentID) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before deleteKey');
@@ -289,20 +264,15 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
-            reject('please provide valid name for primary key');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidPrimaryKey(primaryKey)) {
-            reject('Please provide valid primary key');
+        if (!_isValidPrimaryKey(documentID)) {
+            reject('Please provide valid documentID');
             return;
             //Todo: Emit metrics
         }
 
-        const deleteQuery = `DELETE FROM ${tableName} WHERE ${nameOfPrimaryKey}= ?;`;
+        const deleteQuery = `DELETE FROM ${tableName} WHERE ${PRIMARY_COLUMN}= ?;`;
         try {
-            CONNECTION.execute(deleteQuery, [primaryKey],
+            CONNECTION.execute(deleteQuery, [documentID],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -313,7 +283,7 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
                     resolve(true);
                 });
         } catch (e) {
-            const errorMessage = `Exception occurred while deleting key ${primaryKey}  from database ${e.stack}`;
+            const errorMessage = `Exception occurred while deleting key ${documentID}  from database ${e.stack}`;
             reject(errorMessage);
             //TODO: Emit Metrics
         }
@@ -337,12 +307,10 @@ export function deleteKey(tableName, nameOfPrimaryKey, primaryKey) {
  *
  *
  * @param {string} tableName - The name of the table in which the data is stored.
- * @param {string} nameOfPrimaryKey - The name of the primary key column in the table.
- * @param {string} primaryKey - The primary key of the row you want to get.
- * @param {string} nameOfJsonColumn - The name of the column in the table that contains the JSON data.
+ * @param {string} documentID - The primary key of the row you want to get.
  * @returns {Promise} A promise on resolve promise to get the value stored for primary key
  */
-export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
+export function get(tableName, documentID) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before get');
@@ -352,24 +320,14 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfPrimaryKey)) {
-            reject('please provide valid name for primary key');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidPrimaryKey(primaryKey)) {
-            reject('Please provide valid primary key');
-            return;
-            //Todo: Emit metrics
-        }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
+        if (!_isValidPrimaryKey(documentID)) {
+            reject('Please provide valid documentID');
             return;
             //Todo: Emit metrics
         }
         try {
-            const getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE ${nameOfPrimaryKey} = ?`;
-            CONNECTION.execute(getQuery, [primaryKey],
+            const getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE ${PRIMARY_COLUMN} = ?`;
+            CONNECTION.execute(getQuery, [documentID],
                 function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -377,7 +335,7 @@ export function get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn) {
                         return;
                     }
                     if (results && results.length > 0) {
-                        resolve(results[0][nameOfJsonColumn]);
+                        resolve(results[0][JSON_COLUMN]);
                         return;
                     }
                     resolve({});
@@ -430,12 +388,11 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
  * }
  *
  * @param {string} tableName - The name of the table you want to query.
- * @param {string}  nameOfJsonColumn - The name of the column that contains the JSON data.
  * @param {Object} queryObject - This is the object that you want to query.
  * @returns {Promise} - A promise; on promise resolution returns array of  matched object from json column. if there are
  * no match returns empty array
  */
-export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
+export function getFromNonIndex(tableName, queryObject) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before getFromNonIndex');
@@ -449,14 +406,9 @@ export function getFromNonIndex(tableName, nameOfJsonColumn, queryObject) {
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
-            return;
-            //Todo: Emit metrics
-        }
         try {
-            const queryParams = _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject);
-            _queryIndex(queryParams, nameOfJsonColumn, resolve, reject);
+            const queryParams = _prepareQueryForScan(JSON_COLUMN, tableName, queryObject);
+            _queryIndex(queryParams, JSON_COLUMN, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
             reject(errorMessage);
@@ -531,7 +483,6 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 
     try {
         const indexQuery = _buildCreateIndexQuery(tableName, nameOfJsonColumn, jsonField, isUnique);
-        console.log(indexQuery);
         CONNECTION.execute(indexQuery,
             function (err, _results, _fields) {
                 //TODO: emit success or failure metrics based on return value
@@ -568,14 +519,13 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
  *      console.error(JSON.stringify(e));
  * }
  * @param {string} tableName - The name of the table in which you want to create the index.
- * @param {string} nameOfJsonColumn - The name of the JSON column in the table.
  * @param {string} jsonField - The name of the field in the JSON object that you want to index.
  * @param {string} dataTypeOfNewColumn - This is the data type of the new column that will be created.
  * visit https://dev.mysql.com/doc/refman/8.0/en/data-types.html to know all supported data types
  * @param {boolean} isUnique - If true, the json filed has to be unique for creating index.
  * @returns {Promise} A promise
  */
-export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isUnique) {
+export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColumn, isUnique) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             throw new Error('Please call init before createIndexForJsonField');
@@ -586,24 +536,19 @@ export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, 
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
-            return;
-            //Todo: Emit metrics
-        }
         if (!_isValidTableAttributes(jsonField)) {
             reject('please provide valid name for json field');
             return;
             //Todo: Emit metrics
         }
         if (!isString(dataTypeOfNewColumn)) {
-            reject('please provide valid  data type for json column');
+            reject('please provide valid  data type for json field');
             return;
         }
 
         try {
             const createColumnQuery = _buildCreateJsonColumQuery(tableName,
-                nameOfJsonColumn,
+                JSON_COLUMN,
                 jsonField,
                 dataTypeOfNewColumn);
             CONNECTION.execute(createColumnQuery,
@@ -613,9 +558,10 @@ export function createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, 
                         reject(err);
                         return;
                     }
-                    return _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonField, isUnique);
+                    return _createIndex(resolve, reject, tableName, JSON_COLUMN, jsonField, isUnique);
                 });
         } catch (e) {
+            console.error(JSON.stringify(e));
             const errorMessage = `Exception occurred while creating column for JSON field`;
             reject(errorMessage);
             //TODO: Emit Metrics
@@ -683,12 +629,11 @@ function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
  *
  *
  * @param {string} tableName - The name of the table in which the data is stored.
- * @param {string} nameOfJsonColumn - The name of the column in the table that contains the JSON data.
  * @param {Object} queryObject - This is the object that you want to search for.
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */
-export function getFromIndex(tableName, nameOfJsonColumn, queryObject) {
+export function getFromIndex(tableName, queryObject) {
 
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -703,14 +648,9 @@ export function getFromIndex(tableName, nameOfJsonColumn, queryObject) {
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(nameOfJsonColumn)) {
-            reject('please provide valid name for json column');
-            return;
-            //Todo: Emit metrics
-        }
         try {
-            const queryParams = _prepareQueryOfIndexSearch(tableName, nameOfJsonColumn, queryObject);
-            _queryIndex(queryParams, nameOfJsonColumn, resolve, reject);
+            const queryParams = _prepareQueryOfIndexSearch(tableName, JSON_COLUMN, queryObject);
+            _queryIndex(queryParams, JSON_COLUMN, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while querying index`;
             reject(errorMessage);

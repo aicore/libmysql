@@ -71,8 +71,6 @@ for JSON fields using `createIndexForJsonField` api.
 ### Parameters
 
 *   `tableName` **[string][2]** name of table to create
-*   `nameOfPrimaryKey` **[string][2]** name of primary key
-*   `nameOfJsonColumn` **[string][2]** name of JsonColumn
 
 ### Examples
 
@@ -104,10 +102,7 @@ column. If the primary key already exists, it updates the json column with the n
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table in which you want to store the data.
-*   `nameOfPrimaryKey` **[string][2]** The name of the primary key column in the table.
-*   `primaryKey` **[string][2]** The primary key of the table.
-*   `nameOfJsonColumn` **[string][2]** The name of the column in which you want to store the JSON string.
-*   `valueForJsonColumn` **[string][2]** The JSON string that you want to store in the database.
+*   `document` **[Object][1]** The JSON string that you want to store in the database.
 
 ### Examples
 
@@ -127,7 +122,7 @@ try {
  }
 ```
 
-Returns **[Promise][4]** A promise on resolving the promise will return true it put is successful throws an exception
+Returns **[Promise][4]** A promise on resolving the promise will give documentID throws an exception
 otherwise
 
 ## deleteKey
@@ -137,8 +132,7 @@ It deletes a row from the database based on the primary key
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table in which the key is to be deleted.
-*   `nameOfPrimaryKey` **[string][2]** The name of the primary key in the table.
-*   `primaryKey` **[string][2]** The primary key of the row you want to delete.
+*   `documentID` **[string][2]** document id to be deleted
 
 ### Examples
 
@@ -166,9 +160,7 @@ resolves to the json column value
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table in which the data is stored.
-*   `nameOfPrimaryKey` **[string][2]** The name of the primary key column in the table.
-*   `primaryKey` **[string][2]** The primary key of the row you want to get.
-*   `nameOfJsonColumn` **[string][2]** The name of the column in the table that contains the JSON data.
+*   `documentID` **[string][2]** The primary key of the row you want to get.
 
 ### Examples
 
@@ -197,7 +189,6 @@ the table
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table you want to query.
-*   `nameOfJsonColumn` **[string][2]** The name of the column that contains the JSON data.
 *   `queryObject` **[Object][1]** This is the object that you want to query.
 
 ### Examples
@@ -253,7 +244,6 @@ It creates a new column in the table for the JSON field and then creates an inde
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table in which you want to create the index.
-*   `nameOfJsonColumn` **[string][2]** The name of the JSON column in the table.
 *   `jsonField` **[string][2]** The name of the field in the JSON object that you want to index.
 *   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column that will be created.
     visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][5] to know all supported data types
@@ -291,7 +281,6 @@ It takes a table name, a column name, and a query object, and returns a promise 
 ### Parameters
 
 *   `tableName` **[string][2]** The name of the table in which the data is stored.
-*   `nameOfJsonColumn` **[string][2]** The name of the column in the table that contains the JSON data.
 *   `queryObject` **[Object][1]** This is the object that you want to search for.
 
 ### Examples
