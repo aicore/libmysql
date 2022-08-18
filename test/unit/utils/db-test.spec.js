@@ -10,7 +10,7 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex
+    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -47,9 +47,7 @@ describe('Unit tests for db.js', function () {
         try {
             close();
             const tableName = '';
-            const nameOfPrimaryKey = 'id';
-            const nameOfJsonColumn = 'column';
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            await createTable(tableName);
 
         } catch (e) {
             expect(e.toString()).to.eql('Error: Please call init before createTable');
@@ -59,9 +57,7 @@ describe('Unit tests for db.js', function () {
     it('create table api should fail for invalid table name', async function () {
         try {
             const tableName = '';
-            const nameOfPrimaryKey = 'id';
-            const nameOfJsonColumn = 'column';
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            await createTable(tableName);
 
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
@@ -70,68 +66,10 @@ describe('Unit tests for db.js', function () {
     it('create table api should fail for invalid table name', async function () {
         try {
             const tableName = null;
-            const nameOfPrimaryKey = 'id';
-            const nameOfJsonColumn = 'column';
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            await createTable(tableName);
 
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
-        }
-    });
-    it('create table api should fail  for invalid primary key name', async function () {
-        try {
-            const tableName = 'hello';
-            const nameOfPrimaryKey = '';
-            const nameOfJsonColumn = 'column';
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-        }
-    });
-    it('create table api should fail for invalid primary key name', async function () {
-        try {
-            const tableName = 'hello';
-            const nameOfPrimaryKey = null;
-            const nameOfJsonColumn = 'column';
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-        }
-    });
-    it('create table api should fail for invalid primary key name should fail for invalid json column name',
-        async function () {
-            try {
-                const tableName = 'hello';
-                const nameOfPrimaryKey = 'test';
-                const nameOfJsonColumn = '';
-                await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-
-            } catch (e) {
-                expect(e).to.eql('please provide valid name for json column');
-            }
-        });
-    it('create table api should fail for invalid primary key name should fail for invalid json column name',
-        async function () {
-            try {
-                const tableName = 'hello';
-                const nameOfPrimaryKey = 'test';
-                const nameOfJsonColumn = null;
-                await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-
-            } catch (e) {
-                expect(e).to.eql('please provide valid name for json column');
-            }
-        });
-    it('create table api should fail for invalid primary key name greater than 64', async function () {
-        try {
-            const tableName = 'hello';
-            const nameOfPrimaryKey = 'test';
-            const nameOfJsonColumn = generateAValidString(65);
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
         }
     });
 
@@ -141,23 +79,21 @@ describe('Unit tests for db.js', function () {
             throw  new Error('error');
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        // console.log(nameOfJsonColumn);
+        let isExceptionOccurred = false;
         try {
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            await createTable(tableName);
         } catch (e) {
+            isExceptionOccurred = true;
             const firstErrorLine = e.split('\n')[0];
             expect(firstErrorLine).to.eql('execution occurred while creating table Error: error');
         }
+        expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
     it('create table api should pass for valid data', async function () {
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const result = await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+        const result = await createTable(tableName);
         expect(result).to.eql(true);
     });
     it('create table api should fail when error happens', async function () {
@@ -167,11 +103,9 @@ describe('Unit tests for db.js', function () {
             callback('err', [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
 
         try {
-            await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+            await createTable(tableName);
         } catch (e) {
             expect(e).to.eql('err');
         }
@@ -184,13 +118,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        const valueForJsonColumn = '{}';
+        const document = '{}';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -205,13 +136,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = null;
-        const nameOfPrimaryKey = 'abc';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
+        const document = '{x:[]}';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -226,13 +154,11 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 1;
-        const nameOfPrimaryKey = 'abc';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
+
+        const document = '{x:[]}';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -246,13 +172,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = true;
-        const nameOfPrimaryKey = 'abc';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
+        const document = '{x:[]}';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -260,286 +183,36 @@ describe('Unit tests for db.js', function () {
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
-    it('put should fail for null name of primary key', async function () {
+    it('put for invalid document', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = null;
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
+        const document = null;
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail for empty ans name of primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = '';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
+            expect(e).to.eql('Please provide valid document');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
-    it('put should fail for number as primary key', async function () {
+    it('put should fail document  is string', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 10;
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
+        const document = 'hello';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('put should fail for number if name of primary key length greater than 64', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = generateAValidString(65);
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('put should fail for number if name of primary key contain non alphanumeric', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = generateStringSequence('a', 40);
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '100q';
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('put should fail null primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = null;
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail empty primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = '';
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail if length of primary key is greater than 255', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer1';
-        const primaryKey = generateStringSequence('a', 256);
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('put should fail json column name is null', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = null;
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail json column name is empty', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = '';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail json column name is greater than 65', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = generateAValidString(66);
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail json column name is a number', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 10;
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{x:[]}';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail json column value is null', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = null;
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid JSON String column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('put should fail json value is string', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = 'hello';
-        let isExceptionOccurred = false;
-        try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid JSON String column');
+            expect(e).to.eql('Please provide valid document');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -551,15 +224,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = '{hello}';
+        const document = '{hello}';
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('Please provide valid JSON String column');
+            expect(e).to.eql('Please provide valid document');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -581,15 +251,12 @@ describe('Unit tests for db.js', function () {
             }, {});
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = {
+        const document = {
             id: 'abc'
         };
 
-        const result = await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
-        expect(result).to.eql(true);
+        const result = await put(tableName, document);
+        expect(result.length).to.eql(128);
 
         mockedFunctions.connection.execute = saveExecute;
     });
@@ -611,16 +278,12 @@ describe('Unit tests for db.js', function () {
             }, {});
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const x = {
+        const document = {
             id: 'abc'
         };
-        const valueForJsonColumn = JSON.stringify(x);
 
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.toString()).to.eql('Error: Please call init before put');
@@ -635,13 +298,10 @@ describe('Unit tests for db.js', function () {
             throw  new Error('error');
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = generateStringSequence('a', 255);
-        const valueForJsonColumn = {};
+        const document = {};
         let isExceptionOccurred = false;
         try {
-            await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueForJsonColumn);
+            await put(tableName, document);
         } catch (e) {
             const err = e.split('\n')[0];
             expect(err).to.eql('Exception occurred while writing to database Error: error');
@@ -657,12 +317,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
+        const documentId = '100';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
             expect(e.toString()).to.eql('Error: Please call init before get');
             isExceptionOccurred = true;
@@ -678,12 +336,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '';
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
+        const documentId = '100';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -699,12 +355,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = null;
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
+        const documentId = '100';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -713,354 +367,18 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
 
     });
-    it('get should fail for number table name', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 10;
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid table name');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail for boolean table name', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = true;
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid table name');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail for Object table name', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = {};
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid table name');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
     it('get should fail if table name gt 65', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = generateAValidString(65);
-        const nameOfPrimaryKey = 'test';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
+        const documentId = '101';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if name of primary key is empty', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(24);
-        const nameOfPrimaryKey = '';
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if name of primary key is null', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(24);
-        const nameOfPrimaryKey = null;
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if name of primary key is number', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(24);
-        const nameOfPrimaryKey = 10;
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail if name of primary key is boolean', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(24);
-        const nameOfPrimaryKey = true;
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail if name of primary key is Object', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(24);
-        const nameOfPrimaryKey = {};
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail if length of name of primary key greater than 64', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = generateAValidString(64);
-        const nameOfPrimaryKey = {};
-        const nameOfJsonColumn = 'customer';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if nameOfJson column is empty', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = '';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail if nameOfJson column is null', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = null;
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('get should fail if nameOfJson column is number', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = 10;
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if nameOfJson column is boolean', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = true;
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if nameOfJson column is Object', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = {};
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if nameOfJson column is non alpha numeric', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = '*';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if nameOfJson column is has continues spaces', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = '     ';
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('get should fail if length of nameOfJson column  greater than 64', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = generateAValidString(65);
-        const primaryKey = '100';
-        let isExceptionOccurred = false;
-        try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1072,14 +390,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = generateAValidString(63);
-        const primaryKey = '';
+        const documentId = '';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1092,14 +408,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = generateAValidString(63);
-        const primaryKey = null;
+        const documentId = null;
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1111,14 +425,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = generateAValidString(63);
-        const primaryKey = 10;
+        const documentId = 10;
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1130,14 +442,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = generateAValidString(63);
-        const primaryKey = true;
+        const documentId = true;
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName,  documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1149,34 +459,30 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = 'customer_data';
-        const primaryKey = {};
+        const documentId = {};
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
-    it('get should fail if primary key has more than 255 valid characters', async function () {
+    it('get should fail if primary key has more than 128 valid characters', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = 'customer_data';
-        const primaryKey = generateAValidString(256);
+        const primaryKey = generateAValidString(129);
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, primaryKey);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1187,14 +493,11 @@ describe('Unit tests for db.js', function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null,
-                [{'customer_data': JSON.stringify({customerData: 'bob'})}], []);
+                [{'document': {customerData: 'bob'}}], []);
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = 'customer_data';
-        const primaryKey = '100';
-        const resultJson = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        const result = JSON.parse(resultJson);
+        const documentId = '100';
+        const result = await get(tableName, documentId);
         expect(result.customerData).to.eql('bob');
         mockedFunctions.connection.execute = saveExecute;
     });
@@ -1205,12 +508,10 @@ describe('Unit tests for db.js', function () {
             throw new Error('Error occurred while connecting');
         };
         const tableName = 'users';
-        const nameOfPrimaryKey = 'id';
-        const nameOfJsonColumn = 'customer_data';
-        const primaryKey = '10';
+        const documentId = '10';
         let isExceptionOccurred = false;
         try {
-            await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            await get(tableName, documentId);
         } catch (e) {
 
             expect(e.split('\n')[0]).to.eql('Exception occurred while getting data Error:' +
@@ -1238,10 +539,9 @@ describe('Unit tests for db.js', function () {
             }, {});
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const primaryKey = generateStringSequence('a', 255);
+        const documentId = generateStringSequence('a', 128);
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentId);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.toString()).to.eql('Error: Please call init before deleteKey');
@@ -1257,10 +557,10 @@ describe('Unit tests for db.js', function () {
         };
         const tableName = '';
         const nameOfPrimaryKey = 'test';
-        const primaryKey = '100';
+        const documentId = '100';
         let isExceptionOccurred = false;
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -1294,11 +594,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 1;
-        const nameOfPrimaryKey = 'abc';
-        const primaryKey = '100q';
+        const documentId = '100q';
         let isExceptionOccurred = false;
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -1324,149 +623,53 @@ describe('Unit tests for db.js', function () {
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
-    it('deleteKey should fail for null name of primary key', async function () {
+    it('deleteKey should fail for null primary key', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = null;
-        const primaryKey = '100q';
+        const documentId = null;
         let isExceptionOccurred = false;
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('deleteKey should fail for empty ans name of primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = '';
-        const primaryKey = '100q';
-        let isExceptionOccurred = false;
-        try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
-    it('deleteKey should fail for number as primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 10;
-        const primaryKey = '100q';
-        let isExceptionOccurred = false;
-        try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('deleteKey should fail for number if name of primary key length greater than 64', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = generateAValidString(65);
-        const primaryKey = '100q';
-        let isExceptionOccurred = false;
-        try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('deleteKey should fail for number if name of primary key contain non alphanumeric', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = generateStringSequence('a', 40);
-        const primaryKey = '100q';
-        let isExceptionOccurred = false;
-        try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-    it('deleteKey should fail null primary key', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const primaryKey = null;
-        let isExceptionOccurred = false;
-        try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
     it('deleteKey should fail empty primary key', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const primaryKey = '';
+        const documentId = '';
         let isExceptionOccurred = false;
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentId);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
-    it('deleteKey should fail if length of primary key is greater than 255', async function () {
+    it('deleteKey should fail if length of primary key is greater than 128', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const primaryKey = generateStringSequence('a', 256);
+        const documentID = generateStringSequence('a', 129);
         let isExceptionOccurred = false;
         try {
-            await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+            await deleteKey(tableName, documentID);
         } catch (e) {
-            expect(e).to.eql('Please provide valid primary key');
+            expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1488,10 +691,9 @@ describe('Unit tests for db.js', function () {
             }, {});
         };
         const tableName = 'hello';
-        const nameOfPrimaryKey = 'bob';
-        const primaryKey = generateStringSequence('a', 255);
+        const documentId = generateStringSequence('a', 128);
 
-        const result = await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        const result = await deleteKey(tableName, documentId);
         expect(result).to.eql(true);
 
         mockedFunctions.connection.execute = saveExecute;
@@ -1504,10 +706,9 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, null);
+            await getFromNonIndex(tableName, null);
         } catch (e) {
             expect(e).to.eql('please provide valid queryObject');
             isExceptionOccurred = true;
@@ -1522,10 +723,9 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, 'hello');
+            await getFromNonIndex(tableName, 'hello');
         } catch (e) {
             expect(e).to.eql('please provide valid queryObject');
             isExceptionOccurred = true;
@@ -1558,10 +758,9 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, 10);
+            await getFromNonIndex(tableName, 10);
         } catch (e) {
             expect(e).to.eql('please provide valid queryObject');
             isExceptionOccurred = true;
@@ -1575,10 +774,9 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '@';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, {
+            await getFromNonIndex(tableName, {
                 id: 100
             });
         } catch (e) {
@@ -1607,32 +805,11 @@ describe('Unit tests for db.js', function () {
     });
 
 
-    it('getFromNonIndex should fail invalid nameOfJsonColumn', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfJsonColumn = null;
-        let isExceptionOccurred = false;
-        try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, {
-                id: '10'
-            });
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-
-
     it('getFromNonIndex should pass for valid parameters', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [{"details": {"Age": 100, "active": true, "lastName": "Alice"}}, {
-                "details": {
+            callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}, {
+                "document": {
                     "Age": 100,
                     "active": true,
                     "lastName": "Alice"
@@ -1640,8 +817,7 @@ describe('Unit tests for db.js', function () {
             }], {});
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
-        const result = await getFromNonIndex(tableName, nameOfJsonColumn, {
+        const result = await getFromNonIndex(tableName, {
             id: 'abc'
         });
         expect(result.length).to.eql(2);
@@ -1650,7 +826,6 @@ describe('Unit tests for db.js', function () {
             expect(result[i].active).to.eql(true);
             expect(result[i].lastName).to.eql('Alice');
         }
-
         mockedFunctions.connection.execute = saveExecute;
     });
 
@@ -1660,9 +835,8 @@ describe('Unit tests for db.js', function () {
             callback(null, [], {});
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
 
-        const result = await getFromNonIndex(tableName, nameOfJsonColumn, {
+        const result = await getFromNonIndex(tableName, {
             id: 'abc',
             lastName: 'Alice'
         });
@@ -1697,8 +871,7 @@ describe('Unit tests for db.js', function () {
         try {
             close();
             const tableName = '';
-            const nameOfJsonColumn = 'column';
-            await getFromNonIndex(tableName, nameOfJsonColumn, {});
+            await getFromNonIndex(tableName, {});
 
         } catch (e) {
             expect(e.toString()).to.eql('Error: Please call init before getFromNonIndex');
@@ -1712,11 +885,9 @@ describe('Unit tests for db.js', function () {
 
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
-
         let exceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, nameOfJsonColumn, {
+            await getFromNonIndex(tableName, {
                 id: 'abc'
             });
         } catch (e) {
@@ -1812,23 +983,6 @@ describe('Unit tests for db.js', function () {
         expect(exceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
-    it('createIndexForJsonField should fail invalid nameOfJsonColumn', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'hello';
-        const nameOfJsonColumn = null;
-        let isExceptionOccurred = false;
-        try {
-            await createIndexForJsonField(tableName, nameOfJsonColumn, 'id', 'INT', false);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
 
     it('createIndexForJsonField should fail invalid tableName', async function () {
         const saveExecute = mockedFunctions.connection.execute;
@@ -1836,13 +990,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '@';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
             isExceptionOccurred = true;
@@ -1857,13 +1010,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 10;
         const dataType = 'INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
         } catch (e) {
             expect(e).to.eql('please provide valid name for json field');
             isExceptionOccurred = true;
@@ -1872,21 +1024,20 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
 
-    it('createIndexForJsonField should fail invalid id', async function () {
+    it('createIndexForJsonField should fail invalid dataType', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = null;
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
         } catch (e) {
-            expect(e).to.eql('please provide valid  data type for json column');
+            expect(e).to.eql('please provide valid  data type for json field');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -1897,11 +1048,10 @@ describe('Unit tests for db.js', function () {
         try {
             close();
             const tableName = 'customer';
-            const nameOfJsonColumn = 'details';
             const jsonField = 'id';
-            const dataType = null;
+            const dataType = 'INT';
             const isUnique = true;
-            await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
 
         } catch (e) {
             expect(e.toString()).to.eql('Error: Please call init before createIndexForJsonField');
@@ -1913,13 +1063,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            const result = await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            const result = await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
             expect(result).to.eql(true);
         } catch (e) {
             isExceptionOccurred = true;
@@ -1933,13 +1082,12 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = false;
         let isExceptionOccurred = false;
         try {
-            const result = await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            const result = await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
             expect(result).to.eql(true);
         } catch (e) {
             isExceptionOccurred = true;
@@ -1954,13 +1102,12 @@ describe('Unit tests for db.js', function () {
             callback('Error', [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            const result = await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            const result = await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
             expect(result).to.eql(true);
         } catch (e) {
             expect(e).to.eql('Error');
@@ -1976,13 +1123,12 @@ describe('Unit tests for db.js', function () {
             throw new Error('Exception');
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
-            const result = await createIndexForJsonField(tableName, nameOfJsonColumn, jsonField, dataType, isUnique);
+            const result = await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
             expect(result).to.eql(true);
         } catch (e) {
             expect(e.toString()).to.eql('Exception occurred while creating column for JSON field');
@@ -1998,13 +1144,13 @@ describe('Unit tests for db.js', function () {
             throw new Error('Exception');
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
+        const nameOfJsonColumn = JSON_COLUMN;
         const jsonField = 'id';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
             const promise = new Promise(function (resolve, reject) {
-                _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonField, isUnique);
+                _createIndex(resolve, reject, tableName, jsonField, isUnique);
             });
             await promise;
         } catch (e) {
@@ -2022,7 +1168,7 @@ describe('Unit tests for db.js', function () {
             callback('Error', [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
+        const nameOfJsonColumn = JSON_COLUMN;
         const jsonField = 'id';
         const isUnique = true;
         let isExceptionOccurred = false;
@@ -2045,12 +1191,11 @@ describe('Unit tests for db.js', function () {
         try {
             close();
             const tableName = 'customer';
-            const nameOfJsonColumn = 'details';
             const queryObject = {
                 'lastName': 'Alice',
                 'Age': 100
             };
-            await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            await getFromIndex(tableName, queryObject);
 
         } catch (e) {
             expect(e.toString()).to.eql('Error: Please call init before findFromIndex');
@@ -2063,11 +1208,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
 
         try {
-            await getFromIndex(tableName, nameOfJsonColumn, null);
+            await getFromIndex(tableName, null);
         } catch (e) {
             expect(e).to.eql('please provide valid queryObject');
             isExceptionOccurred = true;
@@ -2081,11 +1225,10 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'hello';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
 
         try {
-            await getFromIndex(tableName, nameOfJsonColumn, {});
+            await getFromIndex(tableName, {});
         } catch (e) {
             expect(e).to.eql('please provide valid queryObject');
             isExceptionOccurred = true;
@@ -2100,37 +1243,15 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = '@';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
             'Age': 100
         };
         try {
-            await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            await getFromIndex(tableName, queryObject);
         } catch (e) {
             expect(e).to.eql('please provide valid table name');
-            isExceptionOccurred = true;
-        }
-        expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.execute = saveExecute;
-    });
-    it('getFromIndex should fail for invalid json colum name', async function () {
-        const saveExecute = mockedFunctions.connection.execute;
-        mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [], []);
-        };
-        const tableName = 'customer';
-        const nameOfJsonColumn = '@';
-        let isExceptionOccurred = false;
-        const queryObject = {
-            'lastName': 'Alice',
-            'Age': 100
-        };
-        try {
-            await getFromIndex(tableName, nameOfJsonColumn, queryObject);
-        } catch (e) {
-            expect(e).to.eql('please provide valid name for json column');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -2143,14 +1264,13 @@ describe('Unit tests for db.js', function () {
             callback("error", [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
             'Age': 100
         };
         try {
-            await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            await getFromIndex(tableName, queryObject);
         } catch (e) {
             expect(e).to.eql('error');
             isExceptionOccurred = true;
@@ -2165,14 +1285,13 @@ describe('Unit tests for db.js', function () {
             throw  new Error('error');
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
             'Age': 100
         };
         try {
-            await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            await getFromIndex(tableName, queryObject);
         } catch (e) {
             expect(e).to.eql('Exception occurred while querying index');
             isExceptionOccurred = true;
@@ -2184,17 +1303,16 @@ describe('Unit tests for db.js', function () {
     it('getFromIndex should pass  for valid parameters', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {
-            callback(null, [{"details": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
+            callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
             'Age': 100
         };
         try {
-            const results = await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            const results = await getFromIndex(tableName, queryObject);
             expect(results[0].lastName).to.eql('Alice');
             expect(results[0].Age).to.eql(100);
             expect(results[0].active).to.eql(true);
@@ -2212,14 +1330,13 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const nameOfJsonColumn = 'details';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
             'Age': 100
         };
         try {
-            const results = await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+            const results = await getFromIndex(tableName, queryObject);
             expect(results.length).to.eql(0);
             console.log(results);
         } catch (e) {
