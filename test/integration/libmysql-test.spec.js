@@ -32,9 +32,6 @@ import * as crypto from "crypto";
 let expect = chai.expect;
 
 const tableName = 'customer';
-const nameOfPrimaryKey = 'name';
-const nameOfJsonColumn = 'details';
-
 describe('Integration: libMySql', function () {
     after(function () {
         close();
@@ -49,31 +46,30 @@ describe('Integration: libMySql', function () {
 
     beforeEach(async function () {
 
-        await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+        await createTable(tableName);
     });
     afterEach(async function () {
         await deleteTable(tableName);
     });
 
     it('should create table add data and get data', async function () {
-        const primaryKey = 'bob';
         const valueOfJson = {
             'lastName': 'Alice',
             'Age': 100,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
-        const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const docId = await put(tableName, valueOfJson);
+        const results = await get(tableName, docId);
         expect(results.lastName).to.eql(valueOfJson.lastName);
         expect(results.Age).to.eql(valueOfJson.Age);
         expect(results.active).to.eql(valueOfJson.active);
-        const resultNonIndex = await getFromNonIndex(tableName, nameOfJsonColumn, {
+        const resultNonIndex = await getFromNonIndex(tableName, {
             'lastName': 'Alice',
             'Age': 100
         });
         // delete key
-        await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
-        const deletedValue = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        await deleteKey(tableName, docId);
+        const deletedValue = await get(tableName, docId);
         expect(isObjectEmpty(deletedValue)).to.eql(true);
 
 
@@ -81,16 +77,15 @@ describe('Integration: libMySql', function () {
 
     it('get should return empty if data not present', async function () {
 
-        const primaryKey = 'raj';
-        const getReturn = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+        const docId = crypto.randomBytes(64).toString('hex');
+        const getReturn = await get(tableName, docId);
         expect(isObjectEmpty(getReturn)).to.eql(true);
     });
     it('get should throw exception table is not present', async function () {
         let exceptionOccurred = false;
         try {
-
-            const primaryKey = 'raj';
-            await get('HELLO', nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+            const docId = crypto.randomBytes(64).toString('hex');
+            await get('HELLO', docId);
 
         } catch (e) {
             exceptionOccurred = true;
@@ -103,13 +98,12 @@ describe('Integration: libMySql', function () {
         let exceptionOccurred = false;
         try {
 
-            const primaryKey = 'bob';
-            const valueOfJson = {
+            const document = {
                 'lastName': 'Alice',
                 'Age': 100,
                 'active': true
             };
-            await put('hello', nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+            await put('hello', document);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
@@ -133,49 +127,50 @@ describe('Integration: libMySql', function () {
 
     async function deleteData(results) {
         const deletePromises = [];
-        for (let i = 0; i < results.primaryKeys.length; i++) {
-            let deletePromise = deleteKey(results.tableName, results.nameOfPrimaryKey, results.primaryKeys[i]);
+        for (let i = 0; i < results.documentIds.length; i++) {
+            let deletePromise = deleteKey(results.tableName, results.documentIds[i]);
             deletePromises.push(deletePromise);
         }
         const deleteReturns = await Promise.all(deletePromises);
         expect(deleteReturns.length).to.eql(deletePromises.length);
-        for (let i = 0; i < results.primaryKeys.length; i++) {
+        for (let i = 0; i < results.documentIds.length; i++) {
             expect(deleteReturns[i]).to.eql(true);
         }
     }
 
+// ToDo add update API
     it('should be able to update data', async function () {
 
-        const primaryKey = 'bob';
-        let valueOfJson = {
+        let document = {
             'lastName': 'Alice',
             'Age': 100,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
-        let results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+        const docId1 = await put(tableName, document);
+        let results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
 
-        valueOfJson = {
+        document = {
             'lastName': 'Alice1',
             'Age': 140,
             'active': true
         };
-        await put(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
-        results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+        const docId2 = await put(tableName, document);
+        results = await get(tableName, docId2);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
 
-        await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+        await deleteKey(tableName, docId1);
+        await deleteKey(tableName, docId2);
 
     });
     it('should be able to do scan and return results from database', async function () {
         const numberOfEntries = 100;
         const results = await testReadWrite(numberOfEntries);
-        const scanResults = await getFromNonIndex(results.tableName, results.nameOfJsonColumn, {
+        const scanResults = await getFromNonIndex(results.tableName, {
             'lastName': 'Alice',
             'Age': 100
         });
@@ -196,11 +191,11 @@ describe('Integration: libMySql', function () {
     it('create and validate Index should pass', async function () {
         const numberOfEntries = 1000;
         const results = await testReadWrite(numberOfEntries);
-        let isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'lastName', 'VARCHAR(50)', false);
+        let isSuccess = await createIndexForJsonField(tableName, 'lastName', 'VARCHAR(50)', false);
         expect(isSuccess).to.eql(true);
-        isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'Age', 'INT', false);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);
         expect(isSuccess).to.eql(true);
-        const queryResults = await getFromIndex(tableName, nameOfJsonColumn, {
+        const queryResults = await getFromIndex(tableName, {
             'lastName': 'Alice',
             'Age': 100
         });
@@ -214,11 +209,11 @@ describe('Integration: libMySql', function () {
     });
     it('create and validate Index return empty list if nothing matches', async function () {
         const numberOfEntries = 1000;
-        let isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'lastName', 'VARCHAR(50)', false);
+        let isSuccess = await createIndexForJsonField(tableName, 'lastName', 'VARCHAR(50)', false);
         expect(isSuccess).to.eql(true);
-        isSuccess = await createIndexForJsonField(tableName, nameOfJsonColumn, 'Age', 'INT', false);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);
         expect(isSuccess).to.eql(true);
-        const queryResults = await getFromIndex(tableName, nameOfJsonColumn, {
+        const queryResults = await getFromIndex(tableName, {
             'lastName': 'Alice',
             'Age': 100
         });
@@ -229,45 +224,37 @@ describe('Integration: libMySql', function () {
 
 async function testReadWrite(numberOfWrites) {
     const tableName = 'customer';
-    const nameOfPrimaryKey = 'name';
-    const nameOfJsonColumn = 'details';
-    // const primaryKey = 'bob';
-    const valueOfJson = {
+    const document = {
         'lastName': 'Alice',
         'Age': 100,
         'active': true
     };
     const writePromises = [];
-    const primaryKeys = [];
     for (let i = 0; i < numberOfWrites; i++) {
-        let primaryKey = crypto.randomBytes(4).toString('hex');
-        let retPromise = put(tableName, nameOfPrimaryKey,
-            primaryKey, nameOfJsonColumn, valueOfJson);
+        let retPromise = put(tableName, document);
         writePromises.push(retPromise);
-        primaryKeys.push(primaryKey);
     }
-    const putReturns = await Promise.all(writePromises);
-    expect(putReturns.length).to.eql(numberOfWrites);
-    putReturns.forEach(returns => {
-        expect(returns).to.eql(true);
+    const documentIds = await Promise.all(writePromises);
+    expect(documentIds.length).to.eql(numberOfWrites);
+    documentIds.forEach(id => {
+        expect(id.length).to.eql(128);
     });
     const readPromises = [];
-    for (let i = 0; i < numberOfWrites; i++) {
-        let readPromise = get(tableName, nameOfPrimaryKey, primaryKeys[i], nameOfJsonColumn);
+    documentIds.forEach(id => {
+        let readPromise = get(tableName, id);
         readPromises.push(readPromise);
-    }
+
+    });
     const getReturns = await Promise.all(readPromises);
     expect(getReturns.length).to.eql(numberOfWrites);
     getReturns.forEach(results => {
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
     });
     return {
         'tableName': tableName,
-        'nameOfPrimaryKey': nameOfPrimaryKey,
-        'nameOfJsonColumn': nameOfJsonColumn,
-        'valueOfJson': valueOfJson,
-        'primaryKeys': primaryKeys
+        'document': document,
+        'documentIds': documentIds
     };
 }
