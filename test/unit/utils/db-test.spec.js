@@ -10,7 +10,7 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN
+    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -50,7 +50,7 @@ describe('Unit tests for db.js', function () {
             await createTable(tableName);
 
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before createTable');
+            expect(e.toString()).to.eql('Please call init before createTable');
         }
     });
 
@@ -286,7 +286,7 @@ describe('Unit tests for db.js', function () {
             await put(tableName, document);
         } catch (e) {
             exceptionOccurred = true;
-            expect(e.toString()).to.eql('Error: Please call init before put');
+            expect(e.toString()).to.eql('Please call init before put');
         }
         expect(exceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
@@ -322,7 +322,7 @@ describe('Unit tests for db.js', function () {
         try {
             await get(tableName, documentId);
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before get');
+            expect(e.toString()).to.eql('Please call init before get');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -445,7 +445,7 @@ describe('Unit tests for db.js', function () {
         const documentId = true;
         let isExceptionOccurred = false;
         try {
-            await get(tableName,  documentId);
+            await get(tableName, documentId);
         } catch (e) {
             expect(e).to.eql('Please provide valid documentID');
             isExceptionOccurred = true;
@@ -544,7 +544,7 @@ describe('Unit tests for db.js', function () {
             await deleteKey(tableName, documentId);
         } catch (e) {
             exceptionOccurred = true;
-            expect(e.toString()).to.eql('Error: Please call init before deleteKey');
+            expect(e.toString()).to.eql('Please call init before deleteKey');
         }
         expect(exceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
@@ -874,7 +874,7 @@ describe('Unit tests for db.js', function () {
             await getFromNonIndex(tableName, {});
 
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before getFromNonIndex');
+            expect(e.toString()).to.eql('Please call init before getFromNonIndex');
         }
     });
 
@@ -906,7 +906,7 @@ describe('Unit tests for db.js', function () {
             await deleteTable(tableName);
 
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before getFromNonIndex');
+            expect(e.toString()).to.eql('Please call init before getFromNonIndex');
         }
     });
 
@@ -1054,7 +1054,7 @@ describe('Unit tests for db.js', function () {
             await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
 
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before createIndexForJsonField');
+            expect(e.toString()).to.eql('Please call init before createIndexForJsonField');
         }
     });
     it('createIndexForJsonField should pass for valid parameters', async function () {
@@ -1198,7 +1198,7 @@ describe('Unit tests for db.js', function () {
             await getFromIndex(tableName, queryObject);
 
         } catch (e) {
-            expect(e.toString()).to.eql('Error: Please call init before findFromIndex');
+            expect(e.toString()).to.eql('Please call init before findFromIndex');
         }
     });
 
@@ -1339,6 +1339,139 @@ describe('Unit tests for db.js', function () {
             const results = await getFromIndex(tableName, queryObject);
             expect(results.length).to.eql(0);
             console.log(results);
+        } catch (e) {
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(false);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('update should fail if connection not initialized', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        close();
+        const tableName = 'customer';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        try {
+            await update(tableName, docId, document);
+
+        } catch (e) {
+            expect(e).to.eql('Please call init before update');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('update should fail if table name is invalid', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = '@';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        try {
+            await update(tableName, docId, document);
+
+        } catch (e) {
+            expect(e).to.eql('please provide valid table name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('update should fail if document is invalid', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'customer';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = null;
+        try {
+            await update(tableName, docId, document);
+
+        } catch (e) {
+            expect(e).to.eql('Please provide valid document');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('update should fail if error occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback("Error", [], []);
+        };
+        const tableName = 'customer';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        try {
+            await update(tableName, docId, document);
+
+        } catch (e) {
+            expect(e).to.eql('Error');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('update should fail if exception occurs', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            throw new Error('Error');
+        };
+        const tableName = 'customer';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        try {
+            await update(tableName, docId, document);
+
+        } catch (e) {
+            expect(e.toString().split('\n')[0]).to.eql(
+                'Exception occurred while writing to database Error: Error');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('update should pass for valid parameters', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'customer';
+        const docId = '1000';
+        let isExceptionOccurred = false;
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        try {
+            const id = await update(tableName, docId, document);
+            expect(id).to.eql(docId);
+
         } catch (e) {
             isExceptionOccurred = true;
         }

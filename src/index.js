@@ -16,5 +16,5 @@
  *
  */
 export {
-    createTable, get, put, deleteKey, getFromNonIndex, deleteTable, createIndexForJsonField, getFromIndex
+    createTable, get, put, deleteKey, getFromNonIndex, deleteTable, createIndexForJsonField, getFromIndex, update
 } from './utils/db.js';
