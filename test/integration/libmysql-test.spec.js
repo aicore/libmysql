@@ -23,7 +23,7 @@ import {
     deleteTable, getFromIndex,
     get,
     getFromNonIndex,
-    put
+    put, update
 } from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
@@ -138,7 +138,7 @@ describe('Integration: libMySql', function () {
         }
     }
 
-// ToDo add update API
+
     it('should be able to update data', async function () {
 
         let document = {
@@ -157,14 +157,14 @@ describe('Integration: libMySql', function () {
             'Age': 140,
             'active': true
         };
-        const docId2 = await put(tableName, document);
-        results = await get(tableName, docId2);
+        await update(tableName, docId1, document);
+        results = await get(tableName, docId1);
         expect(results.lastName).to.eql(document.lastName);
         expect(results.Age).to.eql(document.Age);
         expect(results.active).to.eql(document.active);
 
         await deleteKey(tableName, docId1);
-        await deleteKey(tableName, docId2);
+
 
     });
     it('should be able to do scan and return results from database', async function () {
@@ -208,7 +208,6 @@ describe('Integration: libMySql', function () {
         await deleteData(results);
     });
     it('create and validate Index return empty list if nothing matches', async function () {
-        const numberOfEntries = 1000;
         let isSuccess = await createIndexForJsonField(tableName, 'lastName', 'VARCHAR(50)', false);
         expect(isSuccess).to.eql(true);
         isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);

@@ -141,7 +141,8 @@ function _isValidPrimaryKey(key) {
 export function createTable(tableName) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before createTable');
+            reject('Please call init before createTable');
+            return;
         }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
@@ -197,7 +198,8 @@ export function createTable(tableName) {
 export function put(tableName, document) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before put');
+            reject('Please call init before put');
+            return;
         }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
@@ -257,7 +259,8 @@ function createDocumentId() {
 export function deleteKey(tableName, documentID) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before deleteKey');
+            reject('Please call init before deleteKey');
+            return;
         }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
@@ -313,7 +316,8 @@ export function deleteKey(tableName, documentID) {
 export function get(tableName, documentID) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before get');
+            reject('Please call init before get');
+            return;
         }
         if (!_isValidTableAttributes(tableName)) {
             reject('please provide valid table name');
@@ -395,7 +399,8 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
 export function getFromNonIndex(tableName, queryObject) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before getFromNonIndex');
+            reject('Please call init before getFromNonIndex');
+            return;
         }
         if (!isObject(queryObject) || isObjectEmpty(queryObject)) {
             reject(`please provide valid queryObject`);
@@ -434,7 +439,8 @@ export function getFromNonIndex(tableName, queryObject) {
 export function deleteTable(tableName) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before getFromNonIndex');
+            reject('Please call init before getFromNonIndex');
+            return;
         }
 
         if (!_isValidTableAttributes(tableName)) {
@@ -528,7 +534,8 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColumn, isUnique) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before createIndexForJsonField');
+            reject('Please call init before createIndexForJsonField');
+            return;
         }
 
         if (!_isValidTableAttributes(tableName)) {
@@ -637,7 +644,8 @@ export function getFromIndex(tableName, queryObject) {
 
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            throw new Error('Please call init before findFromIndex');
+            reject('Please call init before findFromIndex');
+            return;
         }
         if (!isObject(queryObject) || isObjectEmpty(queryObject)) {
             reject(`please provide valid queryObject`);
@@ -653,6 +661,43 @@ export function getFromIndex(tableName, queryObject) {
             _queryIndex(queryParams, JSON_COLUMN, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while querying index`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+}
+
+export function update(tableName, documentId, document) {
+    return new Promise((resolve, reject) => {
+        if (!CONNECTION) {
+            reject('Please call init before update');
+            return;
+        }
+        if (!_isValidTableAttributes(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+
+        if (!isObject(document)) {
+            reject('Please provide valid document');
+            return;
+            //Todo: Emit metrics
+        }
+        const updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ?;`;
+        try {
+            CONNECTION.execute(updateQuery, [document, documentId],
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        console.error(`Error occurred while while updating data  ${JSON.stringify(err)}`);
+                        reject(err);
+                        return;
+                    }
+                    resolve(documentId);
+                });
+        } catch (e) {
+            const errorMessage = `Exception occurred while writing to database ${e.stack}`;
             reject(errorMessage);
             //TODO: Emit Metrics
         }
