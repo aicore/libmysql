@@ -77,14 +77,14 @@ describe('Integration: libMySql', function () {
 
     it('get should return empty if data not present', async function () {
 
-        const docId = crypto.randomBytes(64).toString('hex');
+        const docId = crypto.randomBytes(16).toString('hex');
         const getReturn = await get(tableName, docId);
         expect(isObjectEmpty(getReturn)).to.eql(true);
     });
     it('get should throw exception table is not present', async function () {
         let exceptionOccurred = false;
         try {
-            const docId = crypto.randomBytes(64).toString('hex');
+            const docId = crypto.randomBytes(16).toString('hex');
             await get('HELLO', docId);
 
         } catch (e) {
@@ -237,7 +237,7 @@ async function testReadWrite(numberOfWrites) {
     const documentIds = await Promise.all(writePromises);
     expect(documentIds.length).to.eql(numberOfWrites);
     documentIds.forEach(id => {
-        expect(id.length).to.eql(128);
+        expect(id.length).to.eql(32);
     });
     const readPromises = [];
     documentIds.forEach(id => {

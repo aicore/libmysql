@@ -105,14 +105,27 @@ export function close() {
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
-const SIZE_OF_PRIMARY_KEY = 128;
+const SIZE_OF_PRIMARY_KEY = 32;
 const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
+/**
+ * It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than or
+ * equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches the
+ * regular expression for a table attribute name
+ * @param {string} tableAttributeName - The name of the table attribute.
+ * @returns A boolean value.
+ */
 function _isValidTableAttributes(tableAttributeName) {
     return (isString(tableAttributeName) && tableAttributeName.length <=
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableAttributeName));
 }
 
+/**
+ * Returns true if the given key is a string of length greater than zero and less than or equal to the maximum size of a
+ * primary key.
+ * @param {string} key - The primary key of the item to be retrieved.
+ * @returns A boolean value.
+ */
 function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
 }
@@ -199,8 +212,8 @@ export function createTable(tableName) {
  *
  * @param {string} tableName - The name of the table in which you want to store the data.
  * @param {Object} document - The JSON string that you want to store in the database.
-     * @returns {Promise} A promise on resolving the promise will give documentID throws an exception
-     * otherwise. DocumentId is an alphanumeric string of length 128
+ * @returns {Promise} A promise on resolving the promise will give documentID throws an exception
+ * otherwise. DocumentId is an alphanumeric string of length 128
  */
 export function put(tableName, document) {
     return new Promise(function (resolve, reject) {
@@ -241,8 +254,14 @@ export function put(tableName, document) {
     });
 }
 
+
+/**
+ * It generates a random string of 16 hexadecimal characters
+ * When converting hexadecimal to string. The generated string will contain 32 characters
+ * @returns A random string of hexadecimal characters.
+ */
 function createDocumentId() {
-    return crypto.randomBytes(64).toString('hex');
+    return crypto.randomBytes(16).toString('hex');
 }
 
 /**

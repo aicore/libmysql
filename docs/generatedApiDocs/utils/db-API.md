@@ -56,6 +56,29 @@ This function helps to close the database connection
 
 Returns **void**&#x20;
 
+## \_isValidTableAttributes
+
+It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than or
+equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches the
+regular expression for a table attribute name
+
+### Parameters
+
+*   `tableAttributeName` **[string][2]** The name of the table attribute.
+
+Returns **any** A boolean value.
+
+## \_isValidPrimaryKey
+
+Returns true if the given key is a string of length greater than zero and less than or equal to the maximum size of a
+primary key.
+
+### Parameters
+
+*   `key` **[string][2]** The primary key of the item to be retrieved.
+
+Returns **any** A boolean value.
+
 ## createTable
 
 It creates a table in the database with the name provided as the parameter
@@ -122,6 +145,13 @@ try {
 
 Returns **[Promise][4]** A promise on resolving the promise will give documentID throws an exception
 otherwise. DocumentId is an alphanumeric string of length 128
+
+## createDocumentId
+
+It generates a random string of 16 hexadecimal characters
+When converting hexadecimal to string. The generated string will contain 32 characters
+
+Returns **any** A random string of hexadecimal characters.
 
 ## deleteKey
 
