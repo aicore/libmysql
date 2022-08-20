@@ -117,7 +117,8 @@ function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
 }
 
-/** This function helps to create a  table in database
+/** It creates a table in the database with the name provided as the parameter
+ *
  * we have simplified our database schema, for us, our database has only two columns
  *  1. `primary key` column, which is a varchar(255)
  *  2. `JSON` column, which stores values corresponding to the primary key as `JSON`
@@ -180,8 +181,7 @@ export function createTable(tableName) {
 
 
 /**
- * It takes a table name, a primary key, a json column name, and a json value, and inserts the json value into the json
- * column. If the primary key already exists, it updates the json column with the new value
+ * It takes a table name and a document and then inserts the document into the database.
  * @example <caption> Sample code </caption>
  *
  * try {
@@ -377,7 +377,7 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
 }
 
 /**
- * It takes a table name, a column name, and a query object, and returns a promise that resolves to the
+ * It takes a table name and a query object, and returns a promise that resolves to the
  * array of matched documents
  * This query is doing database scan. using this query frequently can degrade database performance. if this query
  * is more frequent consider creating index and use `getFromIndex` API
@@ -509,7 +509,7 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 }
 
 /**
- * It creates a new column in the table for the JSON field and then creates an index on that column
+ * It creates a new column in the table for the JSON field and then creates an index on that column.
  * @example <caption> Sample code </caption>
  * const tableName = 'customers';
  * let jsonfield = 'lastName';
