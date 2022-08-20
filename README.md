@@ -1,6 +1,23 @@
+
 # libmysql
 
 This library helps to model mysql as document db.
+## Code Guardian
+
+[![<app> build verification](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml)
+
+<a href="https://sonarcloud.io/project/issues?id=aicore_libmysql">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=alert_status" alt="Sonar code quality check" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=security_rating" alt="Security rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=vulnerabilities" alt="vulnerabilities" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=coverage" alt="Code Coverage" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=bugs" alt="Code Bugs" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=reliability_rating" alt="Reliability Rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_rating" alt="Maintainability Rating" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=ncloc" alt="Lines of Code" />
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_index" alt="Technical debt" />
+</a>
+
 
 ## Examples
 
@@ -184,21 +201,6 @@ try {
 close();
 ```
 
-## Code Guardian
-
-[![<app> build verification](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml)
-
-<a href="https://sonarcloud.io/project/issues?id=aicore_libmysql">
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=alert_status" alt="Sonar code quality check" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=security_rating" alt="Security rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=vulnerabilities" alt="vulnerabilities" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=coverage" alt="Code Coverage" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=bugs" alt="Code Bugs" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=reliability_rating" alt="Reliability Rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_rating" alt="Maintainability Rating" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=ncloc" alt="Lines of Code" />
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_index" alt="Technical debt" />
-</a>
 
 # Commands available
 
