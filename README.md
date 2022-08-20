@@ -1,7 +1,15 @@
-
 # libmysql
 
-This library helps to model mysql as document db.
+This library helps to model MySQL as document DB. We have simplified MySQL to have only
+two columns. More columns will be added only while creating an index for JSON fields using
+`createIndexForJsonField` method.
+
+1. column1: documentId, a random alphanumeric of type `VARCHAR(128).`
+2. column2: document we store documents in MySQL as `JSON` documents.
+
+`documentId` is created  when we put a document into the database by calling `put` method
+
+
 ## Code Guardian
 
 [![<app> build verification](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/libmysql/actions/workflows/build_verify.yml)
@@ -17,7 +25,6 @@ This library helps to model mysql as document db.
   <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=ncloc" alt="Lines of Code" />
   <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_libmysql&metric=sqale_index" alt="Technical debt" />
 </a>
-
 
 ## Examples
 
@@ -37,6 +44,11 @@ try {
 }
 close();
 ```
+
+#### How table looks after create table?
+
+| documentID  | document   |
+|--------------------------|----------------|
 
 ### How to put a document on a table?
 
@@ -60,6 +72,11 @@ try {
 }
 close();
 ```
+#### How table looks after putting data to table?
+
+| documentID  | document   |
+|--------------------------|----------------|
+|d54c584c2fc15f390014ad798e930179b3f0096e25a30919921178f65d18afa09886ee773693a784c818eec109d060cbfe460cdacabe1e1238e093970289834e|`{'lastName': 'Alice','Age': 100,'active': true}` |
 
 ### How to delete a document from a database?
 
@@ -153,6 +170,11 @@ try {
 }
 close();
 ```
+#### How table looks after creating index?
+
+| documentID  | document   | lastName|Age|
+|--------------------------|----------------|----|---|
+|d54c584c2fc15f390014ad798e930179b3f0096e25a30919921178f65d18afa09886ee773693a784c818eec109d060cbfe460cdacabe1e1238e093970289834e|`{'lastName': 'Alice','Age': 100,'active': true}` |Alice| 100|
 
 ### How to get data from indexed fields?
 
@@ -201,6 +223,22 @@ try {
 close();
 ```
 
+# Database Schema
+
+```javascript
+import {createTable, init, close} from "@aicore/libmysql";
+import {getMySqlConfigs} from "@aicore/libcommonutils";
+
+const configs = getMySqlConfigs();
+init(configs);
+const tableName = 'customers';
+try {
+    await createTable(tableName);
+} catch (e) {
+    console.error(JSON.stringify(e));
+}
+close();
+```
 
 # Commands available
 
