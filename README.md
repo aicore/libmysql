@@ -5,7 +5,7 @@ two columns. More columns will be added only while creating an index for JSON fi
 `createIndexForJsonField` method.
 
 1. column1: documentId, a random alphanumeric of type `VARCHAR(128).`
-2. column2: document we store documents in MySQL as `JSON` documents.
+2. column2: Document column to store documents in MySQL. Documents are stored as `JSON` documents.
 
 `documentId` is created  when we put a document into the database by calling `put` method
 
