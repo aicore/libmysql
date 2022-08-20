@@ -23,7 +23,7 @@ import {
     deleteTable, getFromIndex,
     get,
     getFromNonIndex,
-    put, update
+    put, update, DATA_DATA_TYPES
 } from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
@@ -31,7 +31,7 @@ import * as crypto from "crypto";
 
 let expect = chai.expect;
 
-const tableName = 'customer';
+const tableName = 'customers';
 describe('Integration: libMySql', function () {
     after(function () {
         close();
@@ -53,20 +53,20 @@ describe('Integration: libMySql', function () {
     });
 
     it('should create table add data and get data', async function () {
-        const valueOfJson = {
+        const document = {
             'lastName': 'Alice',
             'Age': 100,
             'active': true
         };
-        const docId = await put(tableName, valueOfJson);
+        const docId = await put(tableName, document);
         const results = await get(tableName, docId);
-        expect(results.lastName).to.eql(valueOfJson.lastName);
-        expect(results.Age).to.eql(valueOfJson.Age);
-        expect(results.active).to.eql(valueOfJson.active);
-        const resultNonIndex = await getFromNonIndex(tableName, {
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
+        const queryObject = {
             'lastName': 'Alice',
             'Age': 100
-        });
+        };
         // delete key
         await deleteKey(tableName, docId);
         const deletedValue = await get(tableName, docId);
@@ -191,9 +191,10 @@ describe('Integration: libMySql', function () {
     it('create and validate Index should pass', async function () {
         const numberOfEntries = 1000;
         const results = await testReadWrite(numberOfEntries);
-        let isSuccess = await createIndexForJsonField(tableName, 'lastName', 'VARCHAR(50)', false);
+        let isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_DATA_TYPES.VARCHAR(50),
+            false);
         expect(isSuccess).to.eql(true);
-        isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_DATA_TYPES.INT, false);
         expect(isSuccess).to.eql(true);
         const queryResults = await getFromIndex(tableName, {
             'lastName': 'Alice',
@@ -208,7 +209,8 @@ describe('Integration: libMySql', function () {
         await deleteData(results);
     });
     it('create and validate Index return empty list if nothing matches', async function () {
-        let isSuccess = await createIndexForJsonField(tableName, 'lastName', 'VARCHAR(50)', false);
+        let isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_DATA_TYPES.VARCHAR(50),
+            false);
         expect(isSuccess).to.eql(true);
         isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);
         expect(isSuccess).to.eql(true);

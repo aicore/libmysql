@@ -10,7 +10,7 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update
+    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_DATA_TYPES
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -991,7 +991,7 @@ describe('Unit tests for db.js', function () {
         };
         const tableName = '@';
         const jsonField = 'id';
-        const dataType = 'INT';
+        const dataType = DATA_DATA_TYPES.INT;
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
@@ -1011,7 +1011,7 @@ describe('Unit tests for db.js', function () {
         };
         const tableName = 'customer';
         const jsonField = 10;
-        const dataType = 'INT';
+        const dataType = 'DATA_DATA_TYPES.INT';
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
@@ -1477,5 +1477,11 @@ describe('Unit tests for db.js', function () {
         }
         expect(isExceptionOccurred).to.eql(false);
         mockedFunctions.connection.execute = saveExecute;
+    });
+    it('check var char function', function () {
+       let varchar = DATA_DATA_TYPES.VARCHAR();
+       expect(varchar).to.eql('VARCHAR(255)');
+        varchar = DATA_DATA_TYPES.VARCHAR(50);
+        expect(varchar).to.eql('VARCHAR(50)');
     });
 });
