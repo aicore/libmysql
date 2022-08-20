@@ -1,7 +1,8 @@
 import {setUpMySQL} from '@aicore/libtestutils';
 
 let config = null;
-/*config = {
+/*
+config = {
     'host': 'localhost',
     'port': '3306',
     'database': 'testdb',

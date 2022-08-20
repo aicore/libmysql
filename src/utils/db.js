@@ -8,6 +8,14 @@ let CONNECTION = null;
 
 export const PRIMARY_COLUMN = 'documentID';
 export const JSON_COLUMN = 'document';
+export const DATA_DATA_TYPES = {
+    // https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html
+    DOUBLE: 'DOUBLE',
+    VARCHAR: function (a = 255) {
+        return `VARCHAR(${a})`;
+    },
+    INT: 'INT'
+};
 
 
 /** This function helps to initialize MySql Client
@@ -124,10 +132,8 @@ function _isValidPrimaryKey(key) {
  * const configs = getMySqlConfigs();
  * init(configs)
  * const tableName = 'customer';
- * const nameOfPrimaryKey = 'name';
- * const nameOfJsonColumn = 'details';
  * try {
- *   await createTable(tableName, nameOfPrimaryKey, nameOfJsonColumn);
+ *   await createTable(tableName);
  * } catch(e){
  *     console.error(JSON.stringify(e));
  * }
@@ -180,12 +186,13 @@ export function createTable(tableName) {
  *
  * try {
  *       const primaryKey = 'bob';
- *       const valueOfJson = {
+ *       const tableName = 'customers;
+ *       const document = {
  *           'lastName': 'Alice',
  *           'Age': 100,
  *           'active': true
  *       };
- *       await put('hello', nameOfPrimaryKey, primaryKey, nameOfJsonColumn, valueOfJson);
+ *       await put(tableName, document);
  *   } catch (e) {
  *       console.error(JSON.stringify(e));
  *  }
@@ -239,14 +246,13 @@ function createDocumentId() {
 }
 
 /**
- * It deletes a row from the database based on the primary key
+ * It deletes a document from the database based on the document id
  * @example <caption> Sample code </caption>
  *
- * const tableName = 'customer';
- * const nameOfPrimaryKey = 'name';
- * const primaryKey = 'bob';
+ * const tableName = 'customers';
+ * const documentID = '123456';
  * try {
- *    await deleteKey(tableName, nameOfPrimaryKey, primaryKey);
+ *    await deleteKey(tableName, documentID);
  * } catch(e) {
  *    console.error(JSON.stringify(e));
  * }
@@ -294,24 +300,20 @@ export function deleteKey(tableName, documentID) {
 }
 
 /**
- * It takes in a table name, a primary key name, a primary key value, and a json column name, and returns a promise that
- * resolves to the json column value
+ * It takes in a table name and documentId, and returns a promise that resolves to the document
  * @example <caption> sample code </caption>
- * const tableName = 'customer';
- * const nameOfPrimaryKey = 'name';
- * const nameOfJsonColumn = 'details';
- * const primaryKey = 'bob';
+ * const tableName = 'customers';
+ * const documentID = '12345';
  * try {
- *     const results = await get(tableName, nameOfPrimaryKey, primaryKey, nameOfJsonColumn);
+ *     const results = await get(tableName, documentID);
  *     console.log(JSON.stringify(result));
  * } catch(e){
  *     console.error(JSON.stringify(e));
  * }
  *
- *
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param {string} documentID - The primary key of the row you want to get.
- * @returns {Promise} A promise on resolve promise to get the value stored for primary key
+ * @returns {Promise} A promise on resolve promise to get the value stored for documentID
  */
 export function get(tableName, documentID) {
     return new Promise(function (resolve, reject) {
@@ -375,17 +377,18 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
 }
 
 /**
- * It takes a table name, a column name, and a query object, and returns a promise that resolves to the result of a scan of
- * the table
+ * It takes a table name, a column name, and a query object, and returns a promise that resolves to the
+ * array of matched documents
+ * This query is doing database scan. using this query frequently can degrade database performance. if this query
+ * is more frequent consider creating index and use `getFromIndex` API
  * @example <caption> sample code </caption>
- * const tableName = 'customer';
- * const nameOfJsonColumn = 'details';
+ * const tableName = 'customers';
  * const queryObject = {
  *             'lastName': 'Alice',
  *             'Age': 100
  *         };
  * try {
- *     const scanResults = await getFromNonIndex(tableName, nameOfJsonColumn, queryObject);
+ *     const scanResults = await getFromNonIndex(tableName, queryObject);
  *     console.log(JSON.stringify(scanResults));
  * } catch (e){
  *     console.error(JSON.stringify(e));
@@ -393,7 +396,7 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
  *
  * @param {string} tableName - The name of the table you want to query.
  * @param {Object} queryObject - This is the object that you want to query.
- * @returns {Promise} - A promise; on promise resolution returns array of  matched object from json column. if there are
+ * @returns {Promise} - A promise; on promise resolution returns array of  matched documents. if there are
  * no match returns empty array
  */
 export function getFromNonIndex(tableName, queryObject) {
@@ -508,14 +511,13 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 /**
  * It creates a new column in the table for the JSON field and then creates an index on that column
  * @example <caption> Sample code </caption>
- * const tableName = 'customer';
- * const nameOfJsonColumn = 'customerDetails';
+ * const tableName = 'customers';
  * let jsonfield = 'lastName';
  * // supported data types can be found on https://dev.mysql.com/doc/refman/8.0/en/data-types.html
  * let dataTypeOfNewColumn = 'VARCHAR(50)';
  * let isUnique = false;
  * try{
- *      await createIndexForJsonField(tableName, nameOfJsonColumn, jsonfield, dataTypeOfNewColumn, isUnique);
+ *      await createIndexForJsonField(tableName jsonfield, dataTypeOfNewColumn, isUnique);
  *      jsonfield = 'Age';
  *      dataTypeOfNewColumn = 'INT';
  *      isUnique = false;
@@ -622,18 +624,16 @@ function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
  * @example <caption> Sample code </caption>
  * const tableName = 'customer';
- * const nameOfJsonColumn = 'customerDetails';
  * const queryObject = {
  *             'lastName': 'Alice',
  *             'Age': 100
  *             };
  * try {
- *      const queryResults = await getFromIndex(tableName, nameOfJsonColumn, queryObject);
+ *      const queryResults = await getFromIndex(tableName, queryObject);
  *      console.log(JSON.stringify(queryResults));
  * } catch (e) {
  *      console.error(JSON.stringify(e));
  * }
- *
  *
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param {Object} queryObject - This is the object that you want to search for.
@@ -667,6 +667,27 @@ export function getFromIndex(tableName, queryObject) {
     });
 }
 
+/**
+ * It updates the document in the database
+ * This api will overwrite current document with new document
+ * @example <caption> Sample code </caption>
+ *
+ * const docId = 1234;
+ * const document = {
+ *             'lastName': 'Alice1',
+ *             'Age': 140,
+ *             'active': true
+ *              };
+ * try{
+ *      await update(tableName, docId, document);
+ * } catch(e){
+ *     console.error(JSON.stringify(e));
+ * }
+ * @param tableName - The name of the table to update.
+ * @param documentId - The primary key of the document to be updated.
+ * @param document - The document to be inserted.
+ * @returns A promise on resolving promise will get documentId
+ */
 export function update(tableName, documentId, document) {
     return new Promise((resolve, reject) => {
         if (!CONNECTION) {
