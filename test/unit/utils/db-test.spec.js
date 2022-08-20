@@ -256,7 +256,7 @@ describe('Unit tests for db.js', function () {
         };
 
         const result = await put(tableName, document);
-        expect(result.length).to.eql(128);
+        expect(result.length).to.eql(32);
 
         mockedFunctions.connection.execute = saveExecute;
     });
@@ -691,7 +691,7 @@ describe('Unit tests for db.js', function () {
             }, {});
         };
         const tableName = 'hello';
-        const documentId = generateStringSequence('a', 128);
+        const documentId = generateStringSequence('a', 16);
 
         const result = await deleteKey(tableName, documentId);
         expect(result).to.eql(true);
