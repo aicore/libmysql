@@ -122,7 +122,7 @@ try {
 ```
 
 Returns **[Promise][4]** A promise on resolving the promise will give documentID throws an exception
-otherwise
+otherwise. DocumentId is an alphanumeric string of length 128
 
 ## deleteKey
 
@@ -179,7 +179,8 @@ Returns **[Promise][4]** A promise on resolve promise to get the value stored fo
 ## getFromNonIndex
 
 It takes a table name and a query object, and returns a promise that resolves to the
-array of matched documents
+array of matched documents.
+`NB: this api will not detect boolean fields while scanning`
 This query is doing database scan. using this query frequently can degrade database performance. if this query
 is more frequent consider creating index and use `getFromIndex` API
 
@@ -236,6 +237,7 @@ if the table is not deleted.
 ## createIndexForJsonField
 
 It creates a new column in the table for the JSON field and then creates an index on that column.
+`NB: this will not work with boolean fields`
 
 ### Parameters
 

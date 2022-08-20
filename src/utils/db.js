@@ -199,8 +199,8 @@ export function createTable(tableName) {
  *
  * @param {string} tableName - The name of the table in which you want to store the data.
  * @param {Object} document - The JSON string that you want to store in the database.
- * @returns {Promise} A promise on resolving the promise will give documentID throws an exception
- * otherwise
+     * @returns {Promise} A promise on resolving the promise will give documentID throws an exception
+     * otherwise. DocumentId is an alphanumeric string of length 128
  */
 export function put(tableName, document) {
     return new Promise(function (resolve, reject) {
@@ -378,7 +378,8 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
 
 /**
  * It takes a table name and a query object, and returns a promise that resolves to the
- * array of matched documents
+ * array of matched documents.
+ * `NB: this api will not detect boolean fields while scanning`
  * This query is doing database scan. using this query frequently can degrade database performance. if this query
  * is more frequent consider creating index and use `getFromIndex` API
  * @example <caption> sample code </caption>
@@ -510,6 +511,7 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
 
 /**
  * It creates a new column in the table for the JSON field and then creates an index on that column.
+ * `NB: this will not work with boolean fields`
  * @example <caption> Sample code </caption>
  * const tableName = 'customers';
  * let jsonfield = 'lastName';
