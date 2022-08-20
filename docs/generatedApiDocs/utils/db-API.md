@@ -54,7 +54,7 @@ Returns **[boolean][3]** true if connection is successful false otherwise*
 
 This function helps to close the database connection
 
-Returns **void** 
+Returns **void**&#x20;
 
 ## createTable
 
@@ -64,10 +64,9 @@ we have simplified our database schema, for us, our database has only two column
 
 1.  `primary key` column, which is a varchar(255)
 2.  `JSON` column, which stores values corresponding to the primary key as `JSON`
-
-using this approach will simplify our database design by delegating the handling of the semantics of
-data to the application.To speed up any query, we have provided an option to add a secondary index
-for JSON fields using `createIndexForJsonField` api.
+    using this approach will simplify our database design by delegating the handling of the semantics of
+    data to the application.To speed up any query, we have provided an option to add a secondary index
+    for JSON fields using `createIndexForJsonField` api.
 
 ### Parameters
 
