@@ -224,7 +224,6 @@ describe('Integration: libMySql', function () {
 });
 
 async function testReadWrite(numberOfWrites) {
-    const tableName = 'customer';
     const document = {
         'lastName': 'Alice',
         'Age': 100,
