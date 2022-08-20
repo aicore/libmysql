@@ -21,7 +21,7 @@ This library helps to model mysql as document db.
 
 ## Examples
 
-### How to create table?
+### How to create a table?
 
 ```javascript
 import {createTable, init, close} from "@aicore/libmysql";
@@ -38,7 +38,7 @@ try {
 close();
 ```
 
-### How to put document to table?
+### How to put a document on a table?
 
 ```javascript
 import {put, init, close} from "@aicore/libmysql";
@@ -61,7 +61,7 @@ try {
 close();
 ```
 
-### How to delete document from database?
+### How to delete a document from a database?
 
 ```javascript
 import {deleteKey, init, close} from "@aicore/libmysql";
@@ -80,7 +80,7 @@ try {
 close();
 ```
 
-### How to get document?
+### How to get a document?
 
 ```javascript
 import {get, init, close} from "@aicore/libmysql";
@@ -98,7 +98,7 @@ try {
 close();
 ```
 
-### How to do scan on database to get list of matching documents?
+### How to scan a database to get a list of matching documents?
 
 ```javascript
 import {getFromNonIndex, init, close} from "@aicore/libmysql";
@@ -135,7 +135,7 @@ try {
 close();
 ```
 
-### How to create index for a json field?
+### How to create an index for a JSON field?
 
 ```javascript
 import {createIndexForJsonField, DATA_DATA_TYPES, init, close} from "@aicore/libmysql";
@@ -175,7 +175,7 @@ try {
 close();
 ```
 
-### How to update / we write exiting document
+### How to update / re-write an existing document?
 
 ```javascript
 import {update, init, close} from "@aicore/libmysql";
