@@ -58,9 +58,9 @@ Returns **void**&#x20;
 
 ## \_isValidTableAttributes
 
-It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than or
-equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches the
-regular expression for a table attribute name
+It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than
+or equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches
+the regular expression for a table attribute name
 
 ### Parameters
 
@@ -289,7 +289,8 @@ if the table is not deleted.
 ## \_buildCreateJsonColumQuery
 
 It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
-column, and returns a query that will create a new column in the table that is a copy of the field in the JSON column.
+column, and returns a query that will create a new column in the table that is a copy of the field in the JSON
+column.
 
 ### Parameters
 
@@ -396,9 +397,9 @@ It takes a table name and a query object and returns a query string and an array
 
 ## \_queryIndex
 
-\_queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters. It
-then executes the query in the queryParams object, and if the query is successful, it returns the results of the query
-to the resolve function. If the query is unsuccessful, it returns the error to the reject function
+\_queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters.
+It then executes the query in the queryParams object, and if the query is successful, it returns the results of
+the query to the resolve function. If the query is unsuccessful, it returns the error to the reject function
 
 ### Parameters
 
