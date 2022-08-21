@@ -1050,6 +1050,25 @@ describe('Unit tests for db.js', function () {
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
+    it('createIndexForJsonField should fail invalid jsonfield', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'customer';
+        const jsonField = 'id.z.@';
+        const dataType = DATA_TYPES.INT;
+        const isUnique = true;
+        let isExceptionOccurred = false;
+        try {
+            await createIndexForJsonField(tableName, jsonField, dataType, isUnique);
+        } catch (e) {
+            expect(e).to.eql('please provide valid name for json field');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
 
     it('create table api should fail  if connection not initialised', async function () {
         try {

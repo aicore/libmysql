@@ -10,9 +10,9 @@ let CONNECTION = null;
 export const PRIMARY_COLUMN = 'documentID';
 /* Defining a constant variable called JSON_COLUMN and assigning it the value of 'document'. */
 export const JSON_COLUMN = 'document';
-/* Creating a constant called DATA_TYPES. It is an object with three properties. The first property is DOUBLE, which is a
-string. The second property is VARCHAR, which is a function that takes a parameter. The third property is INT, which is
-a string. */
+/* Creating a constant called DATA_TYPES. It is an object with three properties. The first property is DOUBLE, which is
+ a string. The second property is VARCHAR, which is a function that takes a parameter. The third property is INT,
+ which is a string. */
 export const DATA_TYPES = {
     // https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html
     DOUBLE: 'DOUBLE',
@@ -109,17 +109,19 @@ export function close() {
 }
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
-/* Defining a constant variable named MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME and assigning it the value 64. */
+/* Defining a constant variable named MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME and
+assigning it the value 64. */
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
 /* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
 const SIZE_OF_PRIMARY_KEY = 32;
-/* Creating a regular expression that will match any word character (letter, number, or underscore) one or more times. */
+/* Creating a regular expression that will match any word character (letter, number, or underscore)
+one or more times. */
 const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 /**
- * It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than or
- * equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches the
- * regular expression for a table attribute name
+ * It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than
+ * or equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches
+ * the regular expression for a table attribute name
  * @param {string} tableAttributeName - The name of the table attribute.
  * @returns A boolean value.
  */
@@ -372,7 +374,6 @@ export function get(tableName, documentID) {
                         return;
                     }
                     resolve({});
-
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
@@ -397,8 +398,8 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
             let subResults = _queryScanBuilder(value, parentKey + "." + key);
             if (subResults) {
                 getQuery += subResults.getQuery;
-                subResults.valArray.forEach(value => {
-                    valArray.push(value);
+                subResults.valArray.forEach(result => {
+                    valArray.push(result);
                 });
                 numberOfEntries = numberOfEntries - 1;
                 continue;
@@ -535,7 +536,8 @@ export function deleteTable(tableName) {
 
 /**
  * It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
- * column, and returns a query that will create a new column in the table that is a copy of the field in the JSON column.
+ * column, and returns a query that will create a new column in the table that is a copy of the field in the JSON
+ * column.
  * @param {string} tableName - The name of the table you want to add the column to.
  * @param {string} nameOfJsonColumn - The name of the new column that will be created.
  * @param {string} jsonField - The field in the JSON object that you want to extract.
@@ -594,16 +596,23 @@ export function _createIndex(resolve, reject, tableName, jsonField, isUnique) {
     }
 }
 
-/* Creating a regular expression that will match a string that is a valid JSON field. */
-const REGX_JSON_FIELD = new RegExp(/^\w+(\.?\w)*$/);
-
 /**
  * It checks if the jsonField is a valid json field.
  * @param {string}jsonField - The JSON field to be queried.
  * @returns {boolean} if its valid json field false otherwise
  */
 function _isJsonField(jsonField) {
-    return isString(jsonField) && REGX_JSON_FIELD.test(jsonField);
+    if (!isString(jsonField)) {
+        return false;
+    }
+    const split = jsonField.split('.');
+
+    for (let i = 0; i < split.length; i++) {
+        if (!_isValidTableAttributes(split[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -693,8 +702,8 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
             let subResults = _prepareQueryForNestedObject(value, key);
             if (subResults) {
                 subQuery += parentKey + subResults.getQuery;
-                subResults.valArray.forEach(value => {
-                    valArray.push(value);
+                subResults.valArray.forEach(result => {
+                    valArray.push(result);
                 });
             }
             numberOfEntries = numberOfEntries - 1;
@@ -708,7 +717,6 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
         }
         valArray.push(value);
         numberOfEntries = numberOfEntries - 1;
-
     }
     return {
         'getQuery': subQuery,
@@ -731,9 +739,9 @@ function _prepareQueryOfIndexSearch(tableName, queryObject) {
 }
 
 /**
- * _queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters. It
- * then executes the query in the queryParams object, and if the query is successful, it returns the results of the query
- * to the resolve function. If the query is unsuccessful, it returns the error to the reject function
+ * _queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters.
+ * It then executes the query in the queryParams object, and if the query is successful, it returns the results of
+ * the query to the resolve function. If the query is unsuccessful, it returns the error to the reject function
  * @param {Object} queryParams - This is an object that contains the query and the values to be used in the query.
  * @param {Function}resolve - a function that takes a single argument, which is the result of the query.
  * @param {Function} reject - a function that will be called if the query fails.
