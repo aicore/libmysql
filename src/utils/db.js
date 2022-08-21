@@ -607,8 +607,8 @@ function _isJsonField(jsonField) {
     }
     const split = jsonField.split('.');
 
-    for (let i = 0; i < split.length; i++) {
-        if (!_isValidTableAttributes(split[i])) {
+    for (let key of split) {
+        if (!_isValidTableAttributes(key)) {
             return false;
         }
     }
