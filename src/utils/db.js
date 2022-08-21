@@ -595,7 +595,7 @@ export function _createIndex(resolve, reject, tableName, jsonField, isUnique) {
 }
 
 /* Creating a regular expression that will match a string that is a valid JSON field. */
-const REGX_JSON_FIELD = new RegExp(/^\w+(\.?\w+)*$/);
+const REGX_JSON_FIELD = new RegExp(/^\w+(\.?\w)*$/);
 
 /**
  * It checks if the jsonField is a valid json field.
