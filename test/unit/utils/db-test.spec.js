@@ -10,7 +10,7 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_DATA_TYPES
+    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_TYPES
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -887,9 +887,16 @@ describe('Unit tests for db.js', function () {
         const tableName = 'hello';
         let exceptionOccurred = false;
         try {
-            await getFromNonIndex(tableName, {
-                id: 'abc'
-            });
+            const queryObject = {
+                'Age': 100,
+                'lastName': 'Alice',
+                'location': {
+                    'layout': {
+                        'block': '1stblock'
+                    }
+                }
+            };
+            await getFromNonIndex(tableName, queryObject);
         } catch (e) {
             exceptionOccurred = true;
 
@@ -991,7 +998,7 @@ describe('Unit tests for db.js', function () {
         };
         const tableName = '@';
         const jsonField = 'id';
-        const dataType = DATA_DATA_TYPES.INT;
+        const dataType = DATA_TYPES.INT;
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
@@ -1030,7 +1037,7 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
         };
         const tableName = 'customer';
-        const jsonField = 'id';
+        const jsonField = 'id.z.y';
         const dataType = null;
         const isUnique = true;
         let isExceptionOccurred = false;
@@ -1064,7 +1071,7 @@ describe('Unit tests for db.js', function () {
         };
         const tableName = 'customer';
         const jsonField = 'id';
-        const dataType = 'INT';
+        const dataType = DATA_TYPES.INT;
         const isUnique = true;
         let isExceptionOccurred = false;
         try {
@@ -1309,7 +1316,13 @@ describe('Unit tests for db.js', function () {
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
-            'Age': 100
+            'Age': 100,
+            'location': {
+                'layout': {
+                    'block': '1stblock'
+                }
+
+            }
         };
         try {
             const results = await getFromIndex(tableName, queryObject);
@@ -1479,9 +1492,9 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
     it('check var char function', function () {
-       let varchar = DATA_DATA_TYPES.VARCHAR();
-       expect(varchar).to.eql('VARCHAR(255)');
-        varchar = DATA_DATA_TYPES.VARCHAR(50);
+        let varchar = DATA_TYPES.VARCHAR();
+        expect(varchar).to.eql('VARCHAR(255)');
+        varchar = DATA_TYPES.VARCHAR(50);
         expect(varchar).to.eql('VARCHAR(50)');
     });
 });

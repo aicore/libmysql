@@ -6,9 +6,14 @@ import crypto from "crypto";
 
 let CONNECTION = null;
 
+/* Defining a constant variable called PRIMARY_COLUMN and assigning it the value of 'documentID'. */
 export const PRIMARY_COLUMN = 'documentID';
+/* Defining a constant variable called JSON_COLUMN and assigning it the value of 'document'. */
 export const JSON_COLUMN = 'document';
-export const DATA_DATA_TYPES = {
+/* Creating a constant called DATA_TYPES. It is an object with three properties. The first property is DOUBLE, which is a
+string. The second property is VARCHAR, which is a function that takes a parameter. The third property is INT, which is
+a string. */
+export const DATA_TYPES = {
     // https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html
     DOUBLE: 'DOUBLE',
     VARCHAR: function (a = 255) {
@@ -104,8 +109,11 @@ export function close() {
 }
 
 // https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
+/* Defining a constant variable named MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME and assigning it the value 64. */
 const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
+/* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
 const SIZE_OF_PRIMARY_KEY = 32;
+/* Creating a regular expression that will match any word character (letter, number, or underscore) one or more times. */
 const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 /**
@@ -374,17 +382,33 @@ export function get(tableName, documentID) {
     });
 }
 
-function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
-
-    let getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE `;
+/**
+ * It takes a JSON object and returns a SQL query and an array of values to be used in a prepared statement
+ * @param {Object} subQueryObject - This is the object that you want to query.
+ * @param {string} [parentKey] - This is the parent key of the current object.
+ * @returns {Object} An object with two properties: getQuery and valArray.
+ */
+function _queryScanBuilder(subQueryObject, parentKey = "") {
     const valArray = [];
-    let numberOfEntries = Object.keys(queryObject).length;
-    for (const [key, value] of Object.entries(queryObject)) {
+    let getQuery = '';
+    let numberOfEntries = Object.keys(subQueryObject).length;
+    for (const [key, value] of Object.entries(subQueryObject)) {
+        if (isObject(value)) {
+            let subResults = _queryScanBuilder(value, parentKey + "." + key);
+            if (subResults) {
+                getQuery += subResults.getQuery;
+                subResults.valArray.forEach(value => {
+                    valArray.push(value);
+                });
+                numberOfEntries = numberOfEntries - 1;
+                continue;
+            }
+        }
         if (numberOfEntries > 1) {
-            getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ? and `;
+            getQuery = getQuery + `${JSON_COLUMN}->"$${parentKey}.${key}" = ? and `;
 
         } else {
-            getQuery = getQuery + `${nameOfJsonColumn}->"$.${key}" = ?`;
+            getQuery = getQuery + `${JSON_COLUMN}->"$${parentKey}.${key}" = ? `;
         }
         valArray.push(value);
         numberOfEntries = numberOfEntries - 1;
@@ -392,6 +416,22 @@ function _prepareQueryForScan(nameOfJsonColumn, tableName, queryObject) {
     return {
         'getQuery': getQuery,
         'valArray': valArray
+    };
+}
+
+/**
+ * It takes a table name and a query object and returns a query string and an array of values to be used in a prepared
+ * statement
+ * @param {string} tableName - The name of the table to query.
+ * @param {Object} queryObject - The query object that you want to run.
+ * @returns {Object} An object with two properties: getQuery and valArray.
+ */
+function _prepareQueryForScan(tableName, queryObject) {
+    let getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE `;
+    const subQuery = _queryScanBuilder(queryObject);
+    return {
+        'getQuery': getQuery + subQuery.getQuery,
+        'valArray': subQuery.valArray
     };
 }
 
@@ -435,8 +475,8 @@ export function getFromNonIndex(tableName, queryObject) {
             //Todo: Emit metrics
         }
         try {
-            const queryParams = _prepareQueryForScan(JSON_COLUMN, tableName, queryObject);
-            _queryIndex(queryParams, JSON_COLUMN, resolve, reject);
+            const queryParams = _prepareQueryForScan(tableName, queryObject);
+            _queryIndex(queryParams, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
             reject(errorMessage);
@@ -492,26 +532,52 @@ export function deleteTable(tableName) {
 
 }
 
-function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn) {
 
-    return `ALTER TABLE ${tableName} ADD COLUMN ${jsonField} ${dataTypeOfNewColumn}  GENERATED ALWAYS` +
-        ` AS (${nameOfJsonColumn}->>"$.${jsonField}");`;
+/**
+ * It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
+ * column, and returns a query that will create a new column in the table that is a copy of the field in the JSON column.
+ * @param {string} tableName - The name of the table you want to add the column to.
+ * @param {string} nameOfJsonColumn - The name of the new column that will be created.
+ * @param {string} jsonField - The field in the JSON object that you want to extract.
+ * @param {string} dataTypeOfNewColumn - This is the data type of the new column.
+ * @returns  {string} A string that is a query to create a new column in a table.
+ */
+function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn) {
+    return `ALTER TABLE ${tableName} ADD COLUMN ${nameOfJsonColumn} ${dataTypeOfNewColumn}  GENERATED ALWAYS` +
+        ` AS (${JSON_COLUMN}->>"$.${jsonField}");`;
 }
 
-function _buildCreateIndexQuery(tableName, _nameOfJsonColumn, jsonField, isUnique) {
+/**
+ * It takes a table name, a json field name, and a boolean value indicating whether the index should be unique or not,
+ * and returns a string containing the SQL query to create the index
+ * @param {string} tableName - The name of the table to create the index on.
+ * @param {string} jsonField - The name of the JSON field that you want to index.
+ * @param {boolean} isUnique - If true, the index will be unique.
+ * @returns {string} A string that is a query to create an index on a table.
+ */
+function _buildCreateIndexQuery(tableName, jsonField, isUnique) {
     if (isUnique) {
         return `CREATE UNIQUE INDEX  idx_${jsonField} ON ${tableName}(${jsonField});`;
     }
     return `CREATE INDEX  idx_${jsonField} ON ${tableName}(${jsonField});`;
 }
 
-/*
-    private function exporting this for testing
+/**
+ * It creates an index on the JSON field in the table
+ * @param{function} resolve - A function that is called when the promise is resolved.
+ * @param {function} reject - A function that will be called if the promise is rejected.
+ * @param {string} tableName - The name of the table to create the index on
+ * @param {string} jsonField - The JSON field that you want to create an index on.
+ * @param {boolean} isUnique - true if the index is unique, false otherwise
+ * @returns {void}
+ *
+ *  NB `private function exporting this for testing`
+ *
  */
-export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonField, isUnique) {
+export function _createIndex(resolve, reject, tableName, jsonField, isUnique) {
 
     try {
-        const indexQuery = _buildCreateIndexQuery(tableName, nameOfJsonColumn, jsonField, isUnique);
+        const indexQuery = _buildCreateIndexQuery(tableName, jsonField, isUnique);
         CONNECTION.execute(indexQuery,
             function (err, _results, _fields) {
                 //TODO: emit success or failure metrics based on return value
@@ -526,6 +592,18 @@ export function _createIndex(resolve, reject, tableName, nameOfJsonColumn, jsonF
         reject(errorMessage);
         //TODO: Emit Metrics
     }
+}
+
+/* Creating a regular expression that will match a string that is a valid JSON field. */
+const REGX_JSON_FIELD = new RegExp(/^(\w+(\.?\w+)*)*$/);
+
+/**
+ * It checks if the jsonField is a valid json field.
+ * @param {string}jsonField - The JSON field to be queried.
+ * @returns {boolean} if its valid json field false otherwise
+ */
+function _isJsonField(jsonField) {
+    return isString(jsonField) && REGX_JSON_FIELD.test(jsonField);
 }
 
 /**
@@ -566,7 +644,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             return;
             //Todo: Emit metrics
         }
-        if (!_isValidTableAttributes(jsonField)) {
+        if (!_isJsonField(jsonField)) {
             reject('please provide valid name for json field');
             return;
             //Todo: Emit metrics
@@ -575,10 +653,11 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             reject('please provide valid  data type for json field');
             return;
         }
+        const sqlJsonColumn = jsonField.replaceAll('.', '');
 
         try {
             const createColumnQuery = _buildCreateJsonColumQuery(tableName,
-                JSON_COLUMN,
+                sqlJsonColumn,
                 jsonField,
                 dataTypeOfNewColumn);
             CONNECTION.execute(createColumnQuery,
@@ -588,7 +667,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
                         reject(err);
                         return;
                     }
-                    return _createIndex(resolve, reject, tableName, JSON_COLUMN, jsonField, isUnique);
+                    return _createIndex(resolve, reject, tableName, sqlJsonColumn, isUnique);
                 });
         } catch (e) {
             console.error(JSON.stringify(e));
@@ -599,28 +678,68 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
     });
 }
 
-function _prepareQueryOfIndexSearch(tableName, nameOfJsonColumn, queryObject) {
-    let getQuery = `SELECT ${nameOfJsonColumn} FROM ${tableName} WHERE `;
+/**
+ * It takes a nested object and returns a query string and an array of values
+ * @param {Object} subQueryObject - This is the object that you want to convert to a query.
+ * @param {string} [parentKey] - This is the key of the parent object.
+ * @returns {Object} An object with two properties, getQuery and valArray.
+ */
+function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
     const valArray = [];
-    let numberOfEntries = Object.keys(queryObject).length;
-    for (const [key, value] of Object.entries(queryObject)) {
+    let subQuery = '';
+    let numberOfEntries = Object.keys(subQueryObject).length;
+    for (const [key, value] of Object.entries(subQueryObject)) {
+        if (isObject(value)) {
+            let subResults = _prepareQueryForNestedObject(value, key);
+            if (subResults) {
+                subQuery += parentKey + subResults.getQuery;
+                subResults.valArray.forEach(value => {
+                    valArray.push(value);
+                });
+            }
+            numberOfEntries = numberOfEntries - 1;
+            continue;
+        }
         if (numberOfEntries > 1) {
-            getQuery = getQuery + `${key} = ? and `;
+            subQuery = subQuery + `${parentKey}${key} = ? and  `;
 
         } else {
-            getQuery = getQuery + `${key} = ?`;
+            subQuery = subQuery + `${parentKey}${key} = ? `;
         }
         valArray.push(value);
         numberOfEntries = numberOfEntries - 1;
 
     }
     return {
-        'getQuery': getQuery,
+        'getQuery': subQuery,
         'valArray': valArray
     };
 }
 
-function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
+/**
+ * It takes a table name and a query object and returns a query string and an array of values
+ * @param {string} tableName - The name of the table in which the data is stored.
+ * @param{Object} queryObject - The object that you want to search for.
+ */
+function _prepareQueryOfIndexSearch(tableName, queryObject) {
+    let getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE `;
+    const result = _prepareQueryForNestedObject(queryObject);
+    return {
+        'getQuery': getQuery + result.getQuery,
+        'valArray': result.valArray
+    };
+}
+
+/**
+ * _queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters. It
+ * then executes the query in the queryParams object, and if the query is successful, it returns the results of the query
+ * to the resolve function. If the query is unsuccessful, it returns the error to the reject function
+ * @param {Object} queryParams - This is an object that contains the query and the values to be used in the query.
+ * @param {Function}resolve - a function that takes a single argument, which is the result of the query.
+ * @param {Function} reject - a function that will be called if the query fails.
+ * @returns {Array} An array of objects
+ */
+function _queryIndex(queryParams, resolve, reject) {
     CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
         function (err, results, _fields) {
             //TODO: emit success or failure metrics based on return value
@@ -631,14 +750,13 @@ function _queryIndex(queryParams, nameOfJsonColumn, resolve, reject) {
             if (results && results.length > 0) {
                 const retResults = [];
                 for (const result of results) {
-                    retResults.push(result[nameOfJsonColumn]);
+                    retResults.push(result[JSON_COLUMN]);
                 }
                 resolve(retResults);
                 return;
             }
             resolve([]);
         });
-
 }
 
 /**
@@ -678,8 +796,8 @@ export function getFromIndex(tableName, queryObject) {
             //Todo: Emit metrics
         }
         try {
-            const queryParams = _prepareQueryOfIndexSearch(tableName, JSON_COLUMN, queryObject);
-            _queryIndex(queryParams, JSON_COLUMN, resolve, reject);
+            const queryParams = _prepareQueryOfIndexSearch(tableName, queryObject);
+            _queryIndex(queryParams, resolve, reject);
         } catch (e) {
             const errorMessage = `Exception occurred while querying index`;
             reject(errorMessage);
@@ -707,7 +825,7 @@ export function getFromIndex(tableName, queryObject) {
  * @param tableName - The name of the table to update.
  * @param documentId - The primary key of the document to be updated.
  * @param document - The document to be inserted.
- * @returns A promise on resolving promise will get documentId
+ * @returns {Promise} A promise on resolving promise will get documentId
  */
 export function update(tableName, documentId, document) {
     return new Promise((resolve, reject) => {
