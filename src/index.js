@@ -17,5 +17,5 @@
  */
 export {
     createTable, get, put, deleteKey, getFromNonIndex, deleteTable, createIndexForJsonField, getFromIndex, update,
-    init, close, DATA_DATA_TYPES
+    init, close, DATA_TYPES
 } from './utils/db.js';

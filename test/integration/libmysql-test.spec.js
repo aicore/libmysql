@@ -23,7 +23,7 @@ import {
     deleteTable, getFromIndex,
     get,
     getFromNonIndex,
-    put, update, DATA_DATA_TYPES
+    put, update, DATA_TYPES
 } from "../../src/index.js";
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
@@ -71,7 +71,33 @@ describe('Integration: libMySql', function () {
         await deleteKey(tableName, docId);
         const deletedValue = await get(tableName, docId);
         expect(isObjectEmpty(deletedValue)).to.eql(true);
+    });
+    it('should be able to add nested objects to document', async function () {
+        const document = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka'
 
+            }
+        };
+        const docId = await put(tableName, document);
+        const results = await get(tableName, docId);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
+        expect(results.location.city).to.eql(document.location.city);
+        expect(results.location.state).to.eql(document.location.state);
+        const queryObject = {
+            'lastName': 'Alice',
+            'Age': 100
+        };
+        // delete key
+        await deleteKey(tableName, docId);
+        const deletedValue = await get(tableName, docId);
+        expect(isObjectEmpty(deletedValue)).to.eql(true);
 
     });
 
@@ -183,6 +209,30 @@ describe('Integration: libMySql', function () {
         await deleteData(results);
     });
 
+    it('should be able to do scan and return results from database for nested objects', async function () {
+        const numberOfEntries = 100;
+        const results = await testReadWrite(numberOfEntries);
+        const queryObject = {
+            'Age': 100,
+            'lastName': 'Alice',
+            'location': {
+                'layout': {
+                    'block': '1stblock'
+                }
+
+            }
+        };
+        const scanResults = await getFromNonIndex(results.tableName, queryObject);
+        expect(scanResults.length).to.eql(numberOfEntries);
+        for (let i = 0; i < scanResults.length; i++) {
+            expect(scanResults[i].Age).to.eql(100);
+            expect(scanResults[i].active).to.eql(true);
+            expect(scanResults[i].lastName).to.eql('Alice');
+        }
+        await deleteData(results);
+    });
+
+
     it('delete table should pass if table does not exit', async function () {
         const isSuccess = await deleteTable('hello');
         expect(isSuccess).to.eql(true);
@@ -191,10 +241,10 @@ describe('Integration: libMySql', function () {
     it('create and validate Index should pass', async function () {
         const numberOfEntries = 1000;
         const results = await testReadWrite(numberOfEntries);
-        let isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_DATA_TYPES.VARCHAR(50),
+        let isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_TYPES.VARCHAR(50),
             false);
         expect(isSuccess).to.eql(true);
-        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_DATA_TYPES.INT, false);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false);
         expect(isSuccess).to.eql(true);
         const queryResults = await getFromIndex(tableName, {
             'lastName': 'Alice',
@@ -209,14 +259,19 @@ describe('Integration: libMySql', function () {
         await deleteData(results);
     });
     it('create and validate Index return empty list if nothing matches', async function () {
-        let isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_DATA_TYPES.VARCHAR(50),
+        let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
             false);
         expect(isSuccess).to.eql(true);
-        isSuccess = await createIndexForJsonField(tableName, 'Age', 'INT', false);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false);
         expect(isSuccess).to.eql(true);
         const queryResults = await getFromIndex(tableName, {
-            'lastName': 'Alice',
-            'Age': 100
+            'Age': 100,
+            'location': {
+                'layout': {
+                    'block': '1stblock'
+                }
+
+            }
         });
         expect(queryResults.length).to.eql(0);
 
@@ -227,7 +282,15 @@ async function testReadWrite(numberOfWrites) {
     const document = {
         'lastName': 'Alice',
         'Age': 100,
-        'active': true
+        'active': true,
+        'location': {
+            'city': 'Banglore',
+            'state': 'Karnataka',
+            'layout': {
+                'block': '1stblock'
+            }
+
+        }
     };
     const writePromises = [];
     for (let i = 0; i < numberOfWrites; i++) {

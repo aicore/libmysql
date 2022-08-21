@@ -205,6 +205,29 @@ try {
 
 Returns **[Promise][4]** A promise on resolve promise to get the value stored for documentID
 
+## \_queryScanBuilder
+
+It takes a JSON object and returns a SQL query and an array of values to be used in a prepared statement
+
+### Parameters
+
+*   `subQueryObject` **[Object][1]** This is the object that you want to query.
+*   `parentKey` **[string][2]?** This is the parent key of the current object. (optional, default `""`)
+
+Returns **[Object][1]** An object with two properties: getQuery and valArray.
+
+## \_prepareQueryForScan
+
+It takes a table name and a query object and returns a query string and an array of values to be used in a prepared
+statement
+
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table to query.
+*   `queryObject` **[Object][1]** The query object that you want to run.
+
+Returns **[Object][1]** An object with two properties: getQuery and valArray.
+
 ## getFromNonIndex
 
 It takes a table name and a query object, and returns a promise that resolves to the
@@ -263,6 +286,57 @@ try{
 Returns **[Promise][4]** A promise that will resolve to true if the table is deleted, or reject with an error
 if the table is not deleted.
 
+## \_buildCreateJsonColumQuery
+
+It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
+column, and returns a query that will create a new column in the table that is a copy of the field in the JSON column.
+
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table you want to add the column to.
+*   `nameOfJsonColumn` **[string][2]** The name of the new column that will be created.
+*   `jsonField` **[string][2]** The field in the JSON object that you want to extract.
+*   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column.
+
+Returns **[string][2]** A string that is a query to create a new column in a table.
+
+## \_buildCreateIndexQuery
+
+It takes a table name, a json field name, and a boolean value indicating whether the index should be unique or not,
+and returns a string containing the SQL query to create the index
+
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table to create the index on.
+*   `jsonField` **[string][2]** The name of the JSON field that you want to index.
+*   `isUnique` **[boolean][3]** If true, the index will be unique.
+
+Returns **[string][2]** A string that is a query to create an index on a table.
+
+## \_createIndex
+
+It creates an index on the JSON field in the table
+
+### Parameters
+
+*   `resolve` **[function][5]** A function that is called when the promise is resolved.
+*   `reject` **[function][5]** A function that will be called if the promise is rejected.
+*   `tableName` **[string][2]** The name of the table to create the index on
+*   `jsonField` **[string][2]** The JSON field that you want to create an index on.
+*   `isUnique` **[boolean][3]** true if the index is unique, false otherwise
+
+Returns **void** NB `private function exporting this for testing`
+
+## \_isJsonField
+
+It checks if the jsonField is a valid json field.
+
+### Parameters
+
+*   `jsonField` **[string][2]** The JSON field to be queried.
+
+Returns **[boolean][3]** if its valid json field false otherwise
+
 ## createIndexForJsonField
 
 It creates a new column in the table for the JSON field and then creates an index on that column.
@@ -273,7 +347,7 @@ It creates a new column in the table for the JSON field and then creates an inde
 *   `tableName` **[string][2]** The name of the table in which you want to create the index.
 *   `jsonField` **[string][2]** The name of the field in the JSON object that you want to index.
 *   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column that will be created.
-    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][5] to know all supported data types
+    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][6] to know all supported data types
 *   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index.
 
 ### Examples
@@ -299,6 +373,40 @@ try{
 ```
 
 Returns **[Promise][4]** A promise
+
+## \_prepareQueryForNestedObject
+
+It takes a nested object and returns a query string and an array of values
+
+### Parameters
+
+*   `subQueryObject` **[Object][1]** This is the object that you want to convert to a query.
+*   `parentKey` **[string][2]?** This is the key of the parent object. (optional, default `""`)
+
+Returns **[Object][1]** An object with two properties, getQuery and valArray.
+
+## \_prepareQueryOfIndexSearch
+
+It takes a table name and a query object and returns a query string and an array of values
+
+### Parameters
+
+*   `tableName` **[string][2]** The name of the table in which the data is stored.
+*   `queryObject` **[Object][1]** The object that you want to search for.
+
+## \_queryIndex
+
+\_queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters. It
+then executes the query in the queryParams object, and if the query is successful, it returns the results of the query
+to the resolve function. If the query is unsuccessful, it returns the error to the reject function
+
+### Parameters
+
+*   `queryParams` **[Object][1]** This is an object that contains the query and the values to be used in the query.
+*   `resolve` **[Function][5]** a function that takes a single argument, which is the result of the query.
+*   `reject` **[Function][5]** a function that will be called if the query fails.
+
+Returns **[Array][7]** An array of objects
 
 ## getFromIndex
 
@@ -359,7 +467,7 @@ try{
 }
 ```
 
-Returns **any** A promise on resolving promise will get documentId
+Returns **[Promise][4]** A promise on resolving promise will get documentId
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
@@ -369,4 +477,8 @@ Returns **any** A promise on resolving promise will get documentId
 
 [4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
 
-[5]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+[5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+
+[6]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+
+[7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array

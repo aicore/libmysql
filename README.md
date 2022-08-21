@@ -223,23 +223,6 @@ try {
 close();
 ```
 
-# Database Schema
-
-```javascript
-import {createTable, init, close} from "@aicore/libmysql";
-import {getMySqlConfigs} from "@aicore/libcommonutils";
-
-const configs = getMySqlConfigs();
-init(configs);
-const tableName = 'customers';
-try {
-    await createTable(tableName);
-} catch (e) {
-    console.error(JSON.stringify(e));
-}
-close();
-```
-
 # Commands available
 
 ## Building
