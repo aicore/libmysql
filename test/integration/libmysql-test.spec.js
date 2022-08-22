@@ -40,8 +40,6 @@ describe('Integration: libMySql', function () {
         const configs = await getMySqlConfigs();
         console.log(`${JSON.stringify(configs)}`);
         init(configs);
-
-
     });
 
     beforeEach(async function () {

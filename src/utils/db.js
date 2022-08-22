@@ -16,7 +16,7 @@ export const JSON_COLUMN = 'document';
 export const DATA_TYPES = {
     // https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html
     DOUBLE: 'DOUBLE',
-    VARCHAR: function (a = 255) {
+    VARCHAR: function (a = 50) {
         return `VARCHAR(${a})`;
     },
     INT: 'INT'
@@ -123,7 +123,7 @@ const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
  * or equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches
  * the regular expression for a table attribute name
  * @param {string} tableAttributeName - The name of the table attribute.
- * @returns A boolean value.
+ * @returns {boolean} A boolean value.
  */
 function _isValidTableAttributes(tableAttributeName) {
     return (isString(tableAttributeName) && tableAttributeName.length <=
@@ -134,7 +134,7 @@ function _isValidTableAttributes(tableAttributeName) {
  * Returns true if the given key is a string of length greater than zero and less than or equal to the maximum size of a
  * primary key.
  * @param {string} key - The primary key of the item to be retrieved.
- * @returns A boolean value.
+ * @returns {boolean} A boolean value.
  */
 function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
@@ -268,7 +268,7 @@ export function put(tableName, document) {
 /**
  * It generates a random string of 16 hexadecimal characters
  * When converting hexadecimal to string. The generated string will contain 32 characters
- * @returns A random string of hexadecimal characters.
+ * @returns {string} A random string of hexadecimal characters.
  */
 function createDocumentId() {
     return crypto.randomBytes(16).toString('hex');
@@ -533,7 +533,6 @@ export function deleteTable(tableName) {
 
 }
 
-
 /**
  * It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
  * column, and returns a query that will create a new column in the table that is a copy of the field in the JSON
@@ -616,6 +615,15 @@ function _isJsonField(jsonField) {
 }
 
 /**
+ * It takes a string and returns a hash of that string
+ * @param {string} jsonField - The JSON field you want to query.
+ * @returns {string} A string of hexadecimal characters.
+ */
+function _getColumNameForJsonField(jsonField) {
+    return crypto.createHash('md5').update(jsonField).digest('hex');
+}
+
+/**
  * It creates a new column in the table for the JSON field and then creates an index on that column.
  * `NB: this will not work with boolean fields`
  * @example <caption> Sample code </caption>
@@ -662,7 +670,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             reject('please provide valid  data type for json field');
             return;
         }
-        const sqlJsonColumn = jsonField.replaceAll('.', '');
+        const sqlJsonColumn = _getColumNameForJsonField(jsonField);
 
         try {
             const createColumnQuery = _buildCreateJsonColumQuery(tableName,
@@ -699,9 +707,10 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
     let numberOfEntries = Object.keys(subQueryObject).length;
     for (const [key, value] of Object.entries(subQueryObject)) {
         if (isObject(value)) {
-            let subResults = _prepareQueryForNestedObject(value, key);
+            const partialKey = (parentKey === "") ? key : parentKey + '.' + key;
+            let subResults = _prepareQueryForNestedObject(value, partialKey);
             if (subResults) {
-                subQuery += parentKey + subResults.getQuery;
+                subQuery += subResults.getQuery;
                 subResults.valArray.forEach(result => {
                     valArray.push(result);
                 });
@@ -709,11 +718,14 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
             numberOfEntries = numberOfEntries - 1;
             continue;
         }
+        const fullKey = (parentKey === "") ? key : parentKey + '.' + key;
+        const sqlColumnName = _getColumNameForJsonField(fullKey);
         if (numberOfEntries > 1) {
-            subQuery = subQuery + `${parentKey}${key} = ? and  `;
+
+            subQuery = subQuery + sqlColumnName + ' = ? and  ';
 
         } else {
-            subQuery = subQuery + `${parentKey}${key} = ? `;
+            subQuery = subQuery + sqlColumnName + ' = ? ';
         }
         valArray.push(value);
         numberOfEntries = numberOfEntries - 1;
