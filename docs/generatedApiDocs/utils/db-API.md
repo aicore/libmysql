@@ -66,7 +66,7 @@ the regular expression for a table attribute name
 
 *   `tableAttributeName` **[string][2]** The name of the table attribute.
 
-Returns **any** A boolean value.
+Returns **[boolean][3]** A boolean value.
 
 ## \_isValidPrimaryKey
 
@@ -77,7 +77,7 @@ primary key.
 
 *   `key` **[string][2]** The primary key of the item to be retrieved.
 
-Returns **any** A boolean value.
+Returns **[boolean][3]** A boolean value.
 
 ## createTable
 
@@ -151,7 +151,7 @@ otherwise. DocumentId is an alphanumeric string of length 128
 It generates a random string of 16 hexadecimal characters
 When converting hexadecimal to string. The generated string will contain 32 characters
 
-Returns **any** A random string of hexadecimal characters.
+Returns **[string][2]** A random string of hexadecimal characters.
 
 ## deleteKey
 
@@ -337,6 +337,16 @@ It checks if the jsonField is a valid json field.
 *   `jsonField` **[string][2]** The JSON field to be queried.
 
 Returns **[boolean][3]** if its valid json field false otherwise
+
+## \_getColumNameForJsonField
+
+It takes a string and returns a hash of that string
+
+### Parameters
+
+*   `jsonField` **[string][2]** The JSON field you want to query.
+
+Returns **[string][2]** A string of hexadecimal characters.
 
 ## createIndexForJsonField
 

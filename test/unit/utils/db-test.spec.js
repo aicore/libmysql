@@ -1512,7 +1512,7 @@ describe('Unit tests for db.js', function () {
     });
     it('check var char function', function () {
         let varchar = DATA_TYPES.VARCHAR();
-        expect(varchar).to.eql('VARCHAR(255)');
+        expect(varchar).to.eql('VARCHAR(50)');
         varchar = DATA_TYPES.VARCHAR(50);
         expect(varchar).to.eql('VARCHAR(50)');
     });
