@@ -620,7 +620,9 @@ function _isJsonField(jsonField) {
  * @returns {string} A string of hexadecimal characters.
  */
 function _getColumNameForJsonField(jsonField) {
-    return crypto.createHash('md5').update(jsonField).digest('hex');
+    // ignoring sonar security error as md5 function is not used for security
+    // Md5 function is used here to increase the length of jsonfield to more than 64 characters
+    return crypto.createHash('md5').update(jsonField).digest('hex'); //NOSONAR
 }
 
 /**
