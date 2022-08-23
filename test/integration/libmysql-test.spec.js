@@ -274,6 +274,103 @@ describe('Integration: libMySql', function () {
         expect(queryResults.length).to.eql(0);
 
     });
+    it('create a unique non null json column should pass', async function () {
+        let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
+            true, true);
+        expect(isSuccess).to.eql(true);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false, true);
+        expect(isSuccess).to.eql(true);
+        const queryResults = await getFromIndex(tableName, {
+            'Age': 100,
+            'location': {
+                'layout': {
+                    'block': '1stblock'
+                }
+
+            }
+        });
+        expect(queryResults.length).to.eql(0);
+        const docId = await put(tableName, {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka',
+                'layout': {
+                    'block': '1stblock'
+                }
+            }
+        });
+        expect(docId.length).to.eql(32);
+
+    });
+
+    it('create a unique non null json column should fail if there in duplicate insert', async function () {
+        let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
+            true, true);
+        expect(isSuccess).to.eql(true);
+        await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false, true);
+        const docId = await put(tableName, {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka',
+                'layout': {
+                    'block': '1stblock'
+                }
+            }
+        });
+        expect(docId.length).to.eql(32);
+        let isExceptionOccurred = false;
+        try {
+            await put(tableName, {
+                'lastName': 'Alice',
+                'Age': 100,
+                'active': true,
+                'location': {
+                    'city': 'Banglore',
+                    'state': 'Karnataka',
+                    'layout': {
+                        'block': '1stblock'
+                    }
+                }
+            });
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.toString().split('\n')[0])
+                .to.contains("Error: Duplicate entry '1stblock' for key 'customers.");
+        }
+        expect(isExceptionOccurred).to.eql(true);
+
+    });
+    it('create a unique non null json column and try to insert null field', async function () {
+        let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
+            true, true);
+        expect(isSuccess).to.eql(true);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false, true);
+        expect(isSuccess).to.eql(true);
+        let isExceptionOccurred = false;
+        try {
+            await put(tableName, {
+                'lastName': 'Alice',
+                'Age': 100,
+                'active': true,
+                'location': {
+                    'city': 'Banglore',
+                    'state': 'Karnataka'
+                }
+            });
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.toString().split('\n')[0])
+                .to.contains("cannot be null");
+        }
+        expect(isExceptionOccurred).to.eql(true);
+
+    });
 });
 
 async function testReadWrite(numberOfWrites) {

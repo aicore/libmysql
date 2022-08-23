@@ -533,19 +533,33 @@ export function deleteTable(tableName) {
 
 }
 
+
 /**
- * It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
- * column, and returns a query that will create a new column in the table that is a copy of the field in the JSON
- * column.
+ * _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isNotNull, isUnique)
+ *
+ * The function takes the following parameters:
+ *
+ * * tableName - the name of the table to add the column to
+ * * nameOfJsonColumn - the name of the new column
+ * * jsonField - the name of the field in the JSON column to extract
+ * * dataTypeOfNewColumn - the data type of the new column
+ * * isNotNull - a boolean value indicating whether the new column should be nullable
+ * * isUnique - a boolean value indicating whether the new column should be unique
+ *
  * @param {string} tableName - The name of the table you want to add the column to.
  * @param {string} nameOfJsonColumn - The name of the new column that will be created.
  * @param {string} jsonField - The field in the JSON object that you want to extract.
  * @param {string} dataTypeOfNewColumn - This is the data type of the new column.
- * @returns  {string} A string that is a query to create a new column in a table.
+ * @param {boolean} isNotNull - If the new column should be NOT NULL
+ * @param {boolean} isUnique - If true, the new column will be a unique key.
+ * @returns  {string} A string that is a query to add a column to a table.
+ *
  */
-function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn) {
+function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField,
+    dataTypeOfNewColumn, isNotNull, isUnique) {
+
     return `ALTER TABLE ${tableName} ADD COLUMN ${nameOfJsonColumn} ${dataTypeOfNewColumn}  GENERATED ALWAYS` +
-        ` AS (${JSON_COLUMN}->>"$.${jsonField}");`;
+        ` AS (${JSON_COLUMN}->>"$.${jsonField}") ${isNotNull ? " NOT NULL" : ""} ${isUnique ? " UNIQUE KEY" : ""};`;
 }
 
 /**
@@ -649,9 +663,11 @@ function _getColumNameForJsonField(jsonField) {
  * @param {string} dataTypeOfNewColumn - This is the data type of the new column that will be created.
  * visit https://dev.mysql.com/doc/refman/8.0/en/data-types.html to know all supported data types
  * @param {boolean} isUnique - If true, the json filed has to be unique for creating index.
+ * @param {boolean} isNotNull - If true, the column will be created with NOT NULL constraint.
  * @returns {Promise} A promise
  */
-export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColumn, isUnique) {
+export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColumn, isUnique = false,
+    isNotNull = false) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before createIndexForJsonField');
@@ -678,7 +694,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             const createColumnQuery = _buildCreateJsonColumQuery(tableName,
                 sqlJsonColumn,
                 jsonField,
-                dataTypeOfNewColumn);
+                dataTypeOfNewColumn, isNotNull, isUnique);
             CONNECTION.execute(createColumnQuery,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
