@@ -288,9 +288,16 @@ if the table is not deleted.
 
 ## \_buildCreateJsonColumQuery
 
-It takes a table name, a name for the new column, the name of the field in the JSON, and the data type of the new
-column, and returns a query that will create a new column in the table that is a copy of the field in the JSON
-column.
+\_buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isNotNull, isUnique)
+
+The function takes the following parameters:
+
+*   tableName - the name of the table to add the column to
+*   nameOfJsonColumn - the name of the new column
+*   jsonField - the name of the field in the JSON column to extract
+*   dataTypeOfNewColumn - the data type of the new column
+*   isNotNull - a boolean value indicating whether the new column should be nullable
+*   isUnique - a boolean value indicating whether the new column should be unique
 
 ### Parameters
 
@@ -298,8 +305,10 @@ column.
 *   `nameOfJsonColumn` **[string][2]** The name of the new column that will be created.
 *   `jsonField` **[string][2]** The field in the JSON object that you want to extract.
 *   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column.
+*   `isNotNull` **[boolean][3]** If the new column should be NOT NULL
+*   `isUnique` **[boolean][3]** If true, the new column will be a unique key.
 
-Returns **[string][2]** A string that is a query to create a new column in a table.
+Returns **[string][2]** A string that is a query to add a column to a table.
 
 ## \_buildCreateIndexQuery
 
@@ -359,7 +368,8 @@ It creates a new column in the table for the JSON field and then creates an inde
 *   `jsonField` **[string][2]** The name of the field in the JSON object that you want to index.
 *   `dataTypeOfNewColumn` **[string][2]** This is the data type of the new column that will be created.
     visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][6] to know all supported data types
-*   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index.
+*   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index. (optional, default `false`)
+*   `isNotNull` **[boolean][3]** If true, the column will be created with NOT NULL constraint. (optional, default `false`)
 
 ### Examples
 
