@@ -4,7 +4,7 @@ This library helps to model MySQL as document DB. We have simplified MySQL to ha
 two columns. More columns will be added only while creating an index for JSON fields using
 `createIndexForJsonField` method.
 
-1. column1: documentId, a random alphanumeric of type `VARCHAR(128).`
+1. column1: documentId, a random alphanumeric of type `VARCHAR(32).`
 2. column2: Document column to store documents in MySQL. Documents are stored as `JSON` documents.
 
 `documentId` is created  when we put a document into the database by calling `put` method
@@ -62,9 +62,16 @@ const tableName = 'customers';
 const document = {
     'lastName': 'Alice',
     'Age': 100,
-    'active': true
-};
+    'active': true,
+    'location': {
+        'city': 'Banglore',
+        'state': 'Karnataka',
+        'layout': {
+            'block': '1stblock'
+        }
 
+    }
+};
 try {
     const docId = await put(tableName, document);
 } catch (e) {
@@ -74,9 +81,9 @@ close();
 ```
 #### How table looks after putting data to table?
 
-| documentID  | document   |
-|--------------------------|----------------|
-|d54c584c2fc15f390014ad798e930179b3f0096e25a30919921178f65d18afa09886ee773693a784c818eec109d060cbfe460cdacabe1e1238e093970289834e|`{'lastName': 'Alice','Age': 100,'active': true}` |
+| documentID  | document |
+|--------------------------|---------|
+|d20ab50a3e4deefe508f1b26a32e2632|`{'lastName': 'Alice','Age': 100, 'active': true, 'location': {'city': 'Banglore','state': 'Karnataka','layout': {'block': '1stblock'} }}` |
 
 ### How to delete a document from a database?
 
@@ -155,7 +162,7 @@ close();
 ### How to create an index for a JSON field?
 
 ```javascript
-import {createIndexForJsonField, DATA_DATA_TYPES, init, close} from "@aicore/libmysql";
+import {createIndexForJsonField, DATA_TYPES, init, close} from "@aicore/libmysql";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 const configs = getMySqlConfigs();
@@ -163,8 +170,8 @@ const tableName = 'customers';
 try {
     // To make index unique constraint for new column and index set isUnique to true;
     const isUnique = false;
-    await createIndexForJsonField(tableName, 'lastName', DATA_DATA_TYPES.VARCHAR(50), isUnique);
-    await createIndexForJsonField(tableName, 'Age', DATA_DATA_TYPES.INT, isUnique);
+    await createIndexForJsonField(tableName, 'lastName', DATA_TYPES.VARCHAR(50), isUnique);
+    await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, isUnique);
 } catch (e) {
     console.error(JSON.stringify(e));
 }
@@ -172,9 +179,9 @@ close();
 ```
 #### How table looks after creating index?
 
-| documentID  | document   | lastName|Age|
-|--------------------------|----------------|----|---|
-|d54c584c2fc15f390014ad798e930179b3f0096e25a30919921178f65d18afa09886ee773693a784c818eec109d060cbfe460cdacabe1e1238e093970289834e|`{'lastName': 'Alice','Age': 100,'active': true}` |Alice| 100|
+| documentID  | document                                                                                                                                    | ef21925fada6dfb684b5d8ec72114bb1|9d8d2d5ab12b515182a505f54db7f538|
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|----|---|
+|9d8d2d5ab12b515182a505f54db7f538| `{"Age": 100, "active": true, "lastName": "Alice", "location": {"city": "Banglore", "state": "Karnataka", "layout": {"block": "1stblock"}}}` |Alice| 100|
 
 ### How to get data from indexed fields?
 
