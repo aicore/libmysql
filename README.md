@@ -362,6 +362,43 @@ IDEs from this link before raising a pull request: https://www.sonarlint.org/ .
 SonarLint static code analysis checker is not yet available as a Brackets
 extension.
 
+## Local integration testing
+### Steps
+#### [Install docker](https://docs.docker.com/engine/install/)
+#### Install and setup Mysql Docker image
+
+```console
+# install docker
+sudo docker pull mysql
+sudo docker images
+sudo docker run -d --name mysql-server -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" mysql
+
+# install mysql client
+sudo apt-get install mysql-client
+# connect to mysql running in docker
+# type password as 1234
+mysql -h 127.0.0.1 -u root -p
+
+# create a database
+CREATE DATABASE testdb;
+
+# list running dockers
+sudo docker container ls
+# stop docker
+sudo docker container stop  <container id obtained from previous step>
+```
+#### Remove docker image
+```console
+# get list of all avalible containers
+sudo  docker container ls -a
+
+# Remove container first
+sudo docker container rm   <container id from previous step>
+
+# Remover docker image
+sudo  docker image rm mysql
+```
+#### Uncomment config in setupIntegTest.js
 ## Internals
 
 ### Testing framework: Mocha , assertion style: chai
