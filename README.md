@@ -387,6 +387,7 @@ sudo docker container ls
 # stop docker
 sudo docker container stop  <container id obtained from previous step>
 ```
+#### Uncomment config in setupIntegTest.js
 #### Remove docker image
 ```console
 # get list of all avalible containers
@@ -398,7 +399,7 @@ sudo docker container rm   <container id from previous step>
 # Remover docker image
 sudo  docker image rm mysql
 ```
-#### Uncomment config in setupIntegTest.js
+
 ## Internals
 
 ### Testing framework: Mocha , assertion style: chai
