@@ -1,6 +1,6 @@
 /*global describe, it, before*/
 import * as chai from 'chai';
-import {createTable} from "../../src/index.js";
+import LibMySql from "../../src/index.js";
 import {init} from "../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -12,7 +12,7 @@ describe('testing src/index.js', function () {
     });
 
     it('createTable should pass', async function () {
-        const result = await createTable('customers', 'id', 'customer_data');
+        const result = await LibMySql.createTable('customers', 'id', 'customer_data');
         expect(result).to.eql(true);
     });
 });

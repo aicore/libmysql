@@ -901,3 +901,21 @@ export function update(tableName, documentId, document) {
         }
     });
 }
+
+// public APIs.
+const DB = {
+    createTable,
+    get,
+    put,
+    deleteKey,
+    getFromNonIndex,
+    deleteTable,
+    createIndexForJsonField,
+    getFromIndex,
+    update,
+    init,
+    close,
+    DATA_TYPES
+};
+
+export default DB;

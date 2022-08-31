@@ -15,7 +15,8 @@
  * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
  *
  */
-export {
-    createTable, get, put, deleteKey, getFromNonIndex, deleteTable, createIndexForJsonField, getFromIndex, update,
-    init, close, DATA_TYPES
-} from './utils/db.js';
+import DB from './utils/db.js';
+
+const LibMySql = DB;
+
+export default LibMySql;
