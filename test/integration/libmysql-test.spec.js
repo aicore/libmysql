@@ -16,15 +16,19 @@
 
 import * as chai from 'chai';
 import {getMySqlConfigs} from './setupIntegTest.js';
-import {
-    createIndexForJsonField,
-    createTable,
-    deleteKey,
-    deleteTable, getFromIndex,
-    get,
-    getFromNonIndex,
-    put, update, DATA_TYPES
-} from "../../src/index.js";
+import LibMySql from "../../src/index.js";
+
+const createIndexForJsonField = LibMySql.createIndexForJsonField;
+const createTable = LibMySql.createTable;
+const deleteKey = LibMySql.deleteKey;
+const deleteTable = LibMySql.deleteTable;
+const getFromIndex = LibMySql.getFromIndex;
+const get = LibMySql.get;
+const getFromNonIndex = LibMySql.getFromNonIndex;
+const put = LibMySql.put;
+const update = LibMySql.update;
+const DATA_TYPES = LibMySql.DATA_TYPES;
+
 import {init, close} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
