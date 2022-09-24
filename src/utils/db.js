@@ -80,11 +80,6 @@ export function init(config) {
     if (!isString(config.password)) {
         throw new Error('Please provide valid password');
     }
-    /*   if (!isString(config.database)) {
-           throw new Error('Please provide valid database');
-       }
-
-     */
     if (CONNECTION) {
         console.log(`${CONNECTION}`);
         throw  new Error('One connection is active please close it before reinitializing it');
