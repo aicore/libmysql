@@ -35,7 +35,9 @@ import * as crypto from "crypto";
 
 let expect = chai.expect;
 
-const tableName = 'test.customers';
+//const tableName = 'test.customers';
+let tableName = '';
+let database = '';
 describe('Integration: libMySql', function () {
     after(function () {
         close();
@@ -43,6 +45,8 @@ describe('Integration: libMySql', function () {
     before(async function () {
         const configs = await getMySqlConfigs();
         console.log(`${JSON.stringify(configs)}`);
+        tableName = configs.database + '.customers';
+        database = configs.database;
         init(configs);
     });
 
