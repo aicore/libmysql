@@ -117,7 +117,7 @@ describe('Integration: libMySql', function () {
         let exceptionOccurred = false;
         try {
             const docId = crypto.randomBytes(16).toString('hex');
-            await get('test.HELLO', docId);
+            await get(database + '.HELLO', docId);
 
         } catch (e) {
             exceptionOccurred = true;
@@ -135,7 +135,7 @@ describe('Integration: libMySql', function () {
                 'Age': 100,
                 'active': true
             };
-            await put('test.hello', document);
+            await put(database + '.hello', document);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
@@ -240,7 +240,7 @@ describe('Integration: libMySql', function () {
 
 
     it('delete table should pass if table does not exit', async function () {
-        const isSuccess = await deleteTable('test.hello');
+        const isSuccess = await deleteTable(database + '.hello');
         expect(isSuccess).to.eql(true);
 
     });
