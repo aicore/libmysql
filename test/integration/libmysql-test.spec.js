@@ -35,7 +35,7 @@ import * as crypto from "crypto";
 
 let expect = chai.expect;
 
-const tableName = 'customers';
+const tableName = 'test.customers';
 describe('Integration: libMySql', function () {
     after(function () {
         close();
@@ -113,7 +113,7 @@ describe('Integration: libMySql', function () {
         let exceptionOccurred = false;
         try {
             const docId = crypto.randomBytes(16).toString('hex');
-            await get('HELLO', docId);
+            await get('test.HELLO', docId);
 
         } catch (e) {
             exceptionOccurred = true;
@@ -131,7 +131,7 @@ describe('Integration: libMySql', function () {
                 'Age': 100,
                 'active': true
             };
-            await put('hello', document);
+            await put('test.hello', document);
         } catch (e) {
             exceptionOccurred = true;
             expect(e.code).to.eql('ER_NO_SUCH_TABLE');
@@ -236,7 +236,7 @@ describe('Integration: libMySql', function () {
 
 
     it('delete table should pass if table does not exit', async function () {
-        const isSuccess = await deleteTable('hello');
+        const isSuccess = await deleteTable('test.hello');
         expect(isSuccess).to.eql(true);
 
     });

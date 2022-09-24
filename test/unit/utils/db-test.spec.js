@@ -60,7 +60,7 @@ describe('Unit tests for db.js', function () {
             await createTable(tableName);
 
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
         }
     });
     it('create table api should fail for invalid table name', async function () {
@@ -69,7 +69,7 @@ describe('Unit tests for db.js', function () {
             await createTable(tableName);
 
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
         }
     });
 
@@ -78,7 +78,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (_sql, _callback) {
             throw  new Error('error');
         };
-        const tableName = 'hello';
+        const tableName = 'a.hello';
         let isExceptionOccurred = false;
         try {
             await createTable(tableName);
@@ -92,7 +92,7 @@ describe('Unit tests for db.js', function () {
     });
 
     it('create table api should pass for valid data', async function () {
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const result = await createTable(tableName);
         expect(result).to.eql(true);
     });
@@ -102,7 +102,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, callback) {
             callback('err', [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
 
         try {
             await createTable(tableName);
@@ -123,7 +123,7 @@ describe('Unit tests for db.js', function () {
         try {
             await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -141,7 +141,7 @@ describe('Unit tests for db.js', function () {
         try {
             await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -160,7 +160,7 @@ describe('Unit tests for db.js', function () {
         try {
             await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -177,7 +177,7 @@ describe('Unit tests for db.js', function () {
         try {
             await put(tableName, document);
         } catch (e) {
-            expect(e).to.eql('please provide valid table name');
+            expect(e).to.eql('please provide valid table name in database.tableName format');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
@@ -188,7 +188,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const document = null;
         let isExceptionOccurred = false;
         try {
@@ -206,7 +206,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const document = 'hello';
         let isExceptionOccurred = false;
         try {
@@ -223,7 +223,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const document = '{hello}';
         let isExceptionOccurred = false;
         try {
@@ -250,7 +250,7 @@ describe('Unit tests for db.js', function () {
                 }
             }, {});
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const document = {
             id: 'abc'
         };
@@ -297,7 +297,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (_sql, _values, _callback) {
             throw  new Error('error');
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const document = {};
         let isExceptionOccurred = false;
         try {
@@ -389,7 +389,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = '';
         let isExceptionOccurred = false;
         try {
@@ -407,7 +407,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = null;
         let isExceptionOccurred = false;
         try {
@@ -424,7 +424,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = 10;
         let isExceptionOccurred = false;
         try {
@@ -441,7 +441,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = true;
         let isExceptionOccurred = false;
         try {
@@ -458,7 +458,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = {};
         let isExceptionOccurred = false;
         try {
@@ -476,7 +476,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const primaryKey = generateAValidString(129);
         let isExceptionOccurred = false;
         try {
@@ -495,7 +495,7 @@ describe('Unit tests for db.js', function () {
             callback(null,
                 [{'document': {customerData: 'bob'}}], []);
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = '100';
         const result = await get(tableName, documentId);
         expect(result.customerData).to.eql('bob');
@@ -507,7 +507,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (_sql, _values, _callback) {
             throw new Error('Error occurred while connecting');
         };
-        const tableName = 'users';
+        const tableName = 'test.users';
         const documentId = '10';
         let isExceptionOccurred = false;
         try {
@@ -628,7 +628,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const documentId = null;
         let isExceptionOccurred = false;
         try {
@@ -646,7 +646,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const documentId = '';
         let isExceptionOccurred = false;
         try {
@@ -663,7 +663,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const documentID = generateStringSequence('a', 129);
         let isExceptionOccurred = false;
         try {
@@ -690,7 +690,7 @@ describe('Unit tests for db.js', function () {
                 }
             }, {});
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const documentId = generateStringSequence('a', 16);
 
         const result = await deleteKey(tableName, documentId);
@@ -816,7 +816,7 @@ describe('Unit tests for db.js', function () {
                 }
             }], {});
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
         const result = await getFromNonIndex(tableName, {
             id: 'abc'
         });
@@ -834,7 +834,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], {});
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
 
         const result = await getFromNonIndex(tableName, {
             id: 'abc',
@@ -942,7 +942,7 @@ describe('Unit tests for db.js', function () {
             callback(null, [], []);
 
         };
-        const tableName = 'hello';
+        const tableName = 'test.hello';
 
         let exceptionOccurred = false;
         try {
@@ -1016,7 +1016,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 10;
         const dataType = 'DATA_DATA_TYPES.INT';
         const isUnique = true;
@@ -1036,7 +1036,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id.z.y';
         const dataType = null;
         const isUnique = true;
@@ -1055,7 +1055,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id.z.@';
         const dataType = DATA_TYPES.INT;
         const isUnique = true;
@@ -1088,7 +1088,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id';
         const dataType = DATA_TYPES.INT;
         const isUnique = true;
@@ -1107,7 +1107,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = false;
@@ -1127,7 +1127,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, callback) {
             callback('Error', [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
@@ -1148,7 +1148,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (_sql, _callback) {
             throw new Error('Exception');
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const jsonField = 'id';
         const dataType = 'INT';
         const isUnique = true;
@@ -1289,7 +1289,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback("error", [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
@@ -1310,7 +1310,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (_sql, _values, _callback) {
             throw  new Error('error');
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
@@ -1331,7 +1331,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
@@ -1361,7 +1361,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         let isExceptionOccurred = false;
         const queryObject = {
             'lastName': 'Alice',
@@ -1429,7 +1429,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const docId = '1000';
         let isExceptionOccurred = false;
         const document = null;
@@ -1448,7 +1448,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback("Error", [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const docId = '1000';
         let isExceptionOccurred = false;
         const document = {
@@ -1470,7 +1470,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             throw new Error('Error');
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const docId = '1000';
         let isExceptionOccurred = false;
         const document = {
@@ -1493,7 +1493,7 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
-        const tableName = 'customer';
+        const tableName = 'test.customer';
         const docId = '1000';
         let isExceptionOccurred = false;
         const document = {

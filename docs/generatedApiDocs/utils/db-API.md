@@ -58,13 +58,11 @@ Returns **void**&#x20;
 
 ## \_isValidTableAttributes
 
-It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than
-or equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches
-the regular expression for a table attribute name
+It checks if the nameSpace is a valid table name
 
 ### Parameters
 
-*   `tableAttributeName` **[string][2]** The name of the table attribute.
+*   `nameSpace` **[string][2]** The name of the table.
 
 Returns **[boolean][3]** A boolean value.
 
