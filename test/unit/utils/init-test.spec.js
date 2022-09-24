@@ -69,19 +69,6 @@ describe('init test', function () {
         expect(exceptionOccurred).to.eql(true);
     });
 
-    it('should fail if connection if user is database', function () {
-        let exceptionOccurred = false;
-        try {
-            const config = getMySqlConfigs();
-            config.database = null;
-            init(config);
-        } catch (e) {
-            exceptionOccurred = true;
-            expect(e.toString()).to.eql('Error: Please provide valid database');
-        }
-        expect(exceptionOccurred).to.eql(true);
-    });
-
     it('init should pass', function () {
         let exceptionOccurred = false;
         try {

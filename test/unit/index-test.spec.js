@@ -12,7 +12,7 @@ describe('testing src/index.js', function () {
     });
 
     it('createTable should pass', async function () {
-        const result = await LibMySql.createTable('customers', 'id', 'customer_data');
+        const result = await LibMySql.createTable('test.customers', 'id', 'customer_data');
         expect(result).to.eql(true);
     });
 });

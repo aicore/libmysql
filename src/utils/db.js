@@ -80,9 +80,11 @@ export function init(config) {
     if (!isString(config.password)) {
         throw new Error('Please provide valid password');
     }
-    if (!isString(config.database)) {
-        throw new Error('Please provide valid database');
-    }
+    /*   if (!isString(config.database)) {
+           throw new Error('Please provide valid database');
+       }
+
+     */
     if (CONNECTION) {
         console.log(`${CONNECTION}`);
         throw  new Error('One connection is active please close it before reinitializing it');
@@ -119,15 +121,25 @@ one or more times. */
 const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 /**
- * It checks if the table attribute name is a string, and if it is, it checks if the length of the string is less than
- * or equal to the maximum length of a MySQL table name or column name, and if it is, it checks if the string matches
- * the regular expression for a table attribute name
- * @param {string} tableAttributeName - The name of the table attribute.
- * @returns {boolean} A boolean value.
+ * It checks if the nameSpace is a valid table name
+ * @param {string} nameSpace - The name of the table.
+ * @returns   {boolean}  A boolean value.
  */
-function _isValidTableAttributes(tableAttributeName) {
-    return (isString(tableAttributeName) && tableAttributeName.length <=
-        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableAttributeName));
+function _isValidTableAttributes(nameSpace) {
+    if (!nameSpace || !isString(nameSpace)) {
+        return false;
+    }
+    const split = nameSpace.split('.');
+    if (!split || split.length !== 2) {
+        return false;
+    }
+    const tableName = split[1];
+    return (isString(tableName) && tableName.length <=
+        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableName));
+}
+function _isValidJsonField(field){
+    return (isString(field) && field.length <=
+        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(field));
 }
 
 /**
@@ -175,7 +187,7 @@ export function createTable(tableName) {
             return;
         }
         if (!_isValidTableAttributes(tableName)) {
-            reject('please provide valid table name');
+            reject('please provide valid table name in database.tableName format');
             return;
             //Todo: Emit metrics
         }
@@ -232,7 +244,7 @@ export function put(tableName, document) {
             return;
         }
         if (!_isValidTableAttributes(tableName)) {
-            reject('please provide valid table name');
+            reject('please provide valid table name in database.tableName format');
             return;
             //Todo: Emit metrics
         }
@@ -621,7 +633,7 @@ function _isJsonField(jsonField) {
     const split = jsonField.split('.');
 
     for (let key of split) {
-        if (!_isValidTableAttributes(key)) {
+        if (!_isValidJsonField(key)) {
             return false;
         }
     }
