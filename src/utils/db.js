@@ -21,7 +21,96 @@ export const DATA_TYPES = {
     },
     INT: 'INT'
 };
+// https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
+/* Defining a constant variable named MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME and
+assigning it the value 64. */
+const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 63;
+const MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME = 63;
+/* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
+const SIZE_OF_PRIMARY_KEY = 32;
+/* Creating a regular expression that will match any word character (letter, number, or underscore)
+one or more times. */
+const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
+/**
+ * It creates a database with the name provided as an argument
+ * @param {string} databaseName - The name of the database to create.
+ * @returns {Promise<boolean>}- A promise which helps to know if createDataBase is successful
+ */
+export function createDataBase(databaseName) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before createDataBase');
+            return;
+        }
+        if (!_isValidDatBaseName(databaseName)) {
+            resolve('Please provide valid data base name');
+            return;
+        }
+
+        try {
+            const createDataBaseSql = `CREATE DATABASE ${databaseName}`;
+            CONNECTION.execute(createDataBaseSql,
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        console.error(`Error occurred while while creating database ${JSON.stringify(err)}`);
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+
+                });
+        } catch (e) {
+            const errorMessage = `execution occurred while creating database ${e.stack}`;
+            reject(errorMessage);
+            //Todo: Emit metrics
+        }
+    });
+}
+
+/**
+ * It deletes a database with the given name
+ * @param {string} databaseName - The name of the database to be created.
+ * @returns {Promise<boolean>} A promise which helps to know if database delete is successful
+ */
+export function deleteDataBase(databaseName) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before createDataBase');
+            return;
+        }
+        if (!_isValidDatBaseName(databaseName)) {
+            resolve('Please provide valid data base name');
+            return;
+        }
+        try {
+            const createDataBaseSql = `DROP DATABASE ${databaseName}`;
+            CONNECTION.execute(createDataBaseSql,
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        console.error(`Error occurred while while deleting database ${JSON.stringify(err)}`);
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+
+                });
+        } catch (e) {
+            const errorMessage = `execution occurred while deleting database ${e.stack}`;
+            reject(errorMessage);
+            //Todo: Emit metrics
+        }
+
+    });
+
+}
+
+function _isValidDatBaseName(databaseName) {
+    return (isString(databaseName) && databaseName.length <=
+        MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME && REGX_TABLE_ATTRIBUTES.test(databaseName));
+}
 
 /** This function helps to initialize MySql Client
  * This function should be called before calling any other functions in this library
@@ -105,22 +194,13 @@ export function close() {
     CONNECTION = null;
 }
 
-// https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
-/* Defining a constant variable named MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME and
-assigning it the value 64. */
-const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 64;
-/* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
-const SIZE_OF_PRIMARY_KEY = 32;
-/* Creating a regular expression that will match any word character (letter, number, or underscore)
-one or more times. */
-const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 /**
  * It checks if the nameSpace is a valid table name
  * @param {string} nameSpace - The name of the table.
  * @returns   {boolean}  A boolean value.
  */
-function _isValidTableAttributes(nameSpace) {
+function _isValidTableName(nameSpace) {
     if (!nameSpace || !isString(nameSpace)) {
         return false;
     }
@@ -132,7 +212,14 @@ function _isValidTableAttributes(nameSpace) {
     return (isString(tableName) && tableName.length <=
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableName));
 }
-function _isValidJsonField(field){
+
+/**
+ * It checks if the field is a string and if it's length is less than or equal to 63 characters and if it matches the
+ * regular expression `/^[a-zA-Z0-9_]+$/`
+ * @param{String} field - The field name to be validated.
+ * @returns{boolean} A boolean value.
+ */
+function _isValidJsonField(field) {
     return (isString(field) && field.length <=
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(field));
 }
@@ -181,7 +268,7 @@ export function createTable(tableName) {
             reject('Please call init before createTable');
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name in database.tableName format');
             return;
             //Todo: Emit metrics
@@ -238,7 +325,7 @@ export function put(tableName, document) {
             reject('Please call init before put');
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name in database.tableName format');
             return;
             //Todo: Emit metrics
@@ -304,7 +391,7 @@ export function deleteKey(tableName, documentID) {
             reject('Please call init before deleteKey');
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -357,7 +444,7 @@ export function get(tableName, documentID) {
             reject('Please call init before get');
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -477,7 +564,7 @@ export function getFromNonIndex(tableName, queryObject) {
             reject(`please provide valid queryObject`);
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -514,7 +601,7 @@ export function deleteTable(tableName) {
             return;
         }
 
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -681,7 +768,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             return;
         }
 
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -835,7 +922,7 @@ export function getFromIndex(tableName, queryObject) {
             reject(`please provide valid queryObject`);
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -878,7 +965,7 @@ export function update(tableName, documentId, document) {
             reject('Please call init before update');
             return;
         }
-        if (!_isValidTableAttributes(tableName)) {
+        if (!_isValidTableName(tableName)) {
             reject('please provide valid table name');
             return;
             //Todo: Emit metrics
@@ -911,6 +998,8 @@ export function update(tableName, documentId, document) {
 
 // public APIs.
 const DB = {
+    deleteDataBase,
+    createDataBase,
     createTable,
     get,
     put,
