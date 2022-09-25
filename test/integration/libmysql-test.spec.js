@@ -47,7 +47,6 @@ describe('Integration: libMySql', function () {
         const configs = await getMySqlConfigs();
         console.log(`${JSON.stringify(configs)}`);
         tableName = database + '.customers';
-        // database = configs.database;
         init(configs);
         await createDataBase(database);
     });
