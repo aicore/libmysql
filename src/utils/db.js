@@ -44,7 +44,7 @@ export function createDataBase(databaseName) {
             return;
         }
         if (!_isValidDatBaseName(databaseName)) {
-            resolve('Please provide valid data base name');
+            reject('Please provide valid data base name');
             return;
         }
 
@@ -62,7 +62,7 @@ export function createDataBase(databaseName) {
 
                 });
         } catch (e) {
-            const errorMessage = `execution occurred while creating database ${e.stack}`;
+            const errorMessage = `exception occurred while creating database ${e.stack}`;
             reject(errorMessage);
             //Todo: Emit metrics
         }
