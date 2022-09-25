@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close} from "../../src/utils/db.js";
+import {init, close, createDataBase} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -37,17 +37,19 @@ let expect = chai.expect;
 
 //const tableName = 'test.customers';
 let tableName = '';
-let database = '';
+const database = 'test';
 describe('Integration: libMySql', function () {
-    after(function () {
+    after(async function () {
+        await LibMySql.deleteDataBase(database);
         close();
     });
     before(async function () {
         const configs = await getMySqlConfigs();
         console.log(`${JSON.stringify(configs)}`);
-        tableName = configs.database + '.customers';
-        database = configs.database;
+        tableName = database + '.customers';
+        // database = configs.database;
         init(configs);
+        await createDataBase(database);
     });
 
     beforeEach(async function () {
