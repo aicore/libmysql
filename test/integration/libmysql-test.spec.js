@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close, createDataBase} from "../../src/utils/db.js";
+import {init, close, createDataBase, deleteDataBase} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -379,6 +379,39 @@ describe('Integration: libMySql', function () {
         }
         expect(isExceptionOccurred).to.eql(true);
 
+    });
+    it('create and delete database should be successful', async function () {
+        const dbName = 'hello';
+        const createDatabaseStatus = await createDataBase(dbName);
+        expect(createDatabaseStatus).eql(true);
+        const deleteDatabaseStatus = await deleteDataBase(dbName);
+        expect(deleteDatabaseStatus).eql(true);
+    });
+
+    it('create same database twice should fail', async function () {
+        const dbName = 'hello';
+        try {
+            let createDatabaseStatus = await createDataBase(dbName);
+            expect(createDatabaseStatus).eql(true);
+            await createDataBase(dbName);
+
+        } catch (e) {
+            expect(e.toString().trim()).eql('Error: Can\'t create database \'hello\'; database exists');
+            console.log(e.toString());
+        } finally {
+            await deleteDataBase(dbName);
+        }
+
+    });
+    it('delete non exiting database should fail', async function () {
+        const dbName = 'hello';
+        try {
+            await deleteDataBase(dbName);
+
+        } catch (e) {
+            expect(e.toString().trim()).eql('Error: Can\'t drop database \'hello\'; database doesn\'t exist');
+            console.log(e.toString());
+        }
     });
 });
 
