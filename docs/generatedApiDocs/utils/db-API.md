@@ -34,7 +34,6 @@ from environment variables.
 
     *   `config.host` **[string][1]** mysql database hostname
     *   `config.port` **[string][1]** port number of mysql db
-    *   `config.database` **[string][1]** name of database to connect
     *   `config.user` **[string][1]** username of database
     *   `config.password` **[string][1]** password of database username
 
@@ -46,7 +45,6 @@ Sample config
 const config = {
    "host": "localhost",
    "port": "3306",
-   "database": "testdb",
    "user" : "root",
    "password": "1234"
  };
@@ -58,7 +56,6 @@ Sample initialization code
 // set  following  environment variables to access database securely
 // set MY_SQL_SERVER for mysql server
 // set MY_SQL_SERVER_PORT to set server port
-// set MY_SQL_SERVER_DB to specify database where database operations are conducted
 // set MY_SQL_USER to specify database user
 // set MY_SQL_PASSWORD to set mysql password
 
