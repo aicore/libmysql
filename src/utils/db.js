@@ -77,11 +77,11 @@ export function createDataBase(databaseName) {
 export function deleteDataBase(databaseName) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            reject('Please call init before createDataBase');
+            reject('Please call init before deleteDataBase');
             return;
         }
         if (!_isValidDatBaseName(databaseName)) {
-            resolve('Please provide valid data base name');
+            reject('Please provide valid data base name');
             return;
         }
         try {
@@ -122,7 +122,6 @@ function _isValidDatBaseName(databaseName) {
  *  const config = {
  *    "host": "localhost",
  *    "port": "3306",
- *    "database": "testdb",
  *    "user" : "root",
  *    "password": "1234"
  *  };
@@ -132,7 +131,6 @@ function _isValidDatBaseName(databaseName) {
  * // set  following  environment variables to access database securely
  * // set MY_SQL_SERVER for mysql server
  * // set MY_SQL_SERVER_PORT to set server port
- * // set MY_SQL_SERVER_DB to specify database where database operations are conducted
  * // set MY_SQL_USER to specify database user
  * // set MY_SQL_PASSWORD to set mysql password
  *
@@ -145,7 +143,6 @@ function _isValidDatBaseName(databaseName) {
  * @param {Object} config -  config to configure MySQL
  * @param {string} config.host - mysql database hostname
  * @param {string} config.port - port number of mysql db
- * @param {string} config.database - name of database to connect
  * @param {string} config.user - username of database
  * @param {string} config.password - password of database username
  * @returns {boolean}  true if connection is successful false otherwise

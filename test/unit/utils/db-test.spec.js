@@ -10,7 +10,7 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_TYPES, createDataBase
+    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_TYPES, createDataBase, deleteDataBase
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -1618,6 +1618,114 @@ describe('Unit tests for db.js', function () {
 
         } catch (e) {
             expect(e.toString()).eql('Please call init before createDataBase');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('delete database should pass for valid parameters', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+        };
+        const database = 'test';
+        let isExceptionOccurred = false;
+        try {
+            const isSuccess = await deleteDataBase(database);
+            expect(isSuccess).to.eql(true);
+
+        } catch (e) {
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(false);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('delete database should fail for invalid db name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+        };
+        const database = '@';
+        let isExceptionOccurred = false;
+        try {
+            await deleteDataBase(database);
+
+        } catch (e) {
+            expect(e.toString()).eql('Please provide valid data base name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('delete database should fail for invalid empty db name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+        };
+        const database = '';
+        let isExceptionOccurred = false;
+        try {
+            await deleteDataBase(database);
+
+        } catch (e) {
+            expect(e.toString()).eql('Please provide valid data base name');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+    it('delete database should fail if there is an error', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback('Error occurred', [], []);
+        };
+        const database = 'test';
+        let isExceptionOccurred = false;
+        try {
+            await deleteDataBase(database);
+
+        } catch (e) {
+            expect(e.toString()).eql('Error occurred');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('delete database should fail if there is an external error', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            throw new Error('Error Occurred');
+        };
+        const database = 'test';
+        let isExceptionOccurred = false;
+        try {
+            await deleteDataBase(database);
+
+        } catch (e) {
+            expect(e.toString().split('\n')[0].trim())
+                .eql('execution occurred while deleting database Error: Error Occurred');
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    });
+
+    it('delete database should fail if connection not initialized', async function () {
+        close();
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, callback) {
+            callback(null, [], []);
+        };
+        const database = 'test';
+        let isExceptionOccurred = false;
+        try {
+            await deleteDataBase(database);
+
+        } catch (e) {
+            expect(e.toString()).eql('Please call init before deleteDataBase');
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
