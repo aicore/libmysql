@@ -1083,7 +1083,7 @@ const DB = {
     init,
     close,
     DATA_TYPES,
-    incrementJsonFields: mathAdd
+    mathAdd
 };
 
 export default DB;
