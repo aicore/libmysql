@@ -10,7 +10,15 @@ import {
     deleteKey,
     getFromNonIndex,
     deleteTable,
-    createIndexForJsonField, _createIndex, getFromIndex, JSON_COLUMN, update, DATA_TYPES, createDataBase, deleteDataBase
+    createIndexForJsonField,
+    _createIndex,
+    getFromIndex,
+    JSON_COLUMN,
+    update,
+    DATA_TYPES,
+    createDataBase,
+    deleteDataBase,
+    mathAdd
 } from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
@@ -1731,4 +1739,204 @@ describe('Unit tests for db.js', function () {
         expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
+
+    it('mathAdd should pass for valid params', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'test.customers';
+        const documentId = '100';
+        const fieldsToIncrementMap = {
+            age: 100,
+            id: 10
+        };
+
+        const status = await mathAdd(tableName, documentId, fieldsToIncrementMap);
+        expect(status).eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+
+    it('mathAdd should pass for valid params with single field', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'test.customers';
+        const documentId = '100';
+        const fieldsToIncrementMap = {
+            age: 100
+        };
+
+        const status = await mathAdd(tableName, documentId, fieldsToIncrementMap);
+        expect(status).eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+
+    it('mathAdd should fail  for invalid table Name', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'customers';
+        const documentId = '100';
+        const fieldsToIncrementMap = {
+            age: 100
+        };
+        let isExceptionOccurred = false;
+        try {
+            await mathAdd(tableName, documentId, fieldsToIncrementMap);
+        } catch (e) {
+            expect(e.toString()).eql('please provide valid table name');
+            isExceptionOccurred = true;
+
+        }
+        expect(isExceptionOccurred).eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+    it('mathAdd should fail  for invalid docid', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'test.customers';
+        const documentId = 100;
+        const fieldsToIncrementMap = {
+            age: 100
+        };
+        let isExceptionOccurred = false;
+        try {
+            await mathAdd(tableName, documentId, fieldsToIncrementMap);
+        } catch (e) {
+            expect(e.toString()).eql('Please provide valid documentID');
+            isExceptionOccurred = true;
+
+        }
+        expect(isExceptionOccurred).eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+    it('mathAdd should fail  for invalid field increment object', async function () {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'test.customers';
+        const documentId = '100';
+        const fieldsToIncrementMap = {};
+        let isExceptionOccurred = false;
+        try {
+            await mathAdd(tableName, documentId, fieldsToIncrementMap);
+        } catch (e) {
+            expect(e.toString()).eql('please provide valid increments for json filed');
+            isExceptionOccurred = true;
+
+        }
+        expect(isExceptionOccurred).eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+
+    });
+    it('mathAdd should fail  for invalid field fieldsToIncrementMap contains non number fields',
+        async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                x: 10,
+                y: '100'
+            };
+            let isExceptionOccurred = false;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap);
+            } catch (e) {
+                expect(e.toString()).eql('increment can be done only with numerical values');
+                isExceptionOccurred = true;
+
+            }
+            expect(isExceptionOccurred).eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+
+        });
+    it('mathAdd should fail  for invalid field fieldsToIncrementMap contains when there is an error',
+        async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                callback('Error', [], []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                x: 10,
+                y: 100
+            };
+            let isExceptionOccurred = false;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap);
+            } catch (e) {
+                expect(e.toString()).eql('Error');
+                isExceptionOccurred = true;
+
+            }
+            expect(isExceptionOccurred).eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+
+        });
+    it('mathAdd should fail  if not initalized',
+        async function () {
+            close();
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                throw  new Error('Error');
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                x: 10,
+                y: 100
+            };
+            let isExceptionOccurred = false;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap);
+            } catch (e) {
+                expect(e.toString().split('\n')[0].trim())
+                    .eql('Please call init before get');
+                isExceptionOccurred = true;
+
+            }
+            expect(isExceptionOccurred).eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+
+        });
+    it('mathAdd should fail  for invalid field fieldsToIncrementMap contains when there is an External error',
+        async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                throw  new Error('Error');
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                x: 10,
+                y: 100
+            };
+            let isExceptionOccurred = false;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap);
+            } catch (e) {
+                expect(e.toString().split('\n')[0].trim())
+                    .eql('Exception occurred while incrementing json fields Error: Error');
+                isExceptionOccurred = true;
+
+            }
+            expect(isExceptionOccurred).eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+
+        });
+
 });
