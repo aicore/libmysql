@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close, createDataBase, deleteDataBase} from "../../src/utils/db.js";
+import {init, close, createDataBase, deleteDataBase, mathAdd} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -412,6 +412,32 @@ describe('Integration: libMySql', function () {
             expect(e.toString().trim()).eql('Error: Can\'t drop database \'hello\'; database doesn\'t exist');
             console.log(e.toString());
         }
+    });
+    it('should be able to increment json field', async function () {
+        const docId = await put(tableName, {age: 10, total: 100});
+        let incStatus = await mathAdd(tableName, docId, {
+            age: 2,
+            total: 100
+        });
+        expect(incStatus).eql(true);
+        let modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(12);
+        expect(modifiedDoc.total).eql(200);
+        incStatus = await mathAdd(tableName, docId, {
+            age: 1
+        });
+        expect(incStatus).eql(true);
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(13);
+        expect(modifiedDoc.total).eql(200);
+        incStatus = await mathAdd(tableName, docId, {
+            age: -2,
+            total: -300
+        });
+        expect(incStatus).eql(true);
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(11);
+        expect(modifiedDoc.total).eql(-100);
     });
 });
 

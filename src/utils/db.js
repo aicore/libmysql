@@ -1,6 +1,7 @@
 import mysql from "mysql2";
 import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 import crypto from "crypto";
+import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
 
 // @INCLUDE_IN_API_DOCS
 
@@ -993,6 +994,79 @@ export function update(tableName, documentId, document) {
     });
 }
 
+function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
+    let query = `UPDATE ${tableName} SET document = JSON_SET(document,`;
+    let numberOfKeys = Object.keys(fieldToIncrementMap).length;
+
+    for (const key in fieldToIncrementMap) {
+        if (numberOfKeys > 1) {
+            query += `'$.${key}', JSON_EXTRACT(document, '$.${key}') + ${fieldToIncrementMap[key]},`;
+        } else {
+            query += `'$.${key}', JSON_EXTRACT(document, '$.${key}') + ${fieldToIncrementMap[key]}`;
+        }
+        --numberOfKeys;
+    }
+    //mysql> UPDATE customers SET document = json_set(document, '$.age', JSON_EXTRACT(document, '$.age') + 1,'$.id',
+    // JSON_EXTRACT(document,'$.id') +1) where documentID = '2';
+    query += `) WHERE ${PRIMARY_COLUMN} = ?`;
+    return query;
+}
+
+/**
+ * It takes a table name, a document ID, and a map of fields to increment. It then increments the fields in the document
+ * with the given ID
+ * @param {string} tableName - The name of the table in which the document is stored.
+ * @param {string} documentId - The primary key of the document you want to update.
+ * @param {Object} fieldsToIncrementMap - This is a JSON object that contains the fields to be incremented and the
+ * value by which
+ * they should be incremented.
+ * @returns {Promise<boolean>}A promise
+ */
+export function mathAdd(tableName, documentId, fieldsToIncrementMap) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before get');
+            return;
+        }
+        if (!_isValidTableName(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!_isValidPrimaryKey(documentId)) {
+            reject('Please provide valid documentID');
+            return;
+            //Todo: Emit metrics
+        }
+        if (isObjectEmpty(fieldsToIncrementMap)) {
+            reject('please provide valid increments for json filed');
+            return;
+        }
+        for (const key in fieldsToIncrementMap) {
+            if (!isNumber(fieldsToIncrementMap[key])) {
+                reject('increment can be done only with numerical values');
+                return;
+            }
+        }
+        try {
+            const incQuery = _prepareSqlForJsonIncrement(tableName, fieldsToIncrementMap);
+            CONNECTION.execute(incQuery, [documentId],
+                function (err, _results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(true);
+                });
+        } catch (e) {
+            const errorMessage = `Exception occurred while incrementing json fields ${e.stack}`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+}
+
 // public APIs.
 const DB = {
     deleteDataBase,
@@ -1008,7 +1082,8 @@ const DB = {
     update,
     init,
     close,
-    DATA_TYPES
+    DATA_TYPES,
+    incrementJsonFields: mathAdd
 };
 
 export default DB;
