@@ -1055,6 +1055,10 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
                         reject(err);
                         return;
                     }
+                    if (_results.affectedRows === 0) {
+                        reject('unable to find documentId');
+                        return;
+                    }
                     resolve(true);
                 });
         } catch (e) {
