@@ -1017,12 +1017,12 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
  * with the given ID
  * @param {string} tableName - The name of the table in which the document is stored.
  * @param {string} documentId - The primary key of the document you want to update.
- * @param {Object} fieldsToIncrementMap - This is a JSON object that contains the fields to be incremented and the
+ * @param {Object} jsonFiledIncrement - This is a JSON object that contains the fields to be incremented and the
  * value by which
  * they should be incremented.
  * @returns {Promise<boolean>}A promise
  */
-export function mathAdd(tableName, documentId, fieldsToIncrementMap) {
+export function mathAdd(tableName, documentId, jsonFiledIncrement) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before get');
@@ -1038,18 +1038,18 @@ export function mathAdd(tableName, documentId, fieldsToIncrementMap) {
             return;
             //Todo: Emit metrics
         }
-        if (isObjectEmpty(fieldsToIncrementMap)) {
+        if (isObjectEmpty(jsonFiledIncrement)) {
             reject('please provide valid increments for json filed');
             return;
         }
-        for (const key in fieldsToIncrementMap) {
-            if (!isNumber(fieldsToIncrementMap[key])) {
+        for (const key in jsonFiledIncrement) {
+            if (!isNumber(jsonFiledIncrement[key])) {
                 reject('increment can be done only with numerical values');
                 return;
             }
         }
         try {
-            const incQuery = _prepareSqlForJsonIncrement(tableName, fieldsToIncrementMap);
+            const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFiledIncrement);
             CONNECTION.execute(incQuery, [documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value

@@ -525,7 +525,7 @@ with the given ID
 
 *   `tableName` **[string][1]** The name of the table in which the document is stored.
 *   `documentId` **[string][1]** The primary key of the document you want to update.
-*   `fieldsToIncrementMap` **[Object][4]** This is a JSON object that contains the fields to be incremented and the
+*   `jsonFiledIncrement` **[Object][4]** This is a JSON object that contains the fields to be incremented and the
     value by which
     they should be incremented.
 
