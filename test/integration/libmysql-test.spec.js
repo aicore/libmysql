@@ -70,14 +70,30 @@ describe('Integration: libMySql', function () {
         expect(results.lastName).to.eql(document.lastName);
         expect(results.Age).to.eql(document.Age);
         expect(results.active).to.eql(document.active);
-        const queryObject = {
-            'lastName': 'Alice',
-            'Age': 100
-        };
+        expect(results.documentId.length).gt(0);
+
+        let isExceptionOccured = false;
+        try {
+            await get(tableName, '1');
+        } catch (e) {
+            isExceptionOccured = true;
+            expect(e.toString()).eql('unable to find document for given documentId');
+        }
+        expect(isExceptionOccured).eql(true);
+
+
         // delete key
         await deleteKey(tableName, docId);
-        const deletedValue = await get(tableName, docId);
-        expect(isObjectEmpty(deletedValue)).to.eql(true);
+        isExceptionOccured = false;
+        try {
+            await get(tableName, docId);
+        } catch (e) {
+            isExceptionOccured = true;
+            expect(e.toString()).eql('unable to find document for given documentId');
+        }
+        expect(isExceptionOccured).eql(true);
+
+
     });
     it('should be able to add nested objects to document', async function () {
         const document = {
@@ -103,16 +119,28 @@ describe('Integration: libMySql', function () {
         };
         // delete key
         await deleteKey(tableName, docId);
-        const deletedValue = await get(tableName, docId);
-        expect(isObjectEmpty(deletedValue)).to.eql(true);
+        let isExceptionOccurred = false;
+        try {
+            await get(tableName, docId);
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.toString()).eql('unable to find document for given documentId');
+        }
+        expect(isExceptionOccurred).eql(true);
 
     });
 
-    it('get should return empty if data not present', async function () {
+    it('get should throw exception if data not present', async function () {
 
         const docId = crypto.randomBytes(16).toString('hex');
-        const getReturn = await get(tableName, docId);
-        expect(isObjectEmpty(getReturn)).to.eql(true);
+        let isExceptionOccurred = false;
+        try {
+            await get(tableName, docId);
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.toString()).eql('unable to find document for given documentId');
+        }
+        expect(isExceptionOccurred).eql(true);
     });
     it('get should throw exception table is not present', async function () {
         let exceptionOccurred = false;
@@ -212,6 +240,7 @@ describe('Integration: libMySql', function () {
             expect(scanResults[i].Age).to.eql(100);
             expect(scanResults[i].active).to.eql(true);
             expect(scanResults[i].lastName).to.eql('Alice');
+            expect(scanResults[i].documentId.length).gt(0);
         }
         scanResults = await getFromNonIndex(results.tableName);
         expect(scanResults.length).eql(1000);
@@ -219,6 +248,7 @@ describe('Integration: libMySql', function () {
             expect(scanResults[i].Age).to.eql(100);
             expect(scanResults[i].active).to.eql(true);
             expect(scanResults[i].lastName).to.eql('Alice');
+            expect(scanResults[i].documentId.length).gt(0);
         }
         await deleteData(results);
     });
@@ -242,6 +272,7 @@ describe('Integration: libMySql', function () {
             expect(scanResults[i].Age).to.eql(100);
             expect(scanResults[i].active).to.eql(true);
             expect(scanResults[i].lastName).to.eql('Alice');
+            expect(scanResults[i].documentId.length).gt(0);
         }
         await deleteData(results);
     });
@@ -269,6 +300,7 @@ describe('Integration: libMySql', function () {
             expect(result.lastName).to.eql('Alice');
             expect(result.Age).to.eql(100);
             expect(result.active).to.eql(true);
+            expect(result.documentId.length).gt(0);
         });
         await deleteData(results);
     });
@@ -278,16 +310,24 @@ describe('Integration: libMySql', function () {
         expect(isSuccess).to.eql(true);
         isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false);
         expect(isSuccess).to.eql(true);
-        const queryResults = await getFromIndex(tableName, {
-            'Age': 100,
-            'location': {
-                'layout': {
-                    'block': '1stblock'
-                }
+        let isExceptionOccured = false;
+        try {
+             await getFromIndex(tableName, {
+                'Age': 100,
+                'location': {
+                    'layout': {
+                        'block': '1stblock'
+                    }
 
-            }
-        });
-        expect(queryResults.length).to.eql(0);
+                }
+            });
+        } catch (e) {
+            isExceptionOccured = true;
+            expect(e.toString()).eql('unable to find documents for given documentId');
+
+        }
+
+        expect(isExceptionOccured).eql(true);
 
     });
     it('create a unique non null json column should pass', async function () {
@@ -296,16 +336,6 @@ describe('Integration: libMySql', function () {
         expect(isSuccess).to.eql(true);
         isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false, true);
         expect(isSuccess).to.eql(true);
-        const queryResults = await getFromIndex(tableName, {
-            'Age': 100,
-            'location': {
-                'layout': {
-                    'block': '1stblock'
-                }
-
-            }
-        });
-        expect(queryResults.length).to.eql(0);
         const docId = await put(tableName, {
             'lastName': 'Alice',
             'Age': 100,

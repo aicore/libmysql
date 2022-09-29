@@ -843,13 +843,17 @@ describe('Unit tests for db.js', function () {
             callback(null, [], {});
         };
         const tableName = 'test.hello';
-
-        const result = await getFromNonIndex(tableName, {
-            id: 'abc',
-            lastName: 'Alice'
-        });
-        expect(result.length).to.eql(0);
-
+        let isExceptionOccured = false;
+        try {
+            const result = await getFromNonIndex(tableName, {
+                id: 'abc',
+                lastName: 'Alice'
+            });
+        } catch (e) {
+            expect(e.toString()).eql('unable to find documents for given documentId');
+            isExceptionOccured = true;
+        }
+        expect(isExceptionOccured).eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
@@ -1380,9 +1384,10 @@ describe('Unit tests for db.js', function () {
             expect(results.length).to.eql(0);
             console.log(results);
         } catch (e) {
+            expect(e.toString()).eql('unable to find documents for given documentId');
             isExceptionOccurred = true;
         }
-        expect(isExceptionOccurred).to.eql(false);
+        expect(isExceptionOccurred).to.eql(true);
         mockedFunctions.connection.execute = saveExecute;
     });
 
