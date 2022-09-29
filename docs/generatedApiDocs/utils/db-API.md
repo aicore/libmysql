@@ -518,16 +518,14 @@ Returns **[Promise][2]** A promise on resolving promise will get documentId
 
 ## mathAdd
 
-It takes a table name, a document ID, and a map of fields to increment. It then increments the fields in the document
-with the given ID
+It increments the value of a field in a JSON column in a MySQL table
 
 ### Parameters
 
 *   `tableName` **[string][1]** The name of the table in which the document is stored.
 *   `documentId` **[string][1]** The primary key of the document you want to update.
-*   `jsonFiledIncrement` **[Object][4]** This is a JSON object that contains the fields to be incremented and the
-    value by which
-    they should be incremented.
+*   `jsonFieldsIncrements` **[Object][4]** This is a JSON object that contains the fields to be incremented and the
+    value by which they should be incremented.
 
 Returns **[Promise][2]<[boolean][3]>** A promise
 
