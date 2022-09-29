@@ -453,7 +453,7 @@ export function get(tableName, documentID) {
             //Todo: Emit metrics
         }
         try {
-            const getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE ${PRIMARY_COLUMN} = ?`;
+            const getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE ${PRIMARY_COLUMN} = ?`;
             CONNECTION.execute(getQuery, [documentID],
                 function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
@@ -462,10 +462,12 @@ export function get(tableName, documentID) {
                         return;
                     }
                     if (results && results.length > 0) {
+                        results[0][JSON_COLUMN].documentId = results[0][PRIMARY_COLUMN];
                         resolve(results[0][JSON_COLUMN]);
                         return;
                     }
-                    resolve({});
+                    reject('unable to find document for given documentId');
+                    return;
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
@@ -522,11 +524,11 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
 function _prepareQueryForScan(tableName, queryObject) {
     if (isObjectEmpty(queryObject)) {
         return {
-            'getQuery': `SELECT ${JSON_COLUMN} FROM ${tableName} LIMIT 1000 `,
+            'getQuery': `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} LIMIT 1000 `,
             'valArray': []
         };
     }
-    let getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE `;
+    let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const subQuery = _queryScanBuilder(queryObject);
     return {
         'getQuery': getQuery + subQuery.getQuery + ' LIMIT 1000',
@@ -859,7 +861,7 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
  * @param{Object} queryObject - The object that you want to search for.
  */
 function _prepareQueryOfIndexSearch(tableName, queryObject) {
-    let getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE `;
+    let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const result = _prepareQueryForNestedObject(queryObject);
     return {
         'getQuery': getQuery + result.getQuery,
@@ -887,12 +889,13 @@ function _queryIndex(queryParams, resolve, reject) {
             if (results && results.length > 0) {
                 const retResults = [];
                 for (const result of results) {
+                    result[JSON_COLUMN].documentId = result[PRIMARY_COLUMN];
                     retResults.push(result[JSON_COLUMN]);
                 }
                 resolve(retResults);
                 return;
             }
-            resolve([]);
+            reject('unable to find documents for given documentId');
         });
 }
 
