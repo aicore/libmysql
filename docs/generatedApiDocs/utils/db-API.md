@@ -261,11 +261,12 @@ array of matched documents.
 `NB: this api will not detect boolean fields while scanning`
 This query is doing database scan. using this query frequently can degrade database performance. if this query
 is more frequent consider creating index and use `getFromIndex` API
+NB: This query will return only 1000 entries.
 
 ### Parameters
 
 *   `tableName` **[string][1]** The name of the table you want to query.
-*   `queryObject` **[Object][4]** This is the object that you want to query.
+*   `queryObject` **[Object][4]** This is the object that you want to query. (optional, default `{}`)
 
 ### Examples
 

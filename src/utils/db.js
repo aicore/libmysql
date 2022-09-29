@@ -520,10 +520,16 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
  * @returns {Object} An object with two properties: getQuery and valArray.
  */
 function _prepareQueryForScan(tableName, queryObject) {
+    if (isObjectEmpty(queryObject)) {
+        return {
+            'getQuery': `SELECT ${JSON_COLUMN} FROM ${tableName} LIMIT 1000 `,
+            'valArray': []
+        };
+    }
     let getQuery = `SELECT ${JSON_COLUMN} FROM ${tableName} WHERE `;
     const subQuery = _queryScanBuilder(queryObject);
     return {
-        'getQuery': getQuery + subQuery.getQuery,
+        'getQuery': getQuery + subQuery.getQuery + ' LIMIT 1000',
         'valArray': subQuery.valArray
     };
 }
@@ -534,6 +540,7 @@ function _prepareQueryForScan(tableName, queryObject) {
  * `NB: this api will not detect boolean fields while scanning`
  * This query is doing database scan. using this query frequently can degrade database performance. if this query
  * is more frequent consider creating index and use `getFromIndex` API
+ * NB: This query will return only 1000 entries.
  * @example <caption> sample code </caption>
  * const tableName = 'customers';
  * const queryObject = {
@@ -552,13 +559,13 @@ function _prepareQueryForScan(tableName, queryObject) {
  * @returns {Promise} - A promise; on promise resolution returns array of  matched documents. if there are
  * no match returns empty array
  */
-export function getFromNonIndex(tableName, queryObject) {
+export function getFromNonIndex(tableName, queryObject = {}) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before getFromNonIndex');
             return;
         }
-        if (!isObject(queryObject) || isObjectEmpty(queryObject)) {
+        if (!isObject(queryObject)) {
             reject(`please provide valid queryObject`);
             return;
         }
