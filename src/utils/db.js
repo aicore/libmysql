@@ -7,6 +7,8 @@ import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
 
 let CONNECTION = null;
 
+/* Declaring a constant variable named MAX_NUMBER_OF_DOCS_ALLOWED and assigning it the value of 1000. */
+const MAX_NUMBER_OF_DOCS_ALLOWED = 1000;
 /* Defining a constant variable called PRIMARY_COLUMN and assigning it the value of 'documentID'. */
 export const PRIMARY_COLUMN = 'documentID';
 /* Defining a constant variable called JSON_COLUMN and assigning it the value of 'document'. */
@@ -531,7 +533,7 @@ function _prepareQueryForScan(tableName, queryObject) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const subQuery = _queryScanBuilder(queryObject);
     return {
-        'getQuery': getQuery + subQuery.getQuery + ' LIMIT 1000',
+        'getQuery': getQuery + subQuery.getQuery + ` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
         'valArray': subQuery.valArray
     };
 }
@@ -864,7 +866,7 @@ function _prepareQueryOfIndexSearch(tableName, queryObject) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const result = _prepareQueryForNestedObject(queryObject);
     return {
-        'getQuery': getQuery + result.getQuery,
+        'getQuery': getQuery + result.getQuery +` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
         'valArray': result.valArray
     };
 }
