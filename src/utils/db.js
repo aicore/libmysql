@@ -469,7 +469,6 @@ export function get(tableName, documentID) {
                         return;
                     }
                     reject('unable to find document for given documentId');
-                    return;
                 });
         } catch (e) {
             const errorMessage = `Exception occurred while getting data ${e.stack}`;
