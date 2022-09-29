@@ -1013,16 +1013,14 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
 }
 
 /**
- * It takes a table name, a document ID, and a map of fields to increment. It then increments the fields in the document
- * with the given ID
- * @param {string} tableName - The name of the table in which the document is stored.
+ * It increments the value of a field in a JSON column in a MySQL table
+ * @param {string}tableName - The name of the table in which the document is stored.
  * @param {string} documentId - The primary key of the document you want to update.
- * @param {Object} jsonFiledIncrement - This is a JSON object that contains the fields to be incremented and the
- * value by which
- * they should be incremented.
+ * @param {Object} jsonFieldsIncrements - This is a JSON object that contains the fields to be incremented and the
+ * value by which they should be incremented.
  * @returns {Promise<boolean>}A promise
  */
-export function mathAdd(tableName, documentId, jsonFiledIncrement) {
+export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before get');
@@ -1038,18 +1036,18 @@ export function mathAdd(tableName, documentId, jsonFiledIncrement) {
             return;
             //Todo: Emit metrics
         }
-        if (isObjectEmpty(jsonFiledIncrement)) {
+        if (isObjectEmpty(jsonFieldsIncrements)) {
             reject('please provide valid increments for json filed');
             return;
         }
-        for (const key in jsonFiledIncrement) {
-            if (!isNumber(jsonFiledIncrement[key])) {
+        for (const key in jsonFieldsIncrements) {
+            if (!isNumber(jsonFieldsIncrements[key])) {
                 reject('increment can be done only with numerical values');
                 return;
             }
         }
         try {
-            const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFiledIncrement);
+            const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFieldsIncrements);
             CONNECTION.execute(incQuery, [documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
