@@ -201,13 +201,20 @@ describe('Integration: libMySql', function () {
 
     });
     it('should be able to do scan and return results from database', async function () {
-        const numberOfEntries = 100;
+        const numberOfEntries = 1500;
         const results = await testReadWrite(numberOfEntries);
-        const scanResults = await getFromNonIndex(results.tableName, {
+        let scanResults = await getFromNonIndex(results.tableName, {
             'lastName': 'Alice',
             'Age': 100
         });
-        expect(scanResults.length).to.eql(numberOfEntries);
+        expect(scanResults.length).to.eql(1000);
+        for (let i = 0; i < scanResults.length; i++) {
+            expect(scanResults[i].Age).to.eql(100);
+            expect(scanResults[i].active).to.eql(true);
+            expect(scanResults[i].lastName).to.eql('Alice');
+        }
+        scanResults = await getFromNonIndex(results.tableName);
+        expect(scanResults.length).eql(1000);
         for (let i = 0; i < scanResults.length; i++) {
             expect(scanResults[i].Age).to.eql(100);
             expect(scanResults[i].active).to.eql(true);
