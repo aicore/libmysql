@@ -438,6 +438,14 @@ describe('Integration: libMySql', function () {
         modifiedDoc = await get(tableName, docId);
         expect(modifiedDoc.age).eql(11);
         expect(modifiedDoc.total).eql(-100);
+        incStatus = await mathAdd(tableName, docId, {
+            count: -2
+        });
+        expect(incStatus).eql(true);
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(11);
+        expect(modifiedDoc.total).eql(-100);
+        expect(modifiedDoc.count).eql(-2);
     });
 });
 

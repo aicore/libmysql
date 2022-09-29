@@ -1000,9 +1000,9 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
 
     for (const key in fieldToIncrementMap) {
         if (numberOfKeys > 1) {
-            query += `'$.${key}', JSON_EXTRACT(document, '$.${key}') + ${fieldToIncrementMap[key]},`;
+            query += `'$.${key}', IFNULL(JSON_EXTRACT(document, '$.${key}'), 0) + ${fieldToIncrementMap[key]},`;
         } else {
-            query += `'$.${key}', JSON_EXTRACT(document, '$.${key}') + ${fieldToIncrementMap[key]}`;
+            query += `'$.${key}', IFNULL(JSON_EXTRACT(document, '$.${key}'), 0) + ${fieldToIncrementMap[key]}`;
         }
         --numberOfKeys;
     }
