@@ -24,10 +24,29 @@ describe('Query Utils test', function () {
             expect(token).to.be.null;
         });
 
+        function _verifyToken(token, expectedType, expectedTokenString) {
+            expect(token.type).to.eql(expectedType); // contain 3 spaces
+            expect(token.str).to.eql(expectedTokenString); // contain 3 spaces
+        }
+
         it('should tokenizer extract space token', function () {
             let tokenizer = QueryTokenizer.getTokenizer("   ");
             let token = QueryTokenizer.nextToken(tokenizer);
-            expect(token.str).to.eql("   "); // contain 3 spaces
+            _verifyToken(token, " ", "   "); // contain 3 spaces
+        });
+
+        it('should tokenizer extract brackets (, ) token', function () {
+            let tokenizer = QueryTokenizer.getTokenizer("(  ()"); // tokenizer does not check syntax validity
+            let token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "(", "(");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, " ", "  ");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "(", "(");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, ")", ")");
+            token = QueryTokenizer.nextToken(tokenizer);
+            expect(token).to.be.null;
         });
     });
 
