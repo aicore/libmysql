@@ -4,7 +4,7 @@ import {getColumNameForJsonField} from "./sharedUtils.js";
 const TOKEN_SPACE = ' ',
     TOKEN_BRACKET_OPEN = '(',
     TOKEN_BRACKET_CLOSE = ')',
-    TOKEN_SINGLE_QUOTE_STRING = '\''; // a full string of the form 'hello \'world' with escape char awareness
+    TOKEN_SINGLE_QUOTE_STRING = "'"; // a full string of the form 'hello \'world' with escape char awareness
 
 function _createToken(type, tokenStr) {
     return {
@@ -25,12 +25,40 @@ function _getSpaceToken(tokenizer) {
     let i = tokenizer.currentIndex,
         queryChars = tokenizer.queryChars;
     let tokenStr = "";
-    while(i < queryChars.length && queryChars[i] === ' '){
+    while(i < queryChars.length && queryChars[i] === TOKEN_SPACE){
         tokenStr += ' ';
         i++;
     }
     tokenizer.currentIndex = i;
     return _createToken(TOKEN_SPACE, tokenStr);
+}
+
+/**
+ * Retrieves the single quoted string token at current position of the format: 'hello \'world' with escape
+ * char awareness
+ * @param {{queryChars: Array, currentIndex: number}} tokenizer
+ * @return {{type: string, str: string} | null}
+ * type - TOKEN_SPACE
+ * str - Will return a single char space string or multiple char string as encountered.
+ * @private
+ */
+function _getStringToken(tokenizer) {
+    let i = tokenizer.currentIndex,
+        queryChars = tokenizer.queryChars;
+    let tokenStr = TOKEN_SINGLE_QUOTE_STRING, prevEscapeChar = false;
+    i++; // move ptr to after single quote '^here
+    while(i < queryChars.length && (prevEscapeChar || queryChars[i] !== TOKEN_SINGLE_QUOTE_STRING)){
+        prevEscapeChar = (queryChars[i] === '\\');
+        tokenStr += queryChars[i];
+        i++;
+    }
+    if(i < queryChars.length && !prevEscapeChar && queryChars[i] === TOKEN_SINGLE_QUOTE_STRING){
+        // add the ending quote only if it is present in the source string.
+        tokenStr += "'";
+        i++;
+    }
+    tokenizer.currentIndex = i;
+    return _createToken(TOKEN_SINGLE_QUOTE_STRING, tokenStr);
 }
 
 /**
@@ -48,6 +76,7 @@ function nextToken(tokenizer) {
     switch (tokenStartChar) {
     case '"': throw new Error(`Strings Should Be in single quotes(Eg 'str') in query ${tokenizer.queryChars.join("")}`);
     case TOKEN_SPACE: return _getSpaceToken(tokenizer);
+    case TOKEN_SINGLE_QUOTE_STRING: return _getStringToken(tokenizer);
     case TOKEN_BRACKET_OPEN: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
