@@ -94,6 +94,29 @@ describe('Query Utils test', function () {
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, ")", ")"); // last bracket
         });
+
+        // variables
+        it('should tokenizer extract variable token of form xxx', function () {
+            let tokenizer = QueryTokenizer.getTokenizer("   var(");
+            QueryTokenizer.nextToken(tokenizer); // skip the space
+            let token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "var");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "(", "(");
+        });
+
+        it('should tokenizer extract variable token of form xxx.yyy.zzz', function () {
+            let tokenizer = QueryTokenizer.getTokenizer(" xxx(xxx.yyy)xxx.yyy.zzz");
+            QueryTokenizer.nextToken(tokenizer); // skip the space
+            let token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "xxx");
+            QueryTokenizer.nextToken(tokenizer); // skip the space
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "xxx.yyy");
+            QueryTokenizer.nextToken(tokenizer); // skip the space
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "xxx.yyy.zzz");
+        });
     });
 
     describe('Query Transformer tests', function () {
