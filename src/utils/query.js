@@ -1,9 +1,10 @@
-import {getColumNameForJsonField} from "./sharedUtils.js";
+import {getColumNameForJsonField, isAlphaChar, isAlphaNumChar} from "./sharedUtils.js";
 
 // Token types
 const TOKEN_SPACE = ' ',
     TOKEN_BRACKET_OPEN = '(',
     TOKEN_BRACKET_CLOSE = ')',
+    TOKEN_VARIABLE = '#',
     TOKEN_SINGLE_QUOTE_STRING = "'"; // a full string of the form 'hello \'world' with escape char awareness
 
 function _createToken(type, tokenStr) {
@@ -62,6 +63,26 @@ function _getStringToken(tokenizer) {
 }
 
 /**
+ * Retrieves the variable token at current position of the for x or x.y or x.y.z etc..
+ * @param {{queryChars: Array, currentIndex: number}} tokenizer
+ * @return {{type: string, str: string} | null}
+ * type - TOKEN_SPACE
+ * str - Will return a single char space string or multiple char string as encountered.
+ * @private
+ */
+function _getVariableToken(tokenizer) {
+    let i = tokenizer.currentIndex,
+        queryChars = tokenizer.queryChars;
+    let tokenStr = "";
+    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '.')){
+        tokenStr += queryChars[i];
+        i++;
+    }
+    tokenizer.currentIndex = i;
+    return _createToken(TOKEN_VARIABLE, tokenStr);
+}
+
+/**
  * Retrieves the next token or null if there are no further tokens.
  * @param {{queryChars: Array, currentIndex: number}} tokenizer
  * @return {{type: string, str: string} | null} The following token types are read
@@ -81,7 +102,11 @@ function nextToken(tokenizer) {
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
-    default: throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
+    default:
+        if(isAlphaChar(tokenStartChar)){
+            return _getVariableToken(tokenizer);
+        }
+        throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
     }
 }
 
