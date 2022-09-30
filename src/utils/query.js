@@ -1,12 +1,21 @@
 import {getColumNameForJsonField} from "./sharedUtils.js";
 
 // Token types
-const TOKEN_SPACE = 1;
+const TOKEN_SPACE = ' ',
+    TOKEN_BRACKET_OPEN = '(',
+    TOKEN_BRACKET_CLOSE = ')';
+
+function _createToken(type, tokenStr) {
+    return {
+        type: type,
+        str: tokenStr
+    };
+}
 
 /**
  * Retrieves the space token at current position
  * @param {{queryChars: Array, currentIndex: number}} tokenizer
- * @return {{type: number, str: string} | null}
+ * @return {{type: string, str: string} | null}
  * type - TOKEN_SPACE
  * str - Will return a single char space string or multiple char string as encountered.
  * @private
@@ -14,22 +23,19 @@ const TOKEN_SPACE = 1;
 function _getSpaceToken(tokenizer) {
     let i = tokenizer.currentIndex,
         queryChars = tokenizer.queryChars;
-    let token = "";
+    let tokenStr = "";
     while(i < queryChars.length && queryChars[i] === ' '){
-        token += ' ';
+        tokenStr += ' ';
         i++;
     }
     tokenizer.currentIndex = i;
-    return {
-        type: TOKEN_SPACE,
-        str: token
-    };
+    return _createToken(TOKEN_SPACE, tokenStr);
 }
 
 /**
  * Retrieves the next token or null if there are no further tokens.
  * @param {{queryChars: Array, currentIndex: number}} tokenizer
- * @return {{type: number, str: string} | null} The following token types are read
+ * @return {{type: string, str: string} | null} The following token types are read
  * space - Will return a single char space string or multiple char string as encountered.
  * @private
  */
@@ -37,10 +43,14 @@ function nextToken(tokenizer) {
     if(tokenizer.currentIndex >= tokenizer.queryChars.length){
         return null; // end of string, no more tokens
     }
-    let nextTokenChar = tokenizer.queryChars[tokenizer.currentIndex];
-    switch (nextTokenChar) {
-    case " ": return _getSpaceToken(tokenizer);
-    default: throw new Error(`Unexpected Token char ${nextTokenChar} in query ${tokenizer.queryChars.join("")}`);
+    let tokenStartChar = tokenizer.queryChars[tokenizer.currentIndex];
+    switch (tokenStartChar) {
+    case TOKEN_SPACE: return _getSpaceToken(tokenizer);
+    case TOKEN_BRACKET_OPEN: tokenizer.currentIndex++;
+        return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
+    case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
+        return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
+    default: throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
     }
 }
 
