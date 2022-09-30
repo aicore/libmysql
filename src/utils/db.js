@@ -2,6 +2,7 @@ import mysql from "mysql2";
 import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 import crypto from "crypto";
 import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
+import {getColumNameForJsonField} from "./sharedUtils.js";
 
 // @INCLUDE_IN_API_DOCS
 
@@ -731,17 +732,6 @@ function _isJsonField(jsonField) {
 }
 
 /**
- * It takes a string and returns a hash of that string
- * @param {string} jsonField - The JSON field you want to query.
- * @returns {string} A string of hexadecimal characters.
- */
-function _getColumNameForJsonField(jsonField) {
-    // ignoring sonar security error as md5 function is not used for security
-    // Md5 function is used here to increase the length of jsonfield to more than 64 characters
-    return crypto.createHash('md5').update(jsonField).digest('hex'); //NOSONAR
-}
-
-/**
  * It creates a new column in the table for the JSON field and then creates an index on that column.
  * `NB: this will not work with boolean fields`
  * @example <caption> Sample code </caption>
@@ -790,7 +780,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             reject('please provide valid  data type for json field');
             return;
         }
-        const sqlJsonColumn = _getColumNameForJsonField(jsonField);
+        const sqlJsonColumn = getColumNameForJsonField(jsonField);
 
         try {
             const createColumnQuery = _buildCreateJsonColumQuery(tableName,
@@ -839,7 +829,7 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
             continue;
         }
         const fullKey = (parentKey === "") ? key : parentKey + '.' + key;
-        const sqlColumnName = _getColumNameForJsonField(fullKey);
+        const sqlColumnName = getColumNameForJsonField(fullKey);
         if (numberOfEntries > 1) {
 
             subQuery = subQuery + sqlColumnName + ' = ? and  ';
