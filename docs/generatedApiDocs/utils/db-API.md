@@ -374,16 +374,6 @@ It checks if the jsonField is a valid json field.
 
 Returns **[boolean][3]** if its valid json field false otherwise
 
-## \_getColumNameForJsonField
-
-It takes a string and returns a hash of that string
-
-### Parameters
-
-*   `jsonField` **[string][1]** The JSON field you want to query.
-
-Returns **[string][1]** A string of hexadecimal characters.
-
 ## createIndexForJsonField
 
 It creates a new column in the table for the JSON field and then creates an index on that column.
