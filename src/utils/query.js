@@ -3,7 +3,8 @@ import {getColumNameForJsonField} from "./sharedUtils.js";
 // Token types
 const TOKEN_SPACE = ' ',
     TOKEN_BRACKET_OPEN = '(',
-    TOKEN_BRACKET_CLOSE = ')';
+    TOKEN_BRACKET_CLOSE = ')',
+    TOKEN_SINGLE_QUOTE_STRING = '\''; // a full string of the form 'hello \'world' with escape char awareness
 
 function _createToken(type, tokenStr) {
     return {
@@ -45,6 +46,7 @@ function nextToken(tokenizer) {
     }
     let tokenStartChar = tokenizer.queryChars[tokenizer.currentIndex];
     switch (tokenStartChar) {
+    case '"': throw new Error(`Strings Should Be in single quotes(Eg 'str') in query ${tokenizer.queryChars.join("")}`);
     case TOKEN_SPACE: return _getSpaceToken(tokenizer);
     case TOKEN_BRACKET_OPEN: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);

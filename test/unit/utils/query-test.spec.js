@@ -18,6 +18,19 @@ describe('Query Utils test', function () {
             expect(exceptionOccurred).to.eql(true);
         });
 
+        it('should throw error on double quoted strings token', function () {
+            let exceptionOccurred = false;
+            let tokenizer = QueryTokenizer.getTokenizer('("hello"');
+            try {
+                QueryTokenizer.nextToken(tokenizer); // (
+                QueryTokenizer.nextToken(tokenizer); // " // throws
+            } catch (e) {
+                exceptionOccurred = true;
+                expect(e.toString()).to.eql(`Error: Strings Should Be in single quotes(Eg 'str') in query ("hello"`);
+            }
+            expect(exceptionOccurred).to.eql(true);
+        });
+
         it('should tokenizer work in empty string', function () {
             let tokenizer = QueryTokenizer.getTokenizer("");
             let token = QueryTokenizer.nextToken(tokenizer);
