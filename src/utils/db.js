@@ -2,7 +2,7 @@ import mysql from "mysql2";
 import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 import crypto from "crypto";
 import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
-import {getColumNameForJsonField, isVariableNameLike} from "./sharedUtils.js";
+import {getColumNameForJsonField, isVariableNameLike, isNestedVariableNameLike} from "./sharedUtils.js";
 
 // @INCLUDE_IN_API_DOCS
 
@@ -209,17 +209,6 @@ function _isValidTableName(nameSpace) {
     const tableName = split[1];
     return (isString(tableName) && tableName.length <=
         MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && isVariableNameLike(tableName));
-}
-
-/**
- * It checks if the field is a string and if it's length is less than or equal to 63 characters and if it matches the
- * regular expression `/^[a-zA-Z0-9_]+$/`
- * @param{String} field - The field name to be validated.
- * @returns{boolean} A boolean value.
- */
-function _isValidJsonField(field) {
-    return (isString(field) && field.length <=
-        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && isVariableNameLike(field));
 }
 
 /**
@@ -498,6 +487,9 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
                 continue;
             }
         }
+        if(!isVariableNameLike(key)){
+            throw new Error(`Invalid filed name ${key}`);
+        }
         if (numberOfEntries > 1) {
             getQuery = getQuery + `${JSON_COLUMN}->"$${parentKey}.${key}" = ? and `;
 
@@ -710,25 +702,6 @@ export function _createIndex(resolve, reject, tableName, jsonField, isUnique) {
 }
 
 /**
- * It checks if the jsonField is a valid json field.
- * @param {string}jsonField - The JSON field to be queried.
- * @returns {boolean} if its valid json field false otherwise
- */
-function _isJsonField(jsonField) {
-    if (!isString(jsonField)) {
-        return false;
-    }
-    const split = jsonField.split('.');
-
-    for (let key of split) {
-        if (!_isValidJsonField(key)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
  * It creates a new column in the table for the JSON field and then creates an index on that column.
  * `NB: this will not work with boolean fields`
  * @example <caption> Sample code </caption>
@@ -748,7 +721,8 @@ function _isJsonField(jsonField) {
  *      console.error(JSON.stringify(e));
  * }
  * @param {string} tableName - The name of the table in which you want to create the index.
- * @param {string} jsonField - The name of the field in the JSON object that you want to index.
+ * @param {string} jsonField - The name of the field in the JSON object that you want to index. The filed name
+ * should be a valid variable name of the form "x" or "x.y.z".
  * @param {string} dataTypeOfNewColumn - This is the data type of the new column that will be created.
  * visit https://dev.mysql.com/doc/refman/8.0/en/data-types.html to know all supported data types
  * @param {boolean} isUnique - If true, the json filed has to be unique for creating index.
@@ -768,7 +742,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
             return;
             //Todo: Emit metrics
         }
-        if (!_isJsonField(jsonField)) {
+        if (!isNestedVariableNameLike(jsonField)) {
             reject('please provide valid name for json field');
             return;
             //Todo: Emit metrics

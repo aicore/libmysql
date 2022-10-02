@@ -742,6 +742,35 @@ describe('Unit tests for db.js', function () {
         mockedFunctions.connection.execute = saveExecute;
     });
 
+    async function _validateFailsOnVarName(name, expectedErrorMessage) {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
+            callback(null, [], []);
+        };
+        const tableName = 'test.hello';
+        let isExceptionOccurred = false;
+        try {
+            await getFromNonIndex(tableName, JSON.parse(`{"${name}":"test"}`));
+        } catch (e) {
+            expectedErrorMessage = expectedErrorMessage || 'Exception occurred while getting data Error:' +
+                ` Invalid filed name ${name}`;
+            expect(e.split('\n')[0]).to.eql(expectedErrorMessage);
+            isExceptionOccurred = true;
+        }
+        expect(isExceptionOccurred).to.eql(true);
+        mockedFunctions.connection.execute = saveExecute;
+    }
+
+    it('getFromNonIndex should fail if key is not valid variable name', async function () {
+        await _validateFailsOnVarName("AR#");
+        await _validateFailsOnVarName("_Ar.");
+        // field names of form a.y.x should also error out as `.` is not allowed within a variable name
+        await _validateFailsOnVarName("Ar.x");
+
+        // success case
+        await _validateFailsOnVarName("Ar", "unable to find documents for given documentId");
+    });
+
     it('getFromNonIndex should fail boolean query value', async function () {
         const saveExecute = mockedFunctions.connection.execute;
         mockedFunctions.connection.execute = function (sql, values, callback) {

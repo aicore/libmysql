@@ -83,17 +83,6 @@ It checks if the nameSpace is a valid table name
 
 Returns **[boolean][3]** A boolean value.
 
-## \_isValidJsonField
-
-It checks if the field is a string and if it's length is less than or equal to 63 characters and if it matches the
-regular expression `/^[a-zA-Z0-9_]+$/`
-
-### Parameters
-
-*   `field` **[String][1]** The field name to be validated.
-
-Returns **[boolean][3]** A boolean value.
-
 ## \_isValidPrimaryKey
 
 Returns true if the given key is a string of length greater than zero and less than or equal to the maximum size of a
@@ -364,16 +353,6 @@ It creates an index on the JSON field in the table
 
 Returns **void** NB `private function exporting this for testing`
 
-## \_isJsonField
-
-It checks if the jsonField is a valid json field.
-
-### Parameters
-
-*   `jsonField` **[string][1]** The JSON field to be queried.
-
-Returns **[boolean][3]** if its valid json field false otherwise
-
 ## createIndexForJsonField
 
 It creates a new column in the table for the JSON field and then creates an index on that column.
@@ -382,7 +361,8 @@ It creates a new column in the table for the JSON field and then creates an inde
 ### Parameters
 
 *   `tableName` **[string][1]** The name of the table in which you want to create the index.
-*   `jsonField` **[string][1]** The name of the field in the JSON object that you want to index.
+*   `jsonField` **[string][1]** The name of the field in the JSON object that you want to index. The filed name
+    should be a valid variable name of the form "x" or "x.y.z".
 *   `dataTypeOfNewColumn` **[string][1]** This is the data type of the new column that will be created.
     visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][6] to know all supported data types
 *   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index. (optional, default `false`)
