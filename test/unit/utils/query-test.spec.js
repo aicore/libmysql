@@ -97,16 +97,21 @@ describe('Query Utils test', function () {
 
         // variables
         it('should tokenizer extract variable token of form xxx', function () {
-            let tokenizer = QueryTokenizer.getTokenizer("   var(");
+            let tokenizer = QueryTokenizer.getTokenizer("   var(var_)_var");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             let token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "#", "var");
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "(", "(");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "var_");
+            QueryTokenizer.nextToken(tokenizer);
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "#", "_var");
         });
 
         it('should tokenizer extract variable token of form xxx.yyy.zzz', function () {
-            let tokenizer = QueryTokenizer.getTokenizer(" xxx(xxx.yyy)xxx.yyy.zzz");
+            let tokenizer = QueryTokenizer.getTokenizer(" xxx(xxx.yyy)xxx.yy_y._zzz");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             let token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "#", "xxx");
@@ -115,7 +120,7 @@ describe('Query Utils test', function () {
             _verifyToken(token, "#", "xxx.yyy");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "xxx.yyy.zzz");
+            _verifyToken(token, "#", "xxx.yy_y._zzz");
         });
     });
 

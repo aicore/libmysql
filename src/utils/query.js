@@ -74,7 +74,7 @@ function _getVariableToken(tokenizer) {
     let i = tokenizer.currentIndex,
         queryChars = tokenizer.queryChars;
     let tokenStr = "";
-    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '.')){
+    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '.' || queryChars[i] === '_')){
         tokenStr += queryChars[i];
         i++;
     }
@@ -103,7 +103,7 @@ function nextToken(tokenizer) {
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
     default:
-        if(isAlphaChar(tokenStartChar)){
+        if(isAlphaChar(tokenStartChar) || tokenStartChar ==='_'){
             return _getVariableToken(tokenizer);
         }
         throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
