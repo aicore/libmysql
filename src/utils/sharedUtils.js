@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const VARIABLE_REGEX = /^[a-zA-Z_][a-zA-Z_0-9]*$/; // vars of form aA4_f allowed
+const VARIABLE_REGEX = /^[a-zA-Z_]\w*$/; // vars of form aA4_f allowed
 
 /**
  * It takes a string and returns a hash of that string
