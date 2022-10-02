@@ -30,6 +30,7 @@ describe('Shared Utils test', function () {
 
         expect(isVariableNameLike('8')).to.be.false;
         expect(isVariableNameLike('8asc')).to.be.false;
+        expect(isVariableNameLike('8asc#')).to.be.false;
         expect(isVariableNameLike('#')).to.be.false;
         expect(isVariableNameLike('.ads')).to.be.false;
         expect(isVariableNameLike('s.ads')).to.be.false;
