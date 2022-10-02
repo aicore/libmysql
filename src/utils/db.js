@@ -2,7 +2,7 @@ import mysql from "mysql2";
 import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
 import crypto from "crypto";
 import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
-import {getColumNameForJsonField} from "./sharedUtils.js";
+import {getColumNameForJsonField, isVariableNameLike} from "./sharedUtils.js";
 
 // @INCLUDE_IN_API_DOCS
 
@@ -32,9 +32,6 @@ const MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME = 63;
 const MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME = 63;
 /* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
 const SIZE_OF_PRIMARY_KEY = 32;
-/* Creating a regular expression that will match any word character (letter, number, or underscore)
-one or more times. */
-const REGX_TABLE_ATTRIBUTES = new RegExp(/^\w+$/);
 
 /**
  * It creates a database with the name provided as an argument
@@ -113,7 +110,7 @@ export function deleteDataBase(databaseName) {
 
 function _isValidDatBaseName(databaseName) {
     return (isString(databaseName) && databaseName.length <=
-        MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME && REGX_TABLE_ATTRIBUTES.test(databaseName));
+        MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME && isVariableNameLike(databaseName));
 }
 
 /** This function helps to initialize MySql Client
@@ -211,7 +208,7 @@ function _isValidTableName(nameSpace) {
     }
     const tableName = split[1];
     return (isString(tableName) && tableName.length <=
-        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(tableName));
+        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && isVariableNameLike(tableName));
 }
 
 /**
@@ -222,7 +219,7 @@ function _isValidTableName(nameSpace) {
  */
 function _isValidJsonField(field) {
     return (isString(field) && field.length <=
-        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && REGX_TABLE_ATTRIBUTES.test(field));
+        MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME && isVariableNameLike(field));
 }
 
 /**

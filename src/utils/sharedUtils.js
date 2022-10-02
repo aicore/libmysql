@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+const VARIABLE_REGEX = /^[a-zA-Z_][a-zA-Z_0-9]*$/; // vars of form aA4_f allowed
+
 /**
  * It takes a string and returns a hash of that string
  * @param {string} jsonField - The JSON field you want to query.
@@ -28,4 +30,14 @@ export function isAlphaChar(char) {
         return false;
     }
     return true;
+}
+
+/**
+ * Checks if the supplied name is like a variable name that starts with an alphabet or _ followed by alphanumeric/_
+ * Eg. _x, x_Y, XY8, etc. are valid variable names, but a.x, 8_x, #x etc are not valid variable names.
+ * @param {string} nameToTest
+ * @return {boolean}
+ */
+export function isVariableNameLike(nameToTest){
+    return VARIABLE_REGEX.test(nameToTest);
 }
