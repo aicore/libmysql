@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import {isString} from "@aicore/libcommonutils";
 
 const VARIABLE_REGEX = /^[a-zA-Z_]\w*$/; // vars of form aA4_f allowed
 
@@ -36,8 +37,28 @@ export function isAlphaChar(char) {
  * Checks if the supplied name is like a variable name that starts with an alphabet or _ followed by alphanumeric/_
  * Eg. _x, x_Y, XY8, etc. are valid variable names, but a.x, 8_x, #x etc are not valid variable names.
  * @param {string} nameToTest
- * @return {boolean}
+ * @return {boolean} true if it's a valid variable name
  */
 export function isVariableNameLike(nameToTest){
     return VARIABLE_REGEX.test(nameToTest);
+}
+
+/**
+ * Similar to isVariableNameLike, but also allows nested variable of the form `var._name.like8` along with
+ * simple `varNames`.
+ * @param {string} nameToTest
+ * @returns {boolean} true if it's a valid variable name or nested variable name
+ */
+export function isNestedVariableNameLike(nameToTest) {
+    if (!isString(nameToTest)) {
+        return false;
+    }
+    const split = nameToTest.split('.');
+
+    for (let key of split) {
+        if (!isVariableNameLike(key)) {
+            return false;
+        }
+    }
+    return true;
 }
