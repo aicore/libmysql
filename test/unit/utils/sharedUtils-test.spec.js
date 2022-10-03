@@ -1,7 +1,9 @@
 /*global describe, it*/
 import mockedFunctions from '../setup-mocks.js';
-import {isAlphaNumChar, isAlphaChar, isVariableNameLike,
-    isNestedVariableNameLike} from "../../../src/utils/sharedUtils.js";
+import {
+    isAlphaNumChar, isAlphaChar, isVariableNameLike,
+    isNestedVariableNameLike, isDigitChar
+} from "../../../src/utils/sharedUtils.js";
 import chai from "chai";
 let expect = chai.expect;
 
@@ -21,6 +23,16 @@ describe('Shared Utils test', function () {
         expect(isAlphaNumChar('9')).to.be.true;
 
         expect(isAlphaNumChar('_')).to.be.false;
+    });
+
+    it('should isDigitChar work', function () {
+        expect(isDigitChar('0')).to.be.true;
+        expect(isDigitChar('9')).to.be.true;
+
+        expect(isDigitChar('_')).to.be.false;
+        expect(isDigitChar('a')).to.be.false;
+        expect(isDigitChar('A')).to.be.false;
+
     });
 
     function _validateVarNames(validatorFn) {

@@ -24,6 +24,14 @@ export function isAlphaNumChar(char) {
     return true;
 }
 
+export function isDigitChar(char) {
+    char = char.charCodeAt(0);
+    if (!(char > 47 && char < 58)) { // numeric (0-9)
+        return false;
+    }
+    return true;
+}
+
 export function isAlphaChar(char) {
     char = char.charCodeAt(0);
     if (!(char > 64 && char < 91) && // upper alpha (A-Z)
