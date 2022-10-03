@@ -125,13 +125,16 @@ describe('Query Utils test', function () {
 
         function _verifyAllTokens(expressionString, expectedTypeArray, expectedTokenStringArray) {
             let tokenizer = QueryTokenizer.getTokenizer(expressionString);
-            let token = QueryTokenizer.nextToken(tokenizer), i = 0;
+            let token = QueryTokenizer.nextToken(tokenizer),
+                str = [], type = [];
             while(token){
-                expect(token.type).to.eql(expectedTypeArray[i]);
-                expect(token.str).to.eql(expectedTokenStringArray[i]);
-                i++;
+                str.push(token.str);
+                type.push(token.type);
                 token = QueryTokenizer.nextToken(tokenizer);
             }
+
+            expect(type).to.eql(expectedTypeArray);
+            expect(str).to.eql(expectedTokenStringArray);
         }
 
         function _verifyTokenParseError(expressionString, expectedErrorStr) {
@@ -161,6 +164,21 @@ describe('Query Utils test', function () {
             _verifyTokenParseError("0.0.0", "Error: Unexpected Number Token 0.0.0 in query 0.0.0");
             _verifyTokenParseError("0.x.0", "Error: Unexpected Number Token 0. in query 0.x.0");
             _verifyTokenParseError("0.%", "Error: Unexpected Number Token 0. in query 0.%");
+        });
+
+        //operators
+        it('should tokenizer extract operator tokens', function () {
+            _verifyAllTokens("!0 + 1 = (3.0 - 'hello') /.3%4*5 !=  7",
+                ["!", "1", " ", "+", " ", "1", " ", "=", " ", "(", "1", " ", "-", " ", "'", ")", " ",  "/",
+                    "1", "%", "1", "*", "1",  " ",  "!=", " ", "1"],
+                ["!", "0", " ", "+", " ", "1", " ", "=", " ", "(", "3.0", " ", "-", " ", "'hello'", ")", " ",
+                    "/", ".3", "%", "4", "*", "5",  " ",  "!=", "  ", "7"]);
+        });
+
+        it('should tokenizer error on invalid operator tokens', function () {
+            _verifyTokenParseError("1++", "Error: Unexpected Operator Token ++ in query 1++");
+            _verifyTokenParseError("1+=", "Error: Unexpected Operator Token += in query 1+=");
+            _verifyTokenParseError("1 == 2", "Error: Unexpected Operator Token == in query 1 == 2");
         });
     });
 
