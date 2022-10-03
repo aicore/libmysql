@@ -207,6 +207,27 @@ describe('Query Utils test', function () {
                 ["fn", "(", "1", ">", "1", ",", "fn", "(", "'", ",", "'", ")", ",", "key", ")"],
                 ["IF", "(", "1", ">", "2", ",", "STRCMP", "(", "'x'", ",", "'y'", ")", ",", "NULL", ")"]);
         });
+
+        it('should tokenizer work for && AND OR || NOT !', function () {
+            _verifyAllTokens("x=2 AND y.z=3",
+                ["#", "=", "1", " ", "key", " ", "#", "=", "1"],
+                ["x", "=", "2", " ", "AND", " ", "y.z", "=", "3"]);
+            _verifyAllTokens("x=2 && y.z&3",
+                ["#", "=", "1", " ", "&&", " ", "#", "&", "1"],
+                ["x", "=", "2", " ", "&&", " ", "y.z", "&", "3"]);
+            _verifyAllTokens("x=2 OR y.z=3",
+                ["#", "=", "1", " ", "key", " ", "#", "=", "1"],
+                ["x", "=", "2", " ", "OR", " ", "y.z", "=", "3"]);
+            _verifyAllTokens("x=2 || y.z|3",
+                ["#", "=", "1", " ", "||", " ", "#", "|", "1"],
+                ["x", "=", "2", " ", "||", " ", "y.z", "|", "3"]);
+            _verifyAllTokens("!(x&&Y)",
+                ['!', '(', '#', '&&', '#', ')'],
+                ['!', '(', 'x', '&&', 'Y', ')' ]);
+            _verifyAllTokens("NOT(x AND Y)",
+                ['key', '(', '#', ' ', 'key', ' ', '#', ')'],
+                ['NOT', '(', 'x', ' ', 'AND', ' ', 'Y', ')']);
+        });
     });
 
     describe('Query Transformer tests', function () {
