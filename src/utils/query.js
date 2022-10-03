@@ -22,11 +22,18 @@ export const TOKEN_SPACE = ' ',
     TOKEN_OP_GT_EQ = '>=',
     TOKEN_OP_LT = '<',
     TOKEN_OP_LT_EQ = '<=',
+    TOKEN_OP_BIT_AND = '&',
+    TOKEN_OP_AND = '&&',
+    TOKEN_OP_BIT_OR = '|',
+    TOKEN_OP_OR = '||',
+    TOKEN_OP_BITWISE_INVERT = '~',
     // operators end
     TOKEN_SINGLE_QUOTE_STRING = "'"; // a full string of the form 'hello \'world' with escape char awareness
 
+// https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
 export const OPERATOR_TOKENS =[TOKEN_OP_PLUS, TOKEN_OP_MINUS, TOKEN_OP_MUL, TOKEN_OP_DIV, TOKEN_OP_MOD, TOKEN_OP_EQ,
-    TOKEN_OP_NOT, TOKEN_OP_NOT_EQ, TOKEN_OP_GT, TOKEN_OP_GT_EQ, TOKEN_OP_LT, TOKEN_OP_LT_EQ, TOKEN_OP_COMMA];
+    TOKEN_OP_NOT, TOKEN_OP_NOT_EQ, TOKEN_OP_GT, TOKEN_OP_GT_EQ, TOKEN_OP_LT, TOKEN_OP_LT_EQ, TOKEN_OP_COMMA,
+    TOKEN_OP_BIT_AND, TOKEN_OP_AND, TOKEN_OP_BIT_OR, TOKEN_OP_OR, TOKEN_OP_BITWISE_INVERT];
 
 export const MYSQL_FUNCTIONS =[
     // MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
@@ -43,11 +50,11 @@ export const MYSQL_FUNCTIONS =[
     // comparison
     "SOUNDS", "STRCMP",
     // IF https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
-    "IF", "IFNULL", "NULLIF"
+    "IF", "IFNULL", "NULLIF", "IN"
 ];
 
 export const MYSQL_KEYWORDS =[
-    "LIKE", "NOT", "REGEXP", "RLIKE", "NULL"
+    "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
 ];
 
 function _createToken(type, tokenStr) {
@@ -203,11 +210,11 @@ function nextToken(tokenizer) {
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
     default:
         if(tokenStartChar === '.' || isDigitChar(tokenStartChar)){
-            // If the operator contains multiple characters, review this check. Currently only ! and != is considered
             return _getNumberToken(tokenizer);
         }
         if(OPERATOR_TOKENS.includes(tokenStartChar)){
-            // If the operator contains multiple characters, review this check. Currently only ! and != is considered
+            // If the operator contains multiple characters, review this check. For Eg., `!=` will only reach here if
+            // `!` is in the OPERATOR_TOKENS array.
             return _getOperatorToken(tokenizer);
         }
         if(isAlphaChar(tokenStartChar) || tokenStartChar ==='_'){
