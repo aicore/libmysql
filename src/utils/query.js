@@ -6,7 +6,9 @@ export const TOKEN_SPACE = ' ',
     TOKEN_BRACKET_CLOSE = ')',
     TOKEN_NUMBER = '1',
     TOKEN_VARIABLE = '#',
+    TOKEN_FUNCTION = 'fn',
     // operators start
+    TOKEN_OP_COMMA = ',',
     TOKEN_OP_PLUS = '+',
     TOKEN_OP_MINUS = '-',
     TOKEN_OP_MUL = '*',
@@ -15,11 +17,22 @@ export const TOKEN_SPACE = ' ',
     TOKEN_OP_EQ = '=',
     TOKEN_OP_NOT = '!',
     TOKEN_OP_NOT_EQ = '!=',
+    TOKEN_OP_GT = '>',
+    TOKEN_OP_GT_EQ = '>=',
+    TOKEN_OP_LT = '<',
+    TOKEN_OP_LT_EQ = '<=',
     // operators end
     TOKEN_SINGLE_QUOTE_STRING = "'"; // a full string of the form 'hello \'world' with escape char awareness
 
 export const OPERATOR_TOKENS =[TOKEN_OP_PLUS, TOKEN_OP_MINUS, TOKEN_OP_MUL, TOKEN_OP_DIV, TOKEN_OP_MOD, TOKEN_OP_EQ,
-    TOKEN_OP_NOT, TOKEN_OP_NOT_EQ];
+    TOKEN_OP_NOT, TOKEN_OP_NOT_EQ, TOKEN_OP_GT, TOKEN_OP_GT_EQ, TOKEN_OP_LT, TOKEN_OP_LT_EQ, TOKEN_OP_COMMA];
+
+export const MYSQL_FUNCTIONS =[
+    // MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
+    'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
+    'CRC32', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LOG10', 'LOG2', 'MOD', 'PI', 'POW', 'POWER', 'RADIANS', 'RAND',
+    'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE'
+];
 
 function _createToken(type, tokenStr) {
     return {
@@ -101,14 +114,16 @@ function _getStringToken(tokenizer) {
 }
 
 /**
- * Retrieves the variable token at current position of the form x or x.y or x.y.z etc..
+ * Retrieves the variable or function token at current position
+ * * variable token is of the form x or x.y or x.y.z etc..
+ * * function token is one of the predefined constants in MYSQL_FUNCTIONS
  * @param {{queryChars: Array, currentIndex: number}} tokenizer
  * @return {{type: string, str: string} | null}
  * type - TOKEN_SPACE
  * str - Will return a variable token at current position of the form x or x.y or x.y.z etc..
  * @private
  */
-function _getVariableToken(tokenizer) {
+function _getVariableOrFuncToken(tokenizer) {
     let i = tokenizer.currentIndex,
         queryChars = tokenizer.queryChars;
     let tokenStr = "";
@@ -117,6 +132,9 @@ function _getVariableToken(tokenizer) {
         i++;
     }
     tokenizer.currentIndex = i;
+    if(MYSQL_FUNCTIONS.includes(tokenStr)){
+        return _createToken(TOKEN_FUNCTION, tokenStr);
+    }
     return _createToken(TOKEN_VARIABLE, tokenStr);
 }
 
@@ -174,7 +192,7 @@ function nextToken(tokenizer) {
             return _getOperatorToken(tokenizer);
         }
         if(isAlphaChar(tokenStartChar) || tokenStartChar ==='_'){
-            return _getVariableToken(tokenizer);
+            return _getVariableOrFuncToken(tokenizer);
         }
         throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
     }

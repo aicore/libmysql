@@ -175,10 +175,31 @@ describe('Query Utils test', function () {
                     "/", ".3", "%", "4", "*", "5",  " ",  "!=", "  ", "7"]);
         });
 
+        it('should tokenizer extract comparison operator tokens', function () {
+            _verifyAllTokens("1 > 2 1>=2 1<2 1<=2 1=2",
+                ["1", " ", ">", " ", "1", " ", "1", ">=", "1", " ", "1", "<", "1", " ", "1", "<=", "1",
+                    " ", "1", "=", "1"],
+                ["1", " ", ">", " ", "2", " ", "1", ">=", "2", " ", "1", "<", "2", " ", "1", "<=", "2",
+                    " ", "1", "=", "2"]);
+        });
+
         it('should tokenizer error on invalid operator tokens', function () {
             _verifyTokenParseError("1++", "Error: Unexpected Operator Token ++ in query 1++");
             _verifyTokenParseError("1+=", "Error: Unexpected Operator Token += in query 1+=");
             _verifyTokenParseError("1 == 2", "Error: Unexpected Operator Token == in query 1 == 2");
+        });
+
+        //MYSQL_FUNCTIONS
+        it('should tokenizer extract MATH function tokens', function () {
+            _verifyAllTokens("!ABS(-2) > EXP(2,3)",
+                ["!", "fn", "(", "-", "1", ")", " ", ">", " ", "fn", "(", "1", ",", "1", ")"],
+                ["!", "ABS", "(", "-", "2", ")", " ", ">", " ", "EXP", "(", "2", ",", "3", ")"]);
+        });
+
+        it('should tokenizer functions be case sensitive', function () {
+            _verifyAllTokens("ABS() abs()",
+                ['fn', '(', ')', ' ', '#', '(', ')'],
+                ["ABS", "(", ")", " ", "abs", "(", ")"]);
         });
     });
 
