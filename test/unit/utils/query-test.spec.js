@@ -122,6 +122,46 @@ describe('Query Utils test', function () {
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "#", "xxx.yy_y._zzz");
         });
+
+        function _verifyAllTokens(expressionString, expectedTypeArray, expectedTokenStringArray) {
+            let tokenizer = QueryTokenizer.getTokenizer(expressionString);
+            let token = QueryTokenizer.nextToken(tokenizer), i = 0;
+            while(token){
+                expect(token.type).to.eql(expectedTypeArray[i]);
+                expect(token.str).to.eql(expectedTokenStringArray[i]);
+                i++;
+                token = QueryTokenizer.nextToken(tokenizer);
+            }
+        }
+
+        function _verifyTokenParseError(expressionString, expectedErrorStr) {
+            let exceptionOccurred = false;
+            try {
+                let tokenizer = QueryTokenizer.getTokenizer(expressionString);
+                let token = QueryTokenizer.nextToken(tokenizer);
+                while(token){
+                    token = QueryTokenizer.nextToken(tokenizer);
+                }
+            } catch (e) {
+                exceptionOccurred = true;
+                expect(e.toString()).to.eql(expectedErrorStr);
+            }
+            expect(exceptionOccurred).to.eql(true);
+        }
+
+        //numbers
+        it('should tokenizer extract number tokens of form 0, .0 and 0.0', function () {
+            _verifyAllTokens("0", ["1"], ["0"]);
+            _verifyAllTokens("0 (0.05).0 .123 45.234",
+                ["1", " ", "(", "1", ")", "1", " ", "1", " ", "1"],
+                ["0", " ", "(", "0.05", ")", ".0", " ", ".123", " ", "45.234"]);
+        });
+
+        it('should tokenizer error on invalid number tokens', function () {
+            _verifyTokenParseError("0.0.0", "Error: Unexpected Number Token 0.0.0 in query 0.0.0");
+            _verifyTokenParseError("0.x.0", "Error: Unexpected Number Token 0. in query 0.x.0");
+            _verifyTokenParseError("0.%", "Error: Unexpected Number Token 0. in query 0.%");
+        });
     });
 
     describe('Query Transformer tests', function () {
