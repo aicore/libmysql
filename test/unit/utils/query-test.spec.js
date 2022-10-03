@@ -201,6 +201,12 @@ describe('Query Utils test', function () {
                 ['fn', '(', ')', ' ', '#', '(', ')'],
                 ["ABS", "(", ")", " ", "abs", "(", ")"]);
         });
+
+        it('should tokenizer functions string compare and if control test', function () {
+            _verifyAllTokens("IF(1>2,STRCMP('x','y'),NULL)",
+                ["fn", "(", "1", ">", "1", ",", "fn", "(", "'", ",", "'", ")", ",", "key", ")"],
+                ["IF", "(", "1", ">", "2", ",", "STRCMP", "(", "'x'", ",", "'y'", ")", ",", "NULL", ")"]);
+        });
     });
 
     describe('Query Transformer tests', function () {
