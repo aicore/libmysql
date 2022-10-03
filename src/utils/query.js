@@ -7,6 +7,7 @@ export const TOKEN_SPACE = ' ',
     TOKEN_NUMBER = '1',
     TOKEN_VARIABLE = '#',
     TOKEN_FUNCTION = 'fn',
+    TOKEN_KEYWORD = 'key',
     // operators start
     TOKEN_OP_COMMA = ',',
     TOKEN_OP_PLUS = '+',
@@ -31,7 +32,22 @@ export const MYSQL_FUNCTIONS =[
     // MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
     'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
     'CRC32', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LOG10', 'LOG2', 'MOD', 'PI', 'POW', 'POWER', 'RADIANS', 'RAND',
-    'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE'
+    'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE',
+    // String functions defined in https://dev.mysql.com/doc/refman/8.0/en/string-functions.html
+    "ASCII", "BIN", "BIT_LENGTH", "CHAR", "CHAR_LENGTH", "CHARACTER_LENGTH", "CONCAT", "CONCAT_WS", "ELT", "EXPORT_SET",
+    "FIELD", "FORMAT", "FROM_BASE64", "HEX", "INSERT", "INSTR", "LCASE", "LEFT", "LENGTH", "LOAD_FILE", "LOCATE",
+    "LOWER", "LPAD", "LTRIM", "MAKE_SET", "MATCH", "MID", "OCT", "OCTET_LENGTH", "ORD", "POSITION", "QUOTE",
+    "REGEXP_INSTR", "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR", "REPEAT", "REPLACE", "REVERSE", "RIGHT",
+    "RPAD", "RTRIM", "SOUNDEX", "SPACE", "SUBSTR", "SUBSTRING", "SUBSTRING_INDEX", "TO_BASE64", "TRIM",
+    "UCASE", "UNHEX", "UPPER", "WEIGHT_STRING",
+    // comparison
+    "SOUNDS", "STRCMP",
+    // IF https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
+    "IF", "IFNULL", "NULLIF"
+];
+
+export const MYSQL_KEYWORDS =[
+    "LIKE", "NOT", "REGEXP", "RLIKE", "NULL"
 ];
 
 function _createToken(type, tokenStr) {
@@ -134,6 +150,9 @@ function _getVariableOrFuncToken(tokenizer) {
     tokenizer.currentIndex = i;
     if(MYSQL_FUNCTIONS.includes(tokenStr)){
         return _createToken(TOKEN_FUNCTION, tokenStr);
+    }
+    if(MYSQL_KEYWORDS.includes(tokenStr)){
+        return _createToken(TOKEN_KEYWORD, tokenStr);
     }
     return _createToken(TOKEN_VARIABLE, tokenStr);
 }
