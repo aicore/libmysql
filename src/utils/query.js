@@ -54,9 +54,10 @@ export const MYSQL_FUNCTIONS =[
     // Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
     "IF", "IFNULL", "NULLIF", "IN",
     // Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
-    "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_KEYS", "JSON_DEPTH", "JSON_LENGTH", "JSON_REMOVE", "JSON_REPLACE",
-    "JSON_INSERT", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OVERLAPS", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
-    "JSON_VALID", "JSON_VALUE", "MEMBER", "OF" // "MEMBER OF" is a single keyword, but tokenized as two
+    "JSON_ARRAY", "JSON_ARRAY_APPEND", "JSON_ARRAY_INSERT", "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_DEPTH",
+    "JSON_INSERT", "JSON_KEYS", "JSON_LENGTH", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OBJECT",
+    "JSON_OVERLAPS", "JSON_QUOTE", "JSON_REMOVE", "JSON_REPLACE", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+    "JSON_UNQUOTE", "JSON_VALID", "JSON_VALUE", "MEMBER", "OF" // "MEMBER OF" is a single keyword, but tokenized as two
 ];
 
 export const MYSQL_KEYWORDS =[
@@ -212,10 +213,10 @@ function nextToken(tokenizer) {
     case TOKEN_SINGLE_QUOTE_STRING: return _getStringToken(tokenizer);
     case TOKEN_BRACKET_OPEN: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
-    case TOKEN_DOCUMENT: tokenizer.currentIndex++;
-        return _createToken(TOKEN_DOCUMENT, tokenStartChar);
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
+    case TOKEN_DOCUMENT: tokenizer.currentIndex++;
+        return _createToken(TOKEN_DOCUMENT, tokenStartChar);
     default:
         if(tokenStartChar === '.' || isDigitChar(tokenStartChar)){
             return _getNumberToken(tokenizer);
@@ -271,9 +272,10 @@ function getTokenizer(queryString) {
  * #### Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
  *     "IF", "IFNULL", "NULLIF", "IN",
  * #### Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
- *     "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_KEYS", "JSON_DEPTH", "JSON_LENGTH", "JSON_REMOVE", "JSON_REPLACE",
- *     "JSON_INSERT", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OVERLAPS", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
- *     "JSON_VALID", "JSON_VALUE", "MEMBEROF"
+ *     "JSON_ARRAY", "JSON_ARRAY_APPEND", "JSON_ARRAY_INSERT", "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_DEPTH",
+ *     "JSON_INSERT", "JSON_KEYS", "JSON_LENGTH", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OBJECT",
+ *     "JSON_OVERLAPS", "JSON_QUOTE", "JSON_REMOVE", "JSON_REPLACE", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+ *     "JSON_UNQUOTE", "JSON_VALID", "JSON_VALUE", "MEMBER OF"
  * #### Other Keywords
  *     "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
  *
