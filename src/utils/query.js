@@ -1,5 +1,5 @@
 import {getColumNameForJsonField, isAlphaChar, isAlphaNumChar, isDigitChar} from "./sharedUtils.js";
-
+import {JSON_COLUMN} from "./constants.js";
 // Token types
 export const TOKEN_SPACE = ' ',
     TOKEN_BRACKET_OPEN = '(',
@@ -8,6 +8,7 @@ export const TOKEN_SPACE = ' ',
     TOKEN_VARIABLE = '#',
     TOKEN_FUNCTION = 'fn',
     TOKEN_KEYWORD = 'key',
+    TOKEN_DOCUMENT = '$',
     // operators start
     TOKEN_OP_COMMA = ',',
     TOKEN_OP_PLUS = '+',
@@ -35,6 +36,7 @@ export const OPERATOR_TOKENS =[TOKEN_OP_PLUS, TOKEN_OP_MINUS, TOKEN_OP_MUL, TOKE
     TOKEN_OP_NOT, TOKEN_OP_NOT_EQ, TOKEN_OP_GT, TOKEN_OP_GT_EQ, TOKEN_OP_LT, TOKEN_OP_LT_EQ, TOKEN_OP_COMMA,
     TOKEN_OP_BIT_AND, TOKEN_OP_AND, TOKEN_OP_BIT_OR, TOKEN_OP_OR, TOKEN_OP_BITWISE_INVERT];
 
+// please update docs of transformCocoToSQLQuery if you are changing the below supported functions/keywords
 export const MYSQL_FUNCTIONS =[
     // MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
     'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
@@ -49,8 +51,12 @@ export const MYSQL_FUNCTIONS =[
     "UCASE", "UNHEX", "UPPER", "WEIGHT_STRING",
     // comparison
     "SOUNDS", "STRCMP",
-    // IF https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
-    "IF", "IFNULL", "NULLIF", "IN"
+    // Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
+    "IF", "IFNULL", "NULLIF", "IN",
+    // Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
+    "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_KEYS", "JSON_DEPTH", "JSON_LENGTH", "JSON_REMOVE", "JSON_REPLACE",
+    "JSON_INSERT", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OVERLAPS", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+    "JSON_VALID", "JSON_VALUE", "MEMBER", "OF" // "MEMBER OF" is a single keyword, but tokenized as two
 ];
 
 export const MYSQL_KEYWORDS =[
@@ -206,6 +212,8 @@ function nextToken(tokenizer) {
     case TOKEN_SINGLE_QUOTE_STRING: return _getStringToken(tokenizer);
     case TOKEN_BRACKET_OPEN: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
+    case TOKEN_DOCUMENT: tokenizer.currentIndex++;
+        return _createToken(TOKEN_DOCUMENT, tokenStartChar);
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
     default:
@@ -233,18 +241,71 @@ function getTokenizer(queryString) {
     };
 }
 
-function _transformQuery(queryString) {
-    let tokenizer = getTokenizer(queryString);
-    return queryString;
-}
-
-function transformCocoToSQLQuery(indexQuery, nonIndexQuery) {
-    indexQuery = _transformQuery(indexQuery);
-    nonIndexQuery = _transformQuery(nonIndexQuery);
-    if(indexQuery && nonIndexQuery){
-        return indexQuery + " AND " + nonIndexQuery;
+/**
+ * Transforms CocoDB queries to MYSql queries. Coco queries closely resemble the mysql query syntax. The json field
+ * names can be directly specified in coco queries.
+ * A Sample coco query:
+ * `NOT(customerID = 35 && (price.tax < 18 OR ROUND(price.amount) != 69))`
+ *
+ * ## `$` is a special character that denotes the JSON document itself.
+ * It can be used for json compare as. `JSON_CONTAINS($,'{"name": "v"}')`.
+ * ** WARNING: JSON_CONTAINS this will not use the index. We may add support in future, but not presently. **
+ *
+ * ## cocodb query syntax
+ * cocodb query syntax closely resembles mysql query syntax. The following functions are supported as is:
+ *
+ * ### Supported functions
+ * #### MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
+ *     'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
+ *     'CRC32', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LOG10', 'LOG2', 'MOD', 'PI', 'POW', 'POWER', 'RADIANS', 'RAND',
+ *     'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE',
+ * #### String functions defined in https://dev.mysql.com/doc/refman/8.0/en/string-functions.html
+ *     "ASCII", "BIN", "BIT_LENGTH", "CHAR", "CHAR_LENGTH", "CHARACTER_LENGTH", "CONCAT", "CONCAT_WS", "ELT", "EXPORT_SET",
+ *     "FIELD", "FORMAT", "FROM_BASE64", "HEX", "INSERT", "INSTR", "LCASE", "LEFT", "LENGTH", "LOAD_FILE", "LOCATE",
+ *     "LOWER", "LPAD", "LTRIM", "MAKE_SET", "MATCH", "MID", "OCT", "OCTET_LENGTH", "ORD", "POSITION", "QUOTE",
+ *     "REGEXP_INSTR", "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR", "REPEAT", "REPLACE", "REVERSE", "RIGHT",
+ *     "RPAD", "RTRIM", "SOUNDEX", "SPACE", "SUBSTR", "SUBSTRING", "SUBSTRING_INDEX", "TO_BASE64", "TRIM",
+ *     "UCASE", "UNHEX", "UPPER", "WEIGHT_STRING",
+ * #### comparison
+ *     "SOUNDS", "STRCMP",
+ * #### Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
+ *     "IF", "IFNULL", "NULLIF", "IN",
+ * #### Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
+ *     "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_KEYS", "JSON_DEPTH", "JSON_LENGTH", "JSON_REMOVE", "JSON_REPLACE",
+ *     "JSON_INSERT", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OVERLAPS", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+ *     "JSON_VALID", "JSON_VALUE", "MEMBEROF"
+ * #### Other Keywords
+ *     "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
+ *
+ * @param {string} query The query as string.
+ * @param {Array<String>} useIndexForFields A string array of field names for which the index should be used. Note
+ * that an index should first be created using `createIndexForJsonField` API. Eg. ['customerID', 'price.tax']
+ * @return {string} The MYSQL query string corresponding to the cocdb query.
+ */
+function transformCocoToSQLQuery(query, useIndexForFields = []) {
+    if(!Array.isArray(useIndexForFields)){
+        throw new Error(`invalid argument: useIndexForFields should be an array`);
     }
-    return indexQuery || nonIndexQuery;
+    let tokenizer = getTokenizer(query),
+        sqlQuery = '';
+    let token = nextToken(tokenizer);
+    while(token) {
+        if(token.type === TOKEN_VARIABLE) {
+            let variable = token.str;
+            if(useIndexForFields.includes(variable)){
+                sqlQuery += getColumNameForJsonField(variable);
+            } else {
+                sqlQuery += `${JSON_COLUMN}->>"$.${variable}"`;
+            }
+        } else if(token.type === TOKEN_DOCUMENT) {
+            // The $ char is alias to json document itself in query
+            sqlQuery += `${JSON_COLUMN}`;
+        } else {
+            sqlQuery += token.str;
+        }
+        token = nextToken(tokenizer);
+    }
+    return sqlQuery;
 }
 
 export const QueryTokenizer = {

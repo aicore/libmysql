@@ -35,8 +35,8 @@ describe('Query Utils test', function () {
             _verifyToken(token, " ", "   "); // contain 3 spaces
         });
 
-        it('should tokenizer extract brackets (, ) token', function () {
-            let tokenizer = QueryTokenizer.getTokenizer("(  ()"); // tokenizer does not check syntax validity
+        it('should tokenizer extract brackets (, ) and $ token', function () {
+            let tokenizer = QueryTokenizer.getTokenizer("(  ()$"); // tokenizer does not check syntax validity
             let token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "(", "(");
             token = QueryTokenizer.nextToken(tokenizer);
@@ -45,6 +45,8 @@ describe('Query Utils test', function () {
             _verifyToken(token, "(", "(");
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, ")", ")");
+            token = QueryTokenizer.nextToken(tokenizer);
+            _verifyToken(token, "$", "$");
             token = QueryTokenizer.nextToken(tokenizer);
             expect(token).to.be.null;
         });
@@ -230,12 +232,50 @@ describe('Query Utils test', function () {
         });
     });
 
+    function _verifyQueryError(query, expectedErrorStr, indexFields) {
+        let exceptionOccurred = false;
+        try {
+            Query.transformCocoToSQLQuery(query, indexFields);
+        } catch (e) {
+            exceptionOccurred = true;
+            expect(e.toString()).to.eql(expectedErrorStr);
+        }
+        expect(exceptionOccurred).to.eql(true);
+    }
+
     describe('Query Transformer tests', function () {
-        it('should AND index and non index queries', function () {
-            expect(Query.transformCocoToSQLQuery("", "")).to.eql("");
-            expect(Query.transformCocoToSQLQuery("x", "")).to.eql("x");
-            expect(Query.transformCocoToSQLQuery("", "x")).to.eql("x");
-            expect(Query.transformCocoToSQLQuery("x", "y")).to.eql("x AND y");
+        it('should transformCocoToSQLQuery success cases without index field', function () {
+            expect(Query.transformCocoToSQLQuery("")).to.eql("");
+            expect(Query.transformCocoToSQLQuery("x")).to.eql('document->>"$.x"');
+            expect(Query.transformCocoToSQLQuery("ABS(x)")).to.eql('ABS(document->>"$.x")');
+            expect(Query.transformCocoToSQLQuery("name LIKE 'va%'")).to.eql("document->>\"$.name\" LIKE 'va%'");
+        });
+
+        it('should transformCocoToSQLQuery success cases for json based searches', function () {
+            expect(Query.transformCocoToSQLQuery(`JSON_CONTAINS($,'{"name": "v"}')`))
+                .to.eql('JSON_CONTAINS(document,\'{"name": "v"}\')');
+            expect(Query.transformCocoToSQLQuery(`JSON_CONTAINS($,'{"name": "v"}')`))
+                .to.eql('JSON_CONTAINS(document,\'{"name": "v"}\')');
+        });
+
+        it('should transformCocoToSQLQuery success cases with index field', function () {
+            expect(Query.transformCocoToSQLQuery("y>5 || x > 10 && price.tax = 18", ["x", "price.tax"]))
+                .to.eql('document->>"$.y">5 || 9dd4e461268c8034f5c8564e155c67a6 > 10 && 6a1a731895e201b727851bc567ac1e8a = 18');
+        });
+
+        it('should transformCocoToSQLQuery error cases', function () {
+            _verifyQueryError("x#", "Error: Unexpected Token char # in query x#");
+        });
+
+        it('should transformCocoToSQLQuery produce invalid output if sql commands in input', function () {
+            // queries with sql will be treated like its a valid js field and mot SQL, thus preventing arbitrary SQL
+            // code injection
+            expect(Query.transformCocoToSQLQuery("SELECT * FROM tab"))
+                .to.eql('document->>"$.SELECT" * document->>"$.FROM" document->>"$.tab"');
+        });
+
+        it('should transformCocoToSQLQuery error cases with index field', function () {
+            _verifyQueryError("x", "Error: invalid argument: useIndexForFields should be an array", "no array index");
         });
     });
 });
