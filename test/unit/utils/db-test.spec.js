@@ -13,13 +13,15 @@ import {
     createIndexForJsonField,
     _createIndex,
     getFromIndex,
-    JSON_COLUMN,
     update,
-    DATA_TYPES,
     createDataBase,
     deleteDataBase,
     mathAdd
 } from "../../../src/utils/db.js";
+import {
+    JSON_COLUMN,
+    DATA_TYPES
+} from "../../../src/utils/constants.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
 
 let expect = chai.expect;
