@@ -24,7 +24,7 @@ function _setup() {
     if (setupDone) {
         return;
     }
-    mysql.createConnection = function () {
+    mysql.createPool = function () {
         return mockedFunctions.connection;
     };
     setupDone = true;
