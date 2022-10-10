@@ -152,7 +152,6 @@ export function init(config) {
         throw  new Error('One connection is active please close it before reinitializing it');
     }
     try {
-        //CONNECTION = mysql.createConnection(config);
         config.waitForConnections = true;
         config.connectionLimit = 10;
         config.queueLimit = 0;
@@ -173,7 +172,6 @@ export function close() {
     if (!isObject(CONNECTION)) {
         return;
     }
-    //CONNECTION.r;
     CONNECTION = null;
 }
 
