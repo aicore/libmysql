@@ -1139,7 +1139,7 @@ export function query(tableName, queryString, indexedFieldsArray = []) {
             const sqlQuery = _prepareQuery(tableName, queryString, indexedFieldsArray);
             _executeQuery(sqlQuery, resolve, reject);
         } catch (e) {
-            const errorMessage = `Exception occurred while querying index`;
+            const errorMessage = `Exception occurred while querying`;
             reject(errorMessage);
             //TODO: Emit Metrics
         }
