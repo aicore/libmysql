@@ -1114,12 +1114,12 @@ function _executeQuery(sqlQuery, resolve, reject) {
  *     "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param {string} queryString The query as string.
- * @param {Array<String>} indexedFieldsArray A string array of field names for which the index should be used. Note
+ * @param {Array<String>} useIndexForFields A string array of field names for which the index should be used. Note
  * that an index should first be created using `createIndexForJsonField` API. Eg. ['customerID', 'price.tax']
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */
-export function query(tableName, queryString, indexedFieldsArray = []) {
+export function query(tableName, queryString, useIndexForFields = []) {
 
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -1135,12 +1135,17 @@ export function query(tableName, queryString, indexedFieldsArray = []) {
             return;
             //Todo: Emit metrics
         }
+        let queryParseDone = false;
         try {
-            const sqlQuery = _prepareQuery(tableName, queryString, indexedFieldsArray);
+            const sqlQuery = _prepareQuery(tableName, queryString, useIndexForFields);
+            queryParseDone = true;
             _executeQuery(sqlQuery, resolve, reject);
         } catch (e) {
-            const errorMessage = `Exception occurred while querying`;
-            reject(errorMessage);
+            if(!queryParseDone){
+                reject(e.message); // return helpful error messages from query parser
+                return;
+            }
+            reject("Exception occurred while querying");
             //TODO: Emit Metrics
         }
     });
