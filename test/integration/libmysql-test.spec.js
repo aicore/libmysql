@@ -304,6 +304,7 @@ describe('Integration: libMySql', function () {
         });
         await deleteData(results);
     });
+
     it('create and validate Index return empty list if nothing matches', async function () {
         let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
             false);
@@ -312,7 +313,7 @@ describe('Integration: libMySql', function () {
         expect(isSuccess).to.eql(true);
         let isExceptionOccured = false;
         try {
-             await getFromIndex(tableName, {
+            let documents = await getFromIndex(tableName, {
                 'Age': 100,
                 'location': {
                     'layout': {
@@ -321,15 +322,13 @@ describe('Integration: libMySql', function () {
 
                 }
             });
+            expect(documents).to.eql([]);
         } catch (e) {
             isExceptionOccured = true;
-            expect(e.toString()).eql('unable to find documents for given documentId');
-
         }
-
-        expect(isExceptionOccured).eql(true);
-
+        expect(isExceptionOccured).eql(false);
     });
+
     it('create a unique non null json column should pass', async function () {
         let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
             true, true);
