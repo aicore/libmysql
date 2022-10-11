@@ -2016,7 +2016,8 @@ describe('Unit tests for db.js', function () {
 
         async function _validateQueryFail(queryString,
             tableName = 'hello',
-            expectedException = 'please provide valid queryString') {
+            expectedException = 'please provide valid queryString',
+            indexFields = []) {
             const saveExecute = mockedFunctions.connection.execute;
             mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
@@ -2024,7 +2025,7 @@ describe('Unit tests for db.js', function () {
             let isExceptionOccurred = false;
 
             try {
-                await query(tableName, queryString);
+                await query(tableName, queryString, indexFields);
             } catch (e) {
                 expect(e).to.eql(expectedException);
                 isExceptionOccurred = true;
@@ -2047,6 +2048,18 @@ describe('Unit tests for db.js', function () {
 
         it('query should fail invalid table name', async function () {
             await _validateQueryFail("a < 10", '@', 'please provide valid table name');
+        });
+
+        it('query should fail invalid query', async function () {
+            await _validateQueryFail("# < 10", 'x.y',
+                'Unexpected Token char # in query # < 10');
+            await _validateQueryFail("<< 10", 'x.y',
+                'Unexpected Operator Token << in query << 10');
+        });
+
+        it('query should fail invalid index fields', async function () {
+            await _validateQueryFail("# < 10", 'x.y',
+                'invalid argument: useIndexForFields should be an array', "not an array");
         });
 
         it('query should fail if error occurs', async function () {
@@ -2102,6 +2115,56 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).to.eql(false);
             mockedFunctions.connection.execute = saveExecute;
+        });
+
+        async function _validateQueryPass(queryString, indexedFields, expectedSqlQuery) {
+            const saveExecute = mockedFunctions.connection.execute;
+            let sqlQuery;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                sqlQuery = sql;
+                callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
+            };
+            const tableName = 'test.customer';
+            let isExceptionOccurred = false;
+            try {
+                const results = await query(tableName, queryString, indexedFields);
+                expect(results[0].lastName).to.eql('Alice');
+                expect(results[0].Age).to.eql(100);
+                expect(results[0].active).to.eql(true);
+                console.log(results);
+            } catch (e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            expect(sqlQuery).to.eql(expectedSqlQuery);
+            mockedFunctions.connection.execute = saveExecute;
+        }
+
+        it('query should pass for valid parameters with index fields', async function () {
+            await _validateQueryPass("s<10 && !j.k || y!='hello'",
+                ["s", "j.k"],
+                "SELECT documentID,document FROM test.customer " +
+                "WHERE 03c7c0ace395d80182db07ae2c30f034<10 && !91e12519d4a93e0ce72a98c42383e747 " +
+                "|| document->>\"$.y\"!='hello' LIMIT 1000");
+        });
+
+        it('query mysql functions like AND NOT etc. are case sensitive', async function () {
+            await _validateQueryPass("NOT(x>y) AND !$",
+                [],
+                "SELECT documentID,document FROM test.customer " +
+                "WHERE NOT(document->>\"$.x\">document->>\"$.y\") AND !document LIMIT 1000");
+            await _validateQueryPass("not(x>y) and !$",
+                [],
+                "SELECT documentID,document FROM test.customer " +
+                "WHERE document->>\"$.not\"(document->>\"$.x\">document->>\"$.y\") document->>\"$.and\" " +
+                "!document LIMIT 1000");
+        });
+
+        it('query should pass for special $ operator', async function () {
+            await _validateQueryPass(`JSON_CONTAINS($,'{"name": "v"}')`,
+                ["name"], // the name field index is not used inside JSON_CONTAINS function currently.
+                "SELECT documentID,document FROM test.customer" +
+                " WHERE JSON_CONTAINS(document,'{\"name\": \"v\"}') LIMIT 1000");
         });
 
         it('query should return empty array if no data matches', async function () {

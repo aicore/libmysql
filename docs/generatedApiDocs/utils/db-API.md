@@ -535,7 +535,7 @@ fields to search on the index instead of scanning the whole table.
 
 *   `tableName` **[string][1]** The name of the table in which the data is stored.
 *   `queryString` **[string][1]** The query as string.
-*   `indexedFieldsArray` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
+*   `useIndexForFields` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
     that an index should first be created using `createIndexForJsonField` API. Eg. \['customerID', 'price.tax'] (optional, default `[]`)
 
 ### Examples
