@@ -16,7 +16,7 @@ import {
     update,
     createDataBase,
     deleteDataBase,
-    mathAdd
+    mathAdd, query
 } from "../../../src/utils/db.js";
 import {
     JSON_COLUMN,
@@ -2001,4 +2001,125 @@ describe('Unit tests for db.js', function () {
             });
     });
 
+    describe('query API tests', function () {
+        it('query api should fail  if connection not initialised', async function () {
+            try {
+                close();
+                const tableName = 'customer';
+                const queryStr = "lastname != 'hello'";
+                await query(tableName, queryStr, []);
+
+            } catch (e) {
+                expect(e.toString()).to.eql('Please call init before findFromIndex');
+            }
+        });
+
+        async function _validateQueryFail(queryString,
+            tableName = 'hello',
+            expectedException = 'please provide valid queryString') {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            let isExceptionOccurred = false;
+
+            try {
+                await query(tableName, queryString);
+            } catch (e) {
+                expect(e).to.eql(expectedException);
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        }
+
+        it('query should fail null query string', async function () {
+            await _validateQueryFail(null);
+        });
+
+        it('query should fail empty query string', async function () {
+            await _validateQueryFail("");
+        });
+
+        it('query should fail if object passed as query string', async function () {
+            await _validateQueryFail({});
+        });
+
+        it('query should fail invalid table name', async function () {
+            await _validateQueryFail("a < 10", '@', 'please provide valid table name');
+        });
+
+        it('query should fail if error occurs', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback("error", [], []);
+            };
+            const tableName = 'test.customer';
+            let isExceptionOccurred = false;
+
+            try {
+                await query(tableName, "a<10");
+            } catch (e) {
+                expect(e).to.eql('error');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('query should fail if exception  occurs', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
+                throw  new Error('error');
+            };
+            const tableName = 'test.customer';
+            let isExceptionOccurred = false;
+            try {
+                await query(tableName, "a<10");
+            } catch (e) {
+                expect(e).to.eql('Exception occurred while querying');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('query should pass  for valid parameters', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
+            };
+            const tableName = 'test.customer';
+            let isExceptionOccurred = false;
+            try {
+                const results = await query(tableName, "a<10");
+                expect(results[0].lastName).to.eql('Alice');
+                expect(results[0].Age).to.eql(100);
+                expect(results[0].active).to.eql(true);
+                console.log(results);
+            } catch (e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('query should return empty array if no data matches', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.customer';
+            let isExceptionOccurred = false;
+            try {
+                const results = await query(tableName, "a<10");
+                expect(results.length).to.eql(0);
+                console.log(results);
+            } catch (e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+    });
 });
