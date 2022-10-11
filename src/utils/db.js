@@ -1,8 +1,9 @@
 import mysql from "mysql2";
-import {isObject, isObjectEmpty, isString} from "@aicore/libcommonutils";
+import {isObject, isObjectEmpty, isString, isStringEmpty} from "@aicore/libcommonutils";
 import crypto from "crypto";
 import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
 import {getColumNameForJsonField, isVariableNameLike, isNestedVariableNameLike} from "./sharedUtils.js";
+import Query from './query.js';
 import {JSON_COLUMN, MAX_NUMBER_OF_DOCS_ALLOWED, PRIMARY_COLUMN, DATA_TYPES,
     MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME, MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME} from './constants.js';
 
@@ -841,7 +842,7 @@ function _queryIndex(queryParams, resolve, reject) {
                 resolve(retResults);
                 return;
             }
-            reject('unable to find documents for given documentId');
+            resolve([]);
         });
 }
 
@@ -1025,6 +1026,126 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
     });
 }
 
+/**
+ * Prepares and SQL query out of the coco query and returns the sql query string.
+ * @param {string} tableName - The name of the table in which the data is stored.
+ * @param {string} queryString - The cocDB query string.
+ * @param {Array[string]} indexedFieldsArray - List of indexed fields in the document.
+ * @return {string} the sql query as string
+ */
+function _prepareQuery(tableName, queryString, indexedFieldsArray) {
+    let sqlQuery = Query.transformCocoToSQLQuery(queryString, indexedFieldsArray);
+    return `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName}`
+        +` WHERE ${sqlQuery} LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
+}
+
+/**
+ * Executes the given sql query and if the query is successful, it returns the results of the query to the resolve
+ * function or an empty array if no matches were found.
+ * If the query is unsuccessful, it returns the error to the reject function.
+ * @param {string} sqlQuery - the sql query to execute
+ * @param {Function} resolve - a function that takes a single argument, which is the result of the query.
+ * @param {Function} reject - a function that will be called if the query fails.
+ * @returns {Array} An array of objects
+ */
+function _executeQuery(sqlQuery, resolve, reject) {
+    CONNECTION.execute(sqlQuery,
+        function (err, results, _fields) {
+            //TODO: emit success or failure metrics based on return value
+            if (err) {
+                reject(err);
+                return;
+            }
+            if (results && results.length > 0) {
+                const retResults = [];
+                for (const result of results) {
+                    result[JSON_COLUMN].documentId = result[PRIMARY_COLUMN];
+                    retResults.push(result[JSON_COLUMN]);
+                }
+                resolve(retResults);
+                return;
+            }
+            resolve([]); // no results found
+        });
+}
+
+/**
+ * Execute a cocoDB query and return the documents matching the query. You can optionally specify a list of indexed
+ * fields to search on the index instead of scanning the whole table.
+ * @example <caption> A Sample coco query </caption>
+ * const tableName = 'customer';
+ * const queryString = `NOT(customerID = 35 && (price.tax < 18 OR ROUND(price.amount) != 69))`;
+ * try {
+ *      const queryResults = await query(tableName, queryString, ["customerID"]); // customerID is indexed field
+ *      console.log(JSON.stringify(queryResults));
+ * } catch (e) {
+ *      console.error(JSON.stringify(e));
+ * }
+ *
+ * ## cocodb query syntax
+ * cocodb query syntax closely resembles mysql query syntax. The following functions are supported as is:
+ *
+ * ### `$` is a special character that denotes the JSON document itself in queries.
+ * It can be used for json compare as. `JSON_CONTAINS($,'{"name": "v"}')`.
+ * ** WARNING: JSON_CONTAINS this will not use the index. We may add support in future, but not presently. **
+ *
+ * ### Supported functions
+ * #### MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
+ *     'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
+ *     'CRC32', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LOG10', 'LOG2', 'MOD', 'PI', 'POW', 'POWER', 'RADIANS', 'RAND',
+ *     'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE',
+ * #### String functions defined in https://dev.mysql.com/doc/refman/8.0/en/string-functions.html
+ *     "ASCII", "BIN", "BIT_LENGTH", "CHAR", "CHAR_LENGTH", "CHARACTER_LENGTH", "CONCAT", "CONCAT_WS", "ELT", "EXPORT_SET",
+ *     "FIELD", "FORMAT", "FROM_BASE64", "HEX", "INSERT", "INSTR", "LCASE", "LEFT", "LENGTH", "LOAD_FILE", "LOCATE",
+ *     "LOWER", "LPAD", "LTRIM", "MAKE_SET", "MATCH", "MID", "OCT", "OCTET_LENGTH", "ORD", "POSITION", "QUOTE",
+ *     "REGEXP_INSTR", "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR", "REPEAT", "REPLACE", "REVERSE", "RIGHT",
+ *     "RPAD", "RTRIM", "SOUNDEX", "SPACE", "SUBSTR", "SUBSTRING", "SUBSTRING_INDEX", "TO_BASE64", "TRIM",
+ *     "UCASE", "UNHEX", "UPPER", "WEIGHT_STRING",
+ * #### comparison
+ *     "SOUNDS", "STRCMP",
+ * #### Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
+ *     "IF", "IFNULL", "NULLIF", "IN",
+ * #### Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
+ *     "JSON_ARRAY", "JSON_ARRAY_APPEND", "JSON_ARRAY_INSERT", "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_DEPTH",
+ *     "JSON_INSERT", "JSON_KEYS", "JSON_LENGTH", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OBJECT",
+ *     "JSON_OVERLAPS", "JSON_QUOTE", "JSON_REMOVE", "JSON_REPLACE", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+ *     "JSON_UNQUOTE", "JSON_VALID", "JSON_VALUE", "MEMBER OF"
+ * #### Other Keywords
+ *     "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
+ * @param {string} tableName - The name of the table in which the data is stored.
+ * @param {string} queryString The query as string.
+ * @param {Array<String>} indexedFieldsArray A string array of field names for which the index should be used. Note
+ * that an index should first be created using `createIndexForJsonField` API. Eg. ['customerID', 'price.tax']
+ * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
+ * no matches returns empty array. if there are any errors will throw an exception
+ */
+export function query(tableName, queryString, indexedFieldsArray = []) {
+
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before findFromIndex');
+            return;
+        }
+        if (!isString(queryString) || isStringEmpty(queryString)) {
+            reject(`please provide valid queryString`);
+            return;
+        }
+        if (!_isValidTableName(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        try {
+            const sqlQuery = _prepareQuery(tableName, queryString, indexedFieldsArray);
+            _executeQuery(sqlQuery, resolve, reject);
+        } catch (e) {
+            const errorMessage = `Exception occurred while querying index`;
+            reject(errorMessage);
+            //TODO: Emit Metrics
+        }
+    });
+}
+
 // public APIs.
 const DB = {
     deleteDataBase,
@@ -1037,6 +1158,7 @@ const DB = {
     deleteTable,
     createIndexForJsonField,
     getFromIndex,
+    query,
     update,
     init,
     close,
