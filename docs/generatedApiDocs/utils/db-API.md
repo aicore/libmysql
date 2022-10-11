@@ -500,6 +500,93 @@ It increments the value of a field in a JSON column in a MySQL table
 
 Returns **[Promise][2]<[boolean][3]>** A promise
 
+## \_prepareQuery
+
+Prepares and SQL query out of the coco query and returns the sql query string.
+
+### Parameters
+
+*   `tableName` **[string][1]** The name of the table in which the data is stored.
+*   `queryString` **[string][1]** The cocDB query string.
+*   `indexedFieldsArray` &#x20;
+
+Returns **[string][1]** the sql query as string
+
+## \_executeQuery
+
+Executes the given sql query and if the query is successful, it returns the results of the query to the resolve
+function or an empty array if no matches were found.
+If the query is unsuccessful, it returns the error to the reject function.
+
+### Parameters
+
+*   `sqlQuery` **[string][1]** the sql query to execute
+*   `resolve` **[Function][5]** a function that takes a single argument, which is the result of the query.
+*   `reject` **[Function][5]** a function that will be called if the query fails.
+
+Returns **[Array][7]** An array of objects
+
+## query
+
+Execute a cocoDB query and return the documents matching the query. You can optionally specify a list of indexed
+fields to search on the index instead of scanning the whole table.
+
+### Parameters
+
+*   `tableName` **[string][1]** The name of the table in which the data is stored.
+*   `queryString` **[string][1]** The query as string.
+*   `indexedFieldsArray` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
+    that an index should first be created using `createIndexForJsonField` API. Eg. \['customerID', 'price.tax'] (optional, default `[]`)
+
+### Examples
+
+A Sample coco query
+
+```javascript
+const tableName = 'customer';
+const queryString = `NOT(customerID = 35 && (price.tax < 18 OR ROUND(price.amount) != 69))`;
+try {
+     const queryResults = await query(tableName, queryString, ["customerID"]); // customerID is indexed field
+     console.log(JSON.stringify(queryResults));
+} catch (e) {
+     console.error(JSON.stringify(e));
+}
+
+## cocodb query syntax
+cocodb query syntax closely resembles mysql query syntax. The following functions are supported as is:
+
+### `$` is a special character that denotes the JSON document itself in queries.
+It can be used for json compare as. `JSON_CONTAINS($,'{"name": "v"}')`.
+** WARNING: JSON_CONTAINS this will not use the index. We may add support in future, but not presently. **
+
+### Supported functions
+#### MATH functions defined in https://dev.mysql.com/doc/refman/8.0/en/mathematical-functions.html
+    'ABS', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'ATAN', 'CEIL', 'CEILING', 'CONV', 'COS', 'COT',
+    'CRC32', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LOG10', 'LOG2', 'MOD', 'PI', 'POW', 'POWER', 'RADIANS', 'RAND',
+    'ROUND', 'SIGN', 'SIN', 'SQRT', 'TAN', 'TRUNCATE',
+#### String functions defined in https://dev.mysql.com/doc/refman/8.0/en/string-functions.html
+    "ASCII", "BIN", "BIT_LENGTH", "CHAR", "CHAR_LENGTH", "CHARACTER_LENGTH", "CONCAT", "CONCAT_WS", "ELT", "EXPORT_SET",
+    "FIELD", "FORMAT", "FROM_BASE64", "HEX", "INSERT", "INSTR", "LCASE", "LEFT", "LENGTH", "LOAD_FILE", "LOCATE",
+    "LOWER", "LPAD", "LTRIM", "MAKE_SET", "MATCH", "MID", "OCT", "OCTET_LENGTH", "ORD", "POSITION", "QUOTE",
+    "REGEXP_INSTR", "REGEXP_LIKE", "REGEXP_REPLACE", "REGEXP_SUBSTR", "REPEAT", "REPLACE", "REVERSE", "RIGHT",
+    "RPAD", "RTRIM", "SOUNDEX", "SPACE", "SUBSTR", "SUBSTRING", "SUBSTRING_INDEX", "TO_BASE64", "TRIM",
+    "UCASE", "UNHEX", "UPPER", "WEIGHT_STRING",
+#### comparison
+    "SOUNDS", "STRCMP",
+#### Selected APIs defined in https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html
+    "IF", "IFNULL", "NULLIF", "IN",
+#### Selected JSON Functions in https://dev.mysql.com/doc/refman/8.0/en/json-function-reference.html
+    "JSON_ARRAY", "JSON_ARRAY_APPEND", "JSON_ARRAY_INSERT", "JSON_CONTAINS", "JSON_CONTAINS_PATH", "JSON_DEPTH",
+    "JSON_INSERT", "JSON_KEYS", "JSON_LENGTH", "JSON_MERGE_PATCH", "JSON_MERGE_PRESERVE", "JSON_OBJECT",
+    "JSON_OVERLAPS", "JSON_QUOTE", "JSON_REMOVE", "JSON_REPLACE", "JSON_SEARCH", "JSON_SET", "JSON_TYPE",
+    "JSON_UNQUOTE", "JSON_VALID", "JSON_VALUE", "MEMBER OF"
+#### Other Keywords
+    "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
+```
+
+Returns **[Promise][2]** A promise; on promise resolution returns array of matched  values in json column. if there are
+no matches returns empty array. if there are any errors will throw an exception
+
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
