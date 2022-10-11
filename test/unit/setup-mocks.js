@@ -16,7 +16,9 @@ let mockedFunctions = {
                 }
             }, undefined);
         },
-        close: function (){}
+        end: function () {
+
+        }
     }
 };
 

@@ -172,6 +172,7 @@ export function close() {
     if (!isObject(CONNECTION)) {
         return;
     }
+    CONNECTION.end();
     CONNECTION = null;
 }
 
