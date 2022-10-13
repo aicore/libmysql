@@ -36,6 +36,7 @@ from environment variables.
     *   `config.port` **[string][1]** port number of mysql db
     *   `config.user` **[string][1]** username of database
     *   `config.password` **[string][1]** password of database username
+    *   `config.connectionLimit` **[Number][5]** Maximum MySql connection that can be open to the server default value is 10
 
 ### Examples
 
@@ -345,8 +346,8 @@ It creates an index on the JSON field in the table
 
 ### Parameters
 
-*   `resolve` **[function][5]** A function that is called when the promise is resolved.
-*   `reject` **[function][5]** A function that will be called if the promise is rejected.
+*   `resolve` **[function][6]** A function that is called when the promise is resolved.
+*   `reject` **[function][6]** A function that will be called if the promise is rejected.
 *   `tableName` **[string][1]** The name of the table to create the index on
 *   `jsonField` **[string][1]** The JSON field that you want to create an index on.
 *   `isUnique` **[boolean][3]** true if the index is unique, false otherwise
@@ -364,7 +365,7 @@ It creates a new column in the table for the JSON field and then creates an inde
 *   `jsonField` **[string][1]** The name of the field in the JSON object that you want to index. The filed name
     should be a valid variable name of the form "x" or "x.y.z".
 *   `dataTypeOfNewColumn` **[string][1]** This is the data type of the new column that will be created.
-    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][6] to know all supported data types
+    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][7] to know all supported data types
 *   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index. (optional, default `false`)
 *   `isNotNull` **[boolean][3]** If true, the column will be created with NOT NULL constraint. (optional, default `false`)
 
@@ -421,10 +422,10 @@ the query to the resolve function. If the query is unsuccessful, it returns the 
 ### Parameters
 
 *   `queryParams` **[Object][4]** This is an object that contains the query and the values to be used in the query.
-*   `resolve` **[Function][5]** a function that takes a single argument, which is the result of the query.
-*   `reject` **[Function][5]** a function that will be called if the query fails.
+*   `resolve` **[Function][6]** a function that takes a single argument, which is the result of the query.
+*   `reject` **[Function][6]** a function that will be called if the query fails.
 
-Returns **[Array][7]** An array of objects
+Returns **[Array][8]** An array of objects
 
 ## getFromIndex
 
@@ -521,10 +522,10 @@ If the query is unsuccessful, it returns the error to the reject function.
 ### Parameters
 
 *   `sqlQuery` **[string][1]** the sql query to execute
-*   `resolve` **[Function][5]** a function that takes a single argument, which is the result of the query.
-*   `reject` **[Function][5]** a function that will be called if the query fails.
+*   `resolve` **[Function][6]** a function that takes a single argument, which is the result of the query.
+*   `reject` **[Function][6]** a function that will be called if the query fails.
 
-Returns **[Array][7]** An array of objects
+Returns **[Array][8]** An array of objects
 
 ## query
 
@@ -535,7 +536,7 @@ fields to search on the index instead of scanning the whole table.
 
 *   `tableName` **[string][1]** The name of the table in which the data is stored.
 *   `queryString` **[string][1]** The query as string.
-*   `useIndexForFields` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
+*   `useIndexForFields` **[Array][8]<[String][1]>** A string array of field names for which the index should be used. Note
     that an index should first be created using `createIndexForJsonField` API. Eg. \['customerID', 'price.tax'] (optional, default `[]`)
 
 ### Examples
@@ -595,8 +596,10 @@ no matches returns empty array. if there are any errors will throw an exception
 
 [4]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[6]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+[6]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[7]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+
+[8]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
