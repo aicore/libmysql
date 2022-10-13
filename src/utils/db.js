@@ -4,8 +4,10 @@ import crypto from "crypto";
 import {isNumber} from "@aicore/libcommonutils/src/utils/common.js";
 import {getColumNameForJsonField, isVariableNameLike, isNestedVariableNameLike} from "./sharedUtils.js";
 import Query from './query.js';
-import {JSON_COLUMN, MAX_NUMBER_OF_DOCS_ALLOWED, PRIMARY_COLUMN, DATA_TYPES,
-    MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME, MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME} from './constants.js';
+import {
+    JSON_COLUMN, MAX_NUMBER_OF_DOCS_ALLOWED, PRIMARY_COLUMN, DATA_TYPES,
+    MAXIMUM_LENGTH_OF_MYSQL_TABLE_NAME_AND_COLUMN_NAME, MAXIMUM_LENGTH_OF_MYSQL_DATABASE_NAME
+} from './constants.js';
 
 // @INCLUDE_IN_API_DOCS
 
@@ -127,6 +129,7 @@ function _isValidDatBaseName(databaseName) {
  * @param {string} config.port - port number of mysql db
  * @param {string} config.user - username of database
  * @param {string} config.password - password of database username
+ * @param {Number} config.connectionLimit - Maximum MySql connection that can be open to the server default value is 10
  * @returns {boolean}  true if connection is successful false otherwise
  *
  *
@@ -154,7 +157,7 @@ export function init(config) {
     }
     try {
         config.waitForConnections = true;
-        config.connectionLimit = 10;
+        config.connectionLimit = !config.connectionLimit ? 10 : config.connectionLimit;
         config.queueLimit = 0;
 
         CONNECTION = mysql.createPool(config);
@@ -472,7 +475,7 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
                 continue;
             }
         }
-        if(!isVariableNameLike(key)){
+        if (!isVariableNameLike(key)) {
             throw new Error(`Invalid filed name ${key}`);
         }
         if (numberOfEntries > 1) {
@@ -811,7 +814,7 @@ function _prepareQueryOfIndexSearch(tableName, queryObject) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const result = _prepareQueryForNestedObject(queryObject);
     return {
-        'getQuery': getQuery + result.getQuery +` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
+        'getQuery': getQuery + result.getQuery + ` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
         'valArray': result.valArray
     };
 }
@@ -845,6 +848,7 @@ function _queryIndex(queryParams, resolve, reject) {
             resolve([]);
         });
 }
+
 /**
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
  * @example <caption> Sample code </caption>
@@ -1035,7 +1039,7 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
 function _prepareQuery(tableName, queryString, indexedFieldsArray) {
     let sqlQuery = Query.transformCocoToSQLQuery(queryString, indexedFieldsArray);
     return `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName}`
-        +` WHERE ${sqlQuery} LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
+        + ` WHERE ${sqlQuery} LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
 }
 
 /**
@@ -1140,7 +1144,7 @@ export function query(tableName, queryString, useIndexForFields = []) {
             queryParseDone = true;
             _executeQuery(sqlQuery, resolve, reject);
         } catch (e) {
-            if(!queryParseDone){
+            if (!queryParseDone) {
                 reject(e.message); // return helpful error messages from query parser
                 return;
             }
