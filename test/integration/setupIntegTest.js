@@ -5,7 +5,6 @@ let config = null;
 config = {
     'host': 'localhost',
     'port': '3306',
-    'database': 'testdb',
     'user': 'root',
     'password': '1234'
 

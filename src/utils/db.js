@@ -845,7 +845,6 @@ function _queryIndex(queryParams, resolve, reject) {
             resolve([]);
         });
 }
-
 /**
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
  * @example <caption> Sample code </caption>
