@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close, createDataBase, deleteDataBase, mathAdd} from "../../src/utils/db.js";
+import {init, close, createDataBase, deleteDataBase, mathAdd, query} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -482,6 +482,49 @@ describe('Integration: libMySql', function () {
         expect(modifiedDoc.age).eql(11);
         expect(modifiedDoc.total).eql(-100);
         expect(modifiedDoc.count).eql(-2);
+    });
+    it('basic query test should pass', async function () {
+        const docId = await put(tableName, {age: 10, total: 100});
+        const results = await query(tableName, 'age = 10');
+        expect(results[0].documentId).eql(docId);
+        expect(results[0].age).eql(10);
+        expect(results[0].total).eql(100);
+    });
+    it('query with nested object', async function () {
+        const docId = await put(tableName, {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka'
+            }
+        });
+        const results = await query(tableName, "location.city  = 'Banglore'");
+        expect(results[0].documentId).eql(docId);
+        expect(results[0].Age).eql(100);
+        expect(results[0].location.state).eql('Karnataka');
+
+    });
+    it('query with index should pass', async function () {
+
+        const createIndexStatus = await createIndexForJsonField(tableName, 'location.city', DATA_TYPES.VARCHAR(), false, true);
+        expect(createIndexStatus).eql(true);
+
+        const docId = await put(tableName, {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka'
+            }
+        });
+        const results = await query(tableName, "location.city  = 'Banglore' AND location.state = 'Karnataka'", ['location.city']);
+        expect(results[0].documentId).eql(docId);
+        expect(results[0].Age).eql(100);
+        expect(results[0].location.state).eql('Karnataka');
+
     });
 });
 
