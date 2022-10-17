@@ -364,7 +364,8 @@ extension.
 
 ## Local integration testing
 ### Steps
-#### [Install docker](https://docs.docker.com/engine/install/)
+#### [Ubuntu install docker instructions](https://docs.docker.com/engine/install/ubuntu/)
+#### [Or Other OS Install docker](https://docs.docker.com/engine/install/)
 #### Install and setup Mysql Docker image
 
 ```console
@@ -381,6 +382,8 @@ mysql -h 127.0.0.1 -u root -p
 
 # create a database
 CREATE DATABASE testdb;
+
+# now Goto file `setupIntegTest.js`  and uncomment the config part. Tests can now be run
 
 # list running dockers
 sudo docker container ls
