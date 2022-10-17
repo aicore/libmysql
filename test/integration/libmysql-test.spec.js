@@ -485,7 +485,7 @@ describe('Integration: libMySql', function () {
     });
     it('basic query test should pass', async function () {
         const docId = await put(tableName, {age: 10, total: 100});
-        const results = await query(tableName, 'age = 10');
+        const results = await query(tableName, '$.age = 10');
         expect(results[0].documentId).eql(docId);
         expect(results[0].age).eql(10);
         expect(results[0].total).eql(100);
@@ -500,7 +500,7 @@ describe('Integration: libMySql', function () {
                 'state': 'Karnataka'
             }
         });
-        const results = await query(tableName, "location.city  = 'Banglore'");
+        const results = await query(tableName, "$.location.city  = 'Banglore'");
         expect(results[0].documentId).eql(docId);
         expect(results[0].Age).eql(100);
         expect(results[0].location.state).eql('Karnataka');
@@ -520,7 +520,7 @@ describe('Integration: libMySql', function () {
                 'state': 'Karnataka'
             }
         });
-        const results = await query(tableName, "location.city  = 'Banglore' AND location.state = 'Karnataka'", ['location.city']);
+        const results = await query(tableName, "$.location.city  = 'Banglore' AND $.location.state = 'Karnataka'", ['location.city']);
         expect(results[0].documentId).eql(docId);
         expect(results[0].Age).eql(100);
         expect(results[0].location.state).eql('Karnataka');
