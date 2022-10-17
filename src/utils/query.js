@@ -8,7 +8,6 @@ export const TOKEN_SPACE = ' ',
     TOKEN_VARIABLE = '#',
     TOKEN_FUNCTION = 'fn',
     TOKEN_KEYWORD = 'key',
-    TOKEN_DOCUMENT = '$',
     // operators start
     TOKEN_OP_COMMA = ',',
     TOKEN_OP_PLUS = '+',
@@ -60,9 +59,17 @@ export const MYSQL_FUNCTIONS =[
     "JSON_UNQUOTE", "JSON_VALID", "JSON_VALUE", "MEMBER", "OF" // "MEMBER OF" is a single keyword, but tokenized as two
 ];
 
+export const MYSQL_FUNCTIONS_LOWER_CASE = MYSQL_FUNCTIONS.map(element => {
+    return element.toLowerCase();
+});
+
 export const MYSQL_KEYWORDS =[
     "LIKE", "NOT", "REGEXP", "RLIKE", "NULL", "AND", "OR", "IS", "BETWEEN", "XOR"
 ];
+
+export const MYSQL_KEYWORDS_LOWER_CASE = MYSQL_KEYWORDS.map(element => {
+    return element.toLowerCase();
+});
 
 function _createToken(type, tokenStr) {
     return {
@@ -144,8 +151,35 @@ function _getStringToken(tokenizer) {
 }
 
 /**
- * Retrieves the variable or function token at current position
- * * variable token is of the form x or x.y or x.y.z etc..
+ * Retrieves the variable token at current position
+ * * variable token is of the form $ or $.x or $.x.y or $.x.y.z etc..
+ * @param {{queryChars: Array, currentIndex: number}} tokenizer
+ * @return {{type: string, str: string} | null}
+ * type - TOKEN_SPACE
+ * str - Will return a variable token at current position of the form $ or $.x or $.x.y or $.x.y.z etc..
+ * @private
+ */
+function _getVariableToken(tokenizer) {
+    let i = tokenizer.currentIndex,
+        queryChars = tokenizer.queryChars;
+    let tokenStr = "", num$Chars = 0;
+    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '$'
+        || queryChars[i] === '.' || queryChars[i] === '_')){
+        if(queryChars[i] === '$'){
+            num$Chars++;
+        }
+        tokenStr += queryChars[i];
+        i++;
+    }
+    tokenizer.currentIndex = i;
+    if(tokenStr !== '$' && (tokenStr === '$.' || num$Chars !== 1 || !tokenStr.startsWith('$.'))) {
+        throw new Error(`Invalid variable Token ${tokenStr} in query ${tokenizer.queryChars.join("")}`);
+    }
+    return _createToken(TOKEN_VARIABLE, tokenStr);
+}
+
+/**
+ * Retrieves the function token at current position
  * * function token is one of the predefined constants in MYSQL_FUNCTIONS
  * @param {{queryChars: Array, currentIndex: number}} tokenizer
  * @return {{type: string, str: string} | null}
@@ -153,22 +187,22 @@ function _getStringToken(tokenizer) {
  * str - Will return a variable token at current position of the form x or x.y or x.y.z etc..
  * @private
  */
-function _getVariableOrFuncToken(tokenizer) {
+function _getFuncToken(tokenizer) {
     let i = tokenizer.currentIndex,
         queryChars = tokenizer.queryChars;
     let tokenStr = "";
-    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '.' || queryChars[i] === '_')){
+    while(i < queryChars.length && (isAlphaNumChar(queryChars[i]) || queryChars[i] === '_')){
         tokenStr += queryChars[i];
         i++;
     }
     tokenizer.currentIndex = i;
-    if(MYSQL_FUNCTIONS.includes(tokenStr)){
+    if(MYSQL_FUNCTIONS.includes(tokenStr) || MYSQL_FUNCTIONS_LOWER_CASE.includes(tokenStr)){
         return _createToken(TOKEN_FUNCTION, tokenStr);
     }
-    if(MYSQL_KEYWORDS.includes(tokenStr)){
+    if(MYSQL_KEYWORDS.includes(tokenStr) || MYSQL_KEYWORDS_LOWER_CASE.includes(tokenStr)){
         return _createToken(TOKEN_KEYWORD, tokenStr);
     }
-    return _createToken(TOKEN_VARIABLE, tokenStr);
+    throw new Error(`Unknown query function ${tokenStr} in query ${tokenizer.queryChars.join("")}`);
 }
 
 /**
@@ -215,8 +249,6 @@ function nextToken(tokenizer) {
         return _createToken(TOKEN_BRACKET_OPEN, tokenStartChar);
     case TOKEN_BRACKET_CLOSE: tokenizer.currentIndex++;
         return _createToken(TOKEN_BRACKET_CLOSE, tokenStartChar);
-    case TOKEN_DOCUMENT: tokenizer.currentIndex++;
-        return _createToken(TOKEN_DOCUMENT, tokenStartChar);
     default:
         if(tokenStartChar === '.' || isDigitChar(tokenStartChar)){
             return _getNumberToken(tokenizer);
@@ -226,8 +258,11 @@ function nextToken(tokenizer) {
             // `!` is in the OPERATOR_TOKENS array.
             return _getOperatorToken(tokenizer);
         }
+        if(tokenStartChar ==='$'){
+            return _getVariableToken(tokenizer);
+        }
         if(isAlphaChar(tokenStartChar) || tokenStartChar ==='_'){
-            return _getVariableOrFuncToken(tokenizer);
+            return _getFuncToken(tokenizer);
         }
         throw new Error(`Unexpected Token char ${tokenStartChar} in query ${tokenizer.queryChars.join("")}`);
     }
@@ -246,9 +281,11 @@ function getTokenizer(queryString) {
  * Transforms CocoDB queries to MYSql queries. Coco queries closely resemble the mysql query syntax. The json field
  * names can be directly specified in coco queries.
  * A Sample coco query:
- * `NOT(customerID = 35 && (price.tax < 18 OR ROUND(price.amount) != 69))`
+ * `NOT($.customerID = 35 && ($.price.tax < 18 OR ROUND($.price.amount) != 69))`
  *
  * ## `$` is a special character that denotes the JSON document itself.
+ * All json field names should be prefixed with a `$.` symbol. For Eg. field `x.y` should be given
+ * in query as `$.x.y`.
  * It can be used for json compare as. `JSON_CONTAINS($,'{"name": "v"}')`.
  * ** WARNING: JSON_CONTAINS this will not use the index. We may add support in future, but not presently. **
  *
@@ -291,17 +328,21 @@ function transformCocoToSQLQuery(query, useIndexForFields = []) {
     let tokenizer = getTokenizer(query),
         sqlQuery = '';
     let token = nextToken(tokenizer);
+    const $Prefix = '$.';
     while(token) {
         if(token.type === TOKEN_VARIABLE) {
             let variable = token.str;
-            if(useIndexForFields.includes(variable)){
+            if(variable.startsWith($Prefix)){
+                variable = variable.substring($Prefix.length);
+            }
+            if(variable === '$') {
+                // The $ char is alias to json document itself in query
+                sqlQuery += `${JSON_COLUMN}`;
+            } else if(useIndexForFields.includes(variable)){
                 sqlQuery += getColumNameForJsonField(variable);
             } else {
                 sqlQuery += `${JSON_COLUMN}->>"$.${variable}"`;
             }
-        } else if(token.type === TOKEN_DOCUMENT) {
-            // The $ char is alias to json document itself in query
-            sqlQuery += `${JSON_COLUMN}`;
         } else {
             sqlQuery += token.str;
         }
