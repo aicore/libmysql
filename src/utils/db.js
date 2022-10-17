@@ -1077,7 +1077,7 @@ function _executeQuery(sqlQuery, resolve, reject) {
  * fields to search on the index instead of scanning the whole table.
  * @example <caption> A Sample coco query </caption>
  * const tableName = 'customer';
- * const queryString = `NOT(customerID = 35 && (price.tax < 18 OR ROUND(price.amount) != 69))`;
+ * const queryString = `NOT($.customerID = 35 && ($.price.tax < 18 OR ROUND($.price.amount) != 69))`;
  * try {
  *      const queryResults = await query(tableName, queryString, ["customerID"]); // customerID is indexed field
  *      console.log(JSON.stringify(queryResults));
@@ -1088,7 +1088,9 @@ function _executeQuery(sqlQuery, resolve, reject) {
  * ## cocodb query syntax
  * cocodb query syntax closely resembles mysql query syntax. The following functions are supported as is:
  *
- * ### `$` is a special character that denotes the JSON document itself in queries.
+ * ## `$` is a special character that denotes the JSON document itself.
+ * All json field names should be prefixed with a `$.` symbol. For Eg. field `x.y` should be given
+ * in query as `$.x.y`.
  * It can be used for json compare as. `JSON_CONTAINS($,'{"name": "v"}')`.
  * ** WARNING: JSON_CONTAINS this will not use the index. We may add support in future, but not presently. **
  *

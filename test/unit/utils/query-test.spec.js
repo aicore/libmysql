@@ -46,7 +46,7 @@ describe('Query Utils test', function () {
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, ")", ")");
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "$", "$");
+            _verifyToken(token, "#", "$");
             token = QueryTokenizer.nextToken(tokenizer);
             expect(token).to.be.null;
         });
@@ -98,31 +98,31 @@ describe('Query Utils test', function () {
         });
 
         // variables
-        it('should tokenizer extract variable token of form xxx', function () {
-            let tokenizer = QueryTokenizer.getTokenizer("   var(var_)_var");
+        it('should tokenizer extract variable token of form $.xxx', function () {
+            let tokenizer = QueryTokenizer.getTokenizer("   $.var($.var_)$._var");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             let token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "var");
+            _verifyToken(token, "#", "$.var");
             token = QueryTokenizer.nextToken(tokenizer);
             _verifyToken(token, "(", "(");
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "var_");
+            _verifyToken(token, "#", "$.var_");
             QueryTokenizer.nextToken(tokenizer);
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "_var");
+            _verifyToken(token, "#", "$._var");
         });
 
-        it('should tokenizer extract variable token of form xxx.yyy.zzz', function () {
-            let tokenizer = QueryTokenizer.getTokenizer(" xxx(xxx.yyy)xxx.yy_y._zzz");
+        it('should tokenizer extract variable token of form $.xxx.yyy.zzz', function () {
+            let tokenizer = QueryTokenizer.getTokenizer(" $.xxx($.xxx.yyy)$.xxx.yy_y._zzz");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             let token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "xxx");
+            _verifyToken(token, "#", "$.xxx");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "xxx.yyy");
+            _verifyToken(token, "#", "$.xxx.yyy");
             QueryTokenizer.nextToken(tokenizer); // skip the space
             token = QueryTokenizer.nextToken(tokenizer);
-            _verifyToken(token, "#", "xxx.yy_y._zzz");
+            _verifyToken(token, "#", "$.xxx.yy_y._zzz");
         });
 
         function _verifyAllTokens(expressionString, expectedTypeArray, expectedTokenStringArray) {
@@ -198,10 +198,12 @@ describe('Query Utils test', function () {
                 ["!", "ABS", "(", "-", "2", ")", " ", ">", " ", "EXP", "(", "2", ",", "3", ")"]);
         });
 
-        it('should tokenizer functions be case sensitive', function () {
+        it('should tokenizer functions be case insensitive', function () {
             _verifyAllTokens("ABS() abs()",
-                ['fn', '(', ')', ' ', '#', '(', ')'],
+                ['fn', '(', ')', ' ', 'fn', '(', ')'],
                 ["ABS", "(", ")", " ", "abs", "(", ")"]);
+            // wierd mixed cases are not allowed for mysql functions. either all should be small case or big case.
+            _verifyTokenParseError("aBs()", "Error: Unknown query function aBs in query aBs()");
         });
 
         it('should tokenizer functions string compare and if control test', function () {
@@ -211,24 +213,31 @@ describe('Query Utils test', function () {
         });
 
         it('should tokenizer work for && AND OR || NOT !', function () {
-            _verifyAllTokens("x=2 AND y.z=3",
-                ["#", "=", "1", " ", "key", " ", "#", "=", "1"],
-                ["x", "=", "2", " ", "AND", " ", "y.z", "=", "3"]);
-            _verifyAllTokens("x=2 && y.z&3",
+            _verifyAllTokens("$.x=2 AND $.y.z=3 ||$",
+                ["#", "=", "1", " ", "key", " ", "#", "=", "1", " ", "||", "#"],
+                ["$.x", "=", "2", " ", "AND", " ", "$.y.z", "=", "3", " ", "||", "$"]);
+            _verifyAllTokens("$.x=2 && $.y.z&3",
                 ["#", "=", "1", " ", "&&", " ", "#", "&", "1"],
-                ["x", "=", "2", " ", "&&", " ", "y.z", "&", "3"]);
-            _verifyAllTokens("x=2 OR y.z=3",
+                ["$.x", "=", "2", " ", "&&", " ", "$.y.z", "&", "3"]);
+            _verifyAllTokens("$.x=2 OR $.y.z=3",
                 ["#", "=", "1", " ", "key", " ", "#", "=", "1"],
-                ["x", "=", "2", " ", "OR", " ", "y.z", "=", "3"]);
-            _verifyAllTokens("x=2 || y.z|3",
+                ["$.x", "=", "2", " ", "OR", " ", "$.y.z", "=", "3"]);
+            _verifyAllTokens("$.x=2 || $.y.z|3",
                 ["#", "=", "1", " ", "||", " ", "#", "|", "1"],
-                ["x", "=", "2", " ", "||", " ", "y.z", "|", "3"]);
-            _verifyAllTokens("!(x&&Y)",
+                ["$.x", "=", "2", " ", "||", " ", "$.y.z", "|", "3"]);
+            _verifyAllTokens("!($.x&&$.Y)",
                 ['!', '(', '#', '&&', '#', ')'],
-                ['!', '(', 'x', '&&', 'Y', ')' ]);
-            _verifyAllTokens("NOT(x AND Y)",
+                ['!', '(', '$.x', '&&', '$.Y', ')' ]);
+            _verifyAllTokens("NOT($.x AND $.Y)",
                 ['key', '(', '#', ' ', 'key', ' ', '#', ')'],
-                ['NOT', '(', 'x', ' ', 'AND', ' ', 'Y', ')']);
+                ['NOT', '(', '$.x', ' ', 'AND', ' ', '$.Y', ')']);
+        });
+
+        it('should tokenizer error on invalid variable tokens', function () {
+            _verifyTokenParseError("x+1", "Error: Unknown query function x in query x+1");
+            _verifyTokenParseError("$x+1", "Error: Invalid variable Token $x in query $x+1");
+            _verifyTokenParseError("$.+1", "Error: Invalid variable Token $. in query $.+1");
+            _verifyTokenParseError("$.x$+1", "Error: Invalid variable Token $.x$ in query $.x$+1");
         });
     });
 
@@ -246,9 +255,9 @@ describe('Query Utils test', function () {
     describe('Query Transformer tests', function () {
         it('should transformCocoToSQLQuery success cases without index field', function () {
             expect(Query.transformCocoToSQLQuery("")).to.eql("");
-            expect(Query.transformCocoToSQLQuery("x")).to.eql('document->>"$.x"');
-            expect(Query.transformCocoToSQLQuery("ABS(x)")).to.eql('ABS(document->>"$.x")');
-            expect(Query.transformCocoToSQLQuery("name LIKE 'va%'")).to.eql("document->>\"$.name\" LIKE 'va%'");
+            expect(Query.transformCocoToSQLQuery("$.x")).to.eql('document->>"$.x"');
+            expect(Query.transformCocoToSQLQuery("ABS($.x)")).to.eql('ABS(document->>"$.x")');
+            expect(Query.transformCocoToSQLQuery("$.name LIKE 'va%'")).to.eql("document->>\"$.name\" LIKE 'va%'");
         });
 
         it('should transformCocoToSQLQuery success cases for json based searches', function () {
@@ -259,19 +268,16 @@ describe('Query Utils test', function () {
         });
 
         it('should transformCocoToSQLQuery success cases with index field', function () {
-            expect(Query.transformCocoToSQLQuery("y>5 || x > 10 && price.tax = 18", ["x", "price.tax"]))
+            expect(Query.transformCocoToSQLQuery("$.y>5 || $.x > 10 && $.price.tax = 18", ["x", "price.tax"]))
                 .to.eql('document->>"$.y">5 || 9dd4e461268c8034f5c8564e155c67a6 > 10 && 6a1a731895e201b727851bc567ac1e8a = 18');
         });
 
         it('should transformCocoToSQLQuery error cases', function () {
-            _verifyQueryError("x#", "Error: Unexpected Token char # in query x#");
+            _verifyQueryError("x#", "Error: Unknown query function x in query x#");
         });
 
         it('should transformCocoToSQLQuery produce invalid output if sql commands in input', function () {
-            // queries with sql will be treated like its a valid js field and mot SQL, thus preventing arbitrary SQL
-            // code injection
-            expect(Query.transformCocoToSQLQuery("SELECT * FROM tab"))
-                .to.eql('document->>"$.SELECT" * document->>"$.FROM" document->>"$.tab"');
+            _verifyQueryError("SELECT * FROM tab", "Error: Unknown query function SELECT in query SELECT * FROM tab");
         });
 
         it('should transformCocoToSQLQuery error cases with index field', function () {

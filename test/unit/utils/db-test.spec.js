@@ -2071,7 +2071,7 @@ describe('Unit tests for db.js', function () {
             let isExceptionOccurred = false;
 
             try {
-                await query(tableName, "a<10");
+                await query(tableName, "$.a<10");
             } catch (e) {
                 expect(e).to.eql('error');
                 isExceptionOccurred = true;
@@ -2088,7 +2088,7 @@ describe('Unit tests for db.js', function () {
             const tableName = 'test.customer';
             let isExceptionOccurred = false;
             try {
-                await query(tableName, "a<10");
+                await query(tableName, "$.a<10");
             } catch (e) {
                 expect(e).to.eql('Exception occurred while querying');
                 isExceptionOccurred = true;
@@ -2105,7 +2105,7 @@ describe('Unit tests for db.js', function () {
             const tableName = 'test.customer';
             let isExceptionOccurred = false;
             try {
-                const results = await query(tableName, "a<10");
+                const results = await query(tableName, "$.a<10");
                 expect(results[0].lastName).to.eql('Alice');
                 expect(results[0].Age).to.eql(100);
                 expect(results[0].active).to.eql(true);
@@ -2141,23 +2141,36 @@ describe('Unit tests for db.js', function () {
         }
 
         it('query should pass for valid parameters with index fields', async function () {
-            await _validateQueryPass("s<10 && !j.k || y!='hello'",
+            await _validateQueryPass("$.s<10 && !$.j.k || $.y!='hello'",
                 ["s", "j.k"],
                 "SELECT documentID,document FROM test.customer " +
                 "WHERE 03c7c0ace395d80182db07ae2c30f034<10 && !91e12519d4a93e0ce72a98c42383e747 " +
                 "|| document->>\"$.y\"!='hello' LIMIT 1000");
         });
 
-        it('query mysql functions like AND NOT etc. are case sensitive', async function () {
-            await _validateQueryPass("NOT(x>y) AND !$",
+        it('query mysql functions like AND NOT etc. are case insensitive', async function () {
+            await _validateQueryPass("NOT($.x>$.y) AND !$",
                 [],
                 "SELECT documentID,document FROM test.customer " +
                 "WHERE NOT(document->>\"$.x\">document->>\"$.y\") AND !document LIMIT 1000");
-            await _validateQueryPass("not(x>y) and !$",
+            await _validateQueryPass("not($.x>$.y) AND !$",
                 [],
                 "SELECT documentID,document FROM test.customer " +
-                "WHERE document->>\"$.not\"(document->>\"$.x\">document->>\"$.y\") document->>\"$.and\" " +
-                "!document LIMIT 1000");
+                "WHERE not(document->>\"$.x\">document->>\"$.y\") AND !document LIMIT 1000");
+            // mixed case not allowed for json functions
+            await _validateQueryFail("nOt(1)", 'x.y',
+                'Unknown query function nOt in query nOt(1)');
+        });
+
+        it('query mysql functions like AND NOT etc. can be used as json fields if $ prefixed', async function () {
+            await _validateQueryPass("NOT($.x>$.y) AND !$",
+                [],
+                "SELECT documentID,document FROM test.customer " +
+                "WHERE NOT(document->>\"$.x\">document->>\"$.y\") AND !document LIMIT 1000");
+            await _validateQueryPass("$.not($.x>$.y) and !$",
+                [],
+                "SELECT documentID,document FROM test.customer " +
+                "WHERE document->>\"$.not\"(document->>\"$.x\">document->>\"$.y\") and !document LIMIT 1000");
         });
 
         it('query should pass for special $ operator', async function () {
@@ -2175,7 +2188,7 @@ describe('Unit tests for db.js', function () {
             const tableName = 'test.customer';
             let isExceptionOccurred = false;
             try {
-                const results = await query(tableName, "a<10");
+                const results = await query(tableName, "$.a<10");
                 expect(results.length).to.eql(0);
                 console.log(results);
             } catch (e) {
