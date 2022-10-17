@@ -1,7 +1,7 @@
 import {setUpMySQL} from '@aicore/libtestutils';
 
 let config = null;
-/*
+/* uncomment these to test locally in webstorm
 config = {
     'host': 'localhost',
     'port': '3306',

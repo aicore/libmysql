@@ -506,6 +506,47 @@ describe('Integration: libMySql', function () {
         expect(results[0].location.state).eql('Karnataka');
 
     });
+
+    async function putDocs(numDocs, run) {
+        let promises = [];
+        for(let i=0; i<numDocs; i++){
+            promises.push(put(tableName, {
+                'lastName': 'Alice',
+                'Age': i,
+                'active': true,
+                'run': run,
+                'location': {
+                    'city': `Banglore-${i}`,
+                    'state': 'Karnataka'
+                }
+            }));
+        }
+        await Promise.all(promises);
+    }
+
+    it('query should return all results', async function () {
+        await putDocs(1500, 1);
+        const results = await query(tableName, "$.location.city  LIKE 'Banglore-1_' && $.run = 1");
+        expect(results.length).eql(10);
+        for(let i=0; i < results.length; i++){
+            expect(results[i].location.city === `Banglore-${results[i].Age}`).to.be.true;
+        }
+    });
+    it('large 3600 query test', async function () {
+        await putDocs(1500, 2);
+        let promises = [];
+        let numIterations = 9, maxPasses = 400; // 3600 queries
+        for(let j=0; j<maxPasses; j++){
+            for(let i=1; i<=numIterations; i++) {
+                promises.push(query(tableName, `$.location.city  LIKE 'Banglore-${i}_' && $.run = 2`));
+            }
+        }
+        const results = await Promise.all(promises);
+        expect(results.length).eql(maxPasses*numIterations);
+        for(let i=0; i < results.length; i++){
+            expect(results[i].length === 10 && results[i][0].run === 2).to.be.true;
+        }
+    });
     it('query with index should pass', async function () {
 
         const createIndexStatus = await createIndexForJsonField(tableName, 'location.city', DATA_TYPES.VARCHAR(), false, true);
@@ -521,6 +562,27 @@ describe('Integration: libMySql', function () {
             }
         });
         const results = await query(tableName, "$.location.city  = 'Banglore' AND $.location.state = 'Karnataka'", ['location.city']);
+        expect(results[0].documentId).eql(docId);
+        expect(results[0].Age).eql(100);
+        expect(results[0].location.state).eql('Karnataka');
+
+    });
+
+    it('query boolean should be treated as false', async function () {
+
+        const createIndexStatus = await createIndexForJsonField(tableName, 'location.city', DATA_TYPES.VARCHAR(), false, true);
+        expect(createIndexStatus).eql(true);
+
+        const docId = await put(tableName, {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': false,
+            'location': {
+                'city': 'Banglore',
+                'state': 'Karnataka'
+            }
+        });
+        const results = await query(tableName, "$.active  = 0", ['location.city']);
         expect(results[0].documentId).eql(docId);
         expect(results[0].Age).eql(100);
         expect(results[0].location.state).eql('Karnataka');
