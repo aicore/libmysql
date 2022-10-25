@@ -403,6 +403,16 @@ sudo docker container rm   <container id from previous step>
 sudo  docker image rm mysql
 ```
 
+#### How to start docker container
+```console
+# get mysql container id
+sudo  docker container ls -a
+# start Mysql
+sudo docker start <contianer Id>
+
+# Connect to MySql
+mysql -h 127.0.0.1 -u root -p 
+```
 ## Internals
 
 ### Testing framework: Mocha , assertion style: chai
