@@ -55,7 +55,7 @@
     "chai": "4.3.7",
     "cli-color": "2.0.3",
     "documentation": "14.0.1",
-    "eslint": "8.32.0",
+    "eslint": "8.33.0",
     "glob": "8.1.0",
     "husky": "8.0.3",
     "mocha": "10.2.0",
