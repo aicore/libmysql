@@ -74,27 +74,6 @@ This function helps to close the database connection
 
 Returns **void**&#x20;
 
-## \_isValidTableName
-
-It checks if the nameSpace is a valid table name
-
-### Parameters
-
-*   `nameSpace` **[string][1]** The name of the table.
-
-Returns **[boolean][3]** A boolean value.
-
-## \_isValidPrimaryKey
-
-Returns true if the given key is a string of length greater than zero and less than or equal to the maximum size of a
-primary key.
-
-### Parameters
-
-*   `key` **[string][1]** The primary key of the item to be retrieved.
-
-Returns **[boolean][3]** A boolean value.
-
 ## createTable
 
 It creates a table in the database with the name provided as the parameter
@@ -162,13 +141,6 @@ try {
 Returns **[Promise][2]** A promise on resolving the promise will give documentID throws an exception
 otherwise. DocumentId is an alphanumeric string of length 128
 
-## createDocumentId
-
-It generates a random string of 16 hexadecimal characters
-When converting hexadecimal to string. The generated string will contain 32 characters
-
-Returns **[string][1]** A random string of hexadecimal characters.
-
 ## deleteKey
 
 It deletes a document from the database based on the document id
@@ -220,29 +192,6 @@ try {
 ```
 
 Returns **[Promise][2]** A promise on resolve promise to get the value stored for documentID
-
-## \_queryScanBuilder
-
-It takes a JSON object and returns a SQL query and an array of values to be used in a prepared statement
-
-### Parameters
-
-*   `subQueryObject` **[Object][4]** This is the object that you want to query.
-*   `parentKey` **[string][1]?** This is the parent key of the current object. (optional, default `""`)
-
-Returns **[Object][4]** An object with two properties: getQuery and valArray.
-
-## \_prepareQueryForScan
-
-It takes a table name and a query object and returns a query string and an array of values to be used in a prepared
-statement
-
-### Parameters
-
-*   `tableName` **[string][1]** The name of the table to query.
-*   `queryObject` **[Object][4]** The query object that you want to run.
-
-Returns **[Object][4]** An object with two properties: getQuery and valArray.
 
 ## getFromNonIndex
 
@@ -303,57 +252,6 @@ try{
 Returns **[Promise][2]** A promise that will resolve to true if the table is deleted, or reject with an error
 if the table is not deleted.
 
-## \_buildCreateJsonColumQuery
-
-\_buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField, dataTypeOfNewColumn, isNotNull, isUnique)
-
-The function takes the following parameters:
-
-*   tableName - the name of the table to add the column to
-*   nameOfJsonColumn - the name of the new column
-*   jsonField - the name of the field in the JSON column to extract
-*   dataTypeOfNewColumn - the data type of the new column
-*   isNotNull - a boolean value indicating whether the new column should be nullable
-*   isUnique - a boolean value indicating whether the new column should be unique
-
-### Parameters
-
-*   `tableName` **[string][1]** The name of the table you want to add the column to.
-*   `nameOfJsonColumn` **[string][1]** The name of the new column that will be created.
-*   `jsonField` **[string][1]** The field in the JSON object that you want to extract.
-*   `dataTypeOfNewColumn` **[string][1]** This is the data type of the new column.
-*   `isNotNull` **[boolean][3]** If the new column should be NOT NULL
-*   `isUnique` **[boolean][3]** If true, the new column will be a unique key.
-
-Returns **[string][1]** A string that is a query to add a column to a table.
-
-## \_buildCreateIndexQuery
-
-It takes a table name, a json field name, and a boolean value indicating whether the index should be unique or not,
-and returns a string containing the SQL query to create the index
-
-### Parameters
-
-*   `tableName` **[string][1]** The name of the table to create the index on.
-*   `jsonField` **[string][1]** The name of the JSON field that you want to index.
-*   `isUnique` **[boolean][3]** If true, the index will be unique.
-
-Returns **[string][1]** A string that is a query to create an index on a table.
-
-## \_createIndex
-
-It creates an index on the JSON field in the table
-
-### Parameters
-
-*   `resolve` **[function][6]** A function that is called when the promise is resolved.
-*   `reject` **[function][6]** A function that will be called if the promise is rejected.
-*   `tableName` **[string][1]** The name of the table to create the index on
-*   `jsonField` **[string][1]** The JSON field that you want to create an index on.
-*   `isUnique` **[boolean][3]** true if the index is unique, false otherwise
-
-Returns **void** NB `private function exporting this for testing`
-
 ## createIndexForJsonField
 
 It creates a new column in the table for the JSON field and then creates an index on that column.
@@ -365,7 +263,7 @@ It creates a new column in the table for the JSON field and then creates an inde
 *   `jsonField` **[string][1]** The name of the field in the JSON object that you want to index. The filed name
     should be a valid variable name of the form "x" or "x.y.z".
 *   `dataTypeOfNewColumn` **[string][1]** This is the data type of the new column that will be created.
-    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][7] to know all supported data types
+    visit [https://dev.mysql.com/doc/refman/8.0/en/data-types.html][6] to know all supported data types
 *   `isUnique` **[boolean][3]** If true, the json filed has to be unique for creating index. (optional, default `false`)
 *   `isNotNull` **[boolean][3]** If true, the column will be created with NOT NULL constraint. (optional, default `false`)
 
@@ -393,43 +291,10 @@ try{
 
 Returns **[Promise][2]** A promise
 
-## \_prepareQueryForNestedObject
-
-It takes a nested object and returns a query string and an array of values
-
-### Parameters
-
-*   `subQueryObject` **[Object][4]** This is the object that you want to convert to a query.
-*   `parentKey` **[string][1]?** This is the key of the parent object. (optional, default `""`)
-
-Returns **[Object][4]** An object with two properties, getQuery and valArray.
-
-## \_prepareQueryOfIndexSearch
-
-It takes a table name and a query object and returns a query string and an array of values
-
-### Parameters
-
-*   `tableName` **[string][1]** The name of the table in which the data is stored.
-*   `queryObject` **[Object][4]** The object that you want to search for.
-
-## \_queryIndex
-
-\_queryIndex() is a function that takes a queryParams object, a resolve function, and a reject function as parameters.
-It then executes the query in the queryParams object, and if the query is successful, it returns the results of
-the query to the resolve function. If the query is unsuccessful, it returns the error to the reject function
-
-### Parameters
-
-*   `queryParams` **[Object][4]** This is an object that contains the query and the values to be used in the query.
-*   `resolve` **[Function][6]** a function that takes a single argument, which is the result of the query.
-*   `reject` **[Function][6]** a function that will be called if the query fails.
-
-Returns **[Array][8]** An array of objects
-
 ## getFromIndex
 
 It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
+NB: This query will return only 1000 entries.
 
 ### Parameters
 
@@ -501,32 +366,6 @@ It increments the value of a field in a JSON column in a MySQL table
 
 Returns **[Promise][2]<[boolean][3]>** A promise
 
-## \_prepareQuery
-
-Prepares and SQL query out of the coco query and returns the sql query string.
-
-### Parameters
-
-*   `tableName` **[string][1]** The name of the table in which the data is stored.
-*   `queryString` **[string][1]** The cocDB query string.
-*   `indexedFieldsArray` &#x20;
-
-Returns **[string][1]** the sql query as string
-
-## \_executeQuery
-
-Executes the given sql query and if the query is successful, it returns the results of the query to the resolve
-function or an empty array if no matches were found.
-If the query is unsuccessful, it returns the error to the reject function.
-
-### Parameters
-
-*   `sqlQuery` **[string][1]** the sql query to execute
-*   `resolve` **[Function][6]** a function that takes a single argument, which is the result of the query.
-*   `reject` **[Function][6]** a function that will be called if the query fails.
-
-Returns **[Array][8]** An array of objects
-
 ## query
 
 Execute a cocoDB query and return the documents matching the query. You can optionally specify a list of indexed
@@ -536,7 +375,7 @@ fields to search on the index instead of scanning the whole table.
 
 *   `tableName` **[string][1]** The name of the table in which the data is stored.
 *   `queryString` **[string][1]** The query as string.
-*   `useIndexForFields` **[Array][8]<[String][1]>** A string array of field names for which the index should be used. Note
+*   `useIndexForFields` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
     that an index should first be created using `createIndexForJsonField` API. Eg. \['customerID', 'price.tax'] (optional, default `[]`)
 
 ### Examples
@@ -600,8 +439,6 @@ no matches returns empty array. if there are any errors will throw an exception
 
 [5]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[6]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[6]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
 
-[7]: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
-
-[8]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[7]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
