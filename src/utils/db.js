@@ -185,6 +185,7 @@ export function close() {
  * It checks if the nameSpace is a valid table name
  * @param {string} nameSpace - The name of the table.
  * @returns   {boolean}  A boolean value.
+ * @private
  */
 function _isValidTableName(nameSpace) {
     if (!nameSpace || !isString(nameSpace)) {
@@ -204,6 +205,7 @@ function _isValidTableName(nameSpace) {
  * primary key.
  * @param {string} key - The primary key of the item to be retrieved.
  * @returns {boolean} A boolean value.
+ * @private
  */
 function _isValidPrimaryKey(key) {
     return isString(key) && key.length > 0 && key.length <= SIZE_OF_PRIMARY_KEY;
@@ -338,6 +340,7 @@ export function put(tableName, document) {
  * It generates a random string of 16 hexadecimal characters
  * When converting hexadecimal to string. The generated string will contain 32 characters
  * @returns {string} A random string of hexadecimal characters.
+ * @private
  */
 function createDocumentId() {
     return crypto.randomBytes(16).toString('hex');
@@ -458,6 +461,7 @@ export function get(tableName, documentID) {
  * @param {Object} subQueryObject - This is the object that you want to query.
  * @param {string} [parentKey] - This is the parent key of the current object.
  * @returns {Object} An object with two properties: getQuery and valArray.
+ * @private
  */
 function _queryScanBuilder(subQueryObject, parentKey = "") {
     const valArray = [];
@@ -499,6 +503,7 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
  * @param {string} tableName - The name of the table to query.
  * @param {Object} queryObject - The query object that you want to run.
  * @returns {Object} An object with two properties: getQuery and valArray.
+ * @private
  */
 function _prepareQueryForScan(tableName, queryObject) {
     if (isObjectEmpty(queryObject)) {
@@ -633,6 +638,7 @@ export function deleteTable(tableName) {
  * @param {boolean} isNotNull - If the new column should be NOT NULL
  * @param {boolean} isUnique - If true, the new column will be a unique key.
  * @returns  {string} A string that is a query to add a column to a table.
+ * @private
  *
  */
 function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField,
@@ -649,6 +655,7 @@ function _buildCreateJsonColumQuery(tableName, nameOfJsonColumn, jsonField,
  * @param {string} jsonField - The name of the JSON field that you want to index.
  * @param {boolean} isUnique - If true, the index will be unique.
  * @returns {string} A string that is a query to create an index on a table.
+ * @private
  */
 function _buildCreateIndexQuery(tableName, jsonField, isUnique) {
     if (isUnique) {
@@ -665,6 +672,7 @@ function _buildCreateIndexQuery(tableName, jsonField, isUnique) {
  * @param {string} jsonField - The JSON field that you want to create an index on.
  * @param {boolean} isUnique - true if the index is unique, false otherwise
  * @returns {void}
+ * @private
  *
  *  NB `private function exporting this for testing`
  *
@@ -769,6 +777,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
  * @param {Object} subQueryObject - This is the object that you want to convert to a query.
  * @param {string} [parentKey] - This is the key of the parent object.
  * @returns {Object} An object with two properties, getQuery and valArray.
+ * @private
  */
 function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
     const valArray = [];
@@ -809,6 +818,7 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
  * It takes a table name and a query object and returns a query string and an array of values
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param{Object} queryObject - The object that you want to search for.
+ * @private
  */
 function _prepareQueryOfIndexSearch(tableName, queryObject) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
@@ -827,6 +837,7 @@ function _prepareQueryOfIndexSearch(tableName, queryObject) {
  * @param {Function}resolve - a function that takes a single argument, which is the result of the query.
  * @param {Function} reject - a function that will be called if the query fails.
  * @returns {Array} An array of objects
+ * @private
  */
 function _queryIndex(queryParams, resolve, reject) {
     CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
@@ -851,6 +862,7 @@ function _queryIndex(queryParams, resolve, reject) {
 
 /**
  * It takes a table name, a column name, and a query object, and returns a promise that resolves to an array of objects
+ * NB: This query will return only 1000 entries.
  * @example <caption> Sample code </caption>
  * const tableName = 'customer';
  * const queryObject = {
@@ -1035,6 +1047,7 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
  * @param {string} queryString - The cocDB query string.
  * @param {Array[string]} indexedFieldsArray - List of indexed fields in the document.
  * @return {string} the sql query as string
+ * @private
  */
 function _prepareQuery(tableName, queryString, indexedFieldsArray) {
     let sqlQuery = Query.transformCocoToSQLQuery(queryString, indexedFieldsArray);
@@ -1050,6 +1063,7 @@ function _prepareQuery(tableName, queryString, indexedFieldsArray) {
  * @param {Function} resolve - a function that takes a single argument, which is the result of the query.
  * @param {Function} reject - a function that will be called if the query fails.
  * @returns {Array} An array of objects
+ * @private
  */
 function _executeQuery(sqlQuery, resolve, reject) {
     CONNECTION.execute(sqlQuery,
