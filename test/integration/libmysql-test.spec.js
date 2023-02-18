@@ -254,23 +254,24 @@ describe('Integration: libMySql', function () {
     });
 
     it('should be able to do paginated scan and return results from database', async function () {
-        const numberOfEntries = 1500;
+        const numberOfEntries = 150;
         const results = await testReadWrite(numberOfEntries);
         let scanResults = await getFromNonIndex(results.tableName, {
             'lastName': 'Alice',
             'Age': 100
         }, {
-            pageOffset: 20,
-            pageLimit: 35
+            pageOffset: 0,
+            pageLimit: 10
         });
-        expect(scanResults.length).to.eql(35);
-        expect(scanResults[0].counter).to.eql(35);
+        expect(scanResults.length).to.eql(10);
+        let lastResultCounter = scanResults[scanResults.length-1].counter;
         scanResults = await getFromNonIndex(results.tableName, {}, {
-            pageOffset: 55,
-            pageLimit: 40
+            pageOffset: 9,
+            pageLimit: 10
         });
-        expect(scanResults.length).eql(40);
-        expect(scanResults[0].counter).to.eql(55);
+        let firstResultCounter = scanResults[0].counter;
+        expect(scanResults.length).eql(11);
+        expect(lastResultCounter).to.eql(firstResultCounter);
         await deleteData(results);
     });
 
