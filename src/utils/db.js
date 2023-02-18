@@ -37,6 +37,9 @@ function _getLimitString(options) {
         throw new Error(`Expected numbers for options.pageOffset and options.pageLimit but got `
             + typeof options.pageOffset + " and " + typeof options.pageLimit);
     }
+    if(options.pageLimit > 1000){
+        throw new Error("options.pageLimit Cannot exceed 1000");
+    }
     return `LIMIT ${options.pageOffset}, ${options.pageLimit}`;
 }
 

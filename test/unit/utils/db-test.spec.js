@@ -1002,6 +1002,10 @@ describe('Unit tests for db.js', function () {
                 pageOffset: 1,
                 pageLimit: "uo"
             }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+            await _validatePageOffsetFail({
+                pageOffset: 1,
+                pageLimit: 1001
+            }, "options.pageLimit Cannot exceed 1000");
         });
 
         it('getFromNonIndex should have valid page limits', async function () {
@@ -1523,6 +1527,10 @@ describe('Unit tests for db.js', function () {
                 pageOffset: 1,
                 pageLimit: "uo"
             }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+            await _validatePageOffsetFail({
+                pageOffset: 1,
+                pageLimit: 1001
+            }, "options.pageLimit Cannot exceed 1000");
         });
 
         it('getFromIndex should have valid page limits', async function () {
@@ -1539,13 +1547,13 @@ describe('Unit tests for db.js', function () {
                     id: 100
                 }, {
                     pageOffset: 56,
-                    pageLimit: 290
+                    pageLimit: 1000
                 });
             } catch (_e) {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            expect(savedSql.includes("LIMIT 56, 290")).to.eql(true);
+            expect(savedSql.includes("LIMIT 56, 1000")).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
         });
     });
@@ -2319,6 +2327,9 @@ describe('Unit tests for db.js', function () {
             await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
                 "Expected numbers for options.pageOffset and options.pageLimit but got number and string",
                 [], {pageOffset: 1, pageLimit: "uo"});
+            await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
+                "options.pageLimit Cannot exceed 1000",
+                [], {pageOffset: 1, pageLimit: 1001});
         });
 
         it('getFromIndex should have valid page limits', async function () {

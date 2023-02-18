@@ -253,6 +253,27 @@ describe('Integration: libMySql', function () {
         await deleteData(results);
     });
 
+    it('should be able to do paginated scan and return results from database', async function () {
+        const numberOfEntries = 1500;
+        const results = await testReadWrite(numberOfEntries);
+        let scanResults = await getFromNonIndex(results.tableName, {
+            'lastName': 'Alice',
+            'Age': 100
+        }, {
+            pageOffset: 20,
+            pageLimit: 35
+        });
+        expect(scanResults.length).to.eql(35);
+        expect(scanResults[0].counter).to.eql(35);
+        scanResults = await getFromNonIndex(results.tableName, {}, {
+            pageOffset: 55,
+            pageLimit: 40
+        });
+        expect(scanResults.length).eql(40);
+        expect(scanResults[0].counter).to.eql(55);
+        await deleteData(results);
+    });
+
     it('should be able to do scan and return results from database for nested objects', async function () {
         const numberOfEntries = 100;
         const results = await testReadWrite(numberOfEntries);
@@ -591,29 +612,7 @@ describe('Integration: libMySql', function () {
 });
 
 async function testReadWrite(numberOfWrites) {
-    const document = {
-        'lastName': 'Alice',
-        'Age': 100,
-        'active': true,
-        'location': {
-            'city': 'Banglore',
-            'state': 'Karnataka',
-            'layout': {
-                'block': '1stblock'
-            }
-
-        }
-    };
-    const writePromises = [];
-    for (let i = 0; i < numberOfWrites; i++) {
-        let retPromise = put(tableName, document);
-        writePromises.push(retPromise);
-    }
-    const documentIds = await Promise.all(writePromises);
-    expect(documentIds.length).to.eql(numberOfWrites);
-    documentIds.forEach(id => {
-        expect(id.length).to.eql(32);
-    });
+    const {document, documentIds, tableName} = await populateTestTable(numberOfWrites);
     const readPromises = [];
     documentIds.forEach(id => {
         let readPromise = get(tableName, id);
@@ -626,6 +625,37 @@ async function testReadWrite(numberOfWrites) {
         expect(results.lastName).to.eql(document.lastName);
         expect(results.Age).to.eql(document.Age);
         expect(results.active).to.eql(document.active);
+    });
+    return {
+        'tableName': tableName,
+        'document': document,
+        'documentIds': documentIds
+    };
+}
+
+async function populateTestTable(numberOfWrites) {
+    const document = {
+        'lastName': 'Alice',
+        'Age': 100,
+        'active': true,
+        'location': {
+            'city': 'Banglore',
+            'state': 'Karnataka',
+            'layout': {
+                'block': '1stblock'
+            }
+        }
+    };
+    const writePromises = [];
+    for (let i = 0; i < numberOfWrites; i++) {
+        document.counter = i;
+        let retPromise = put(tableName, document);
+        writePromises.push(retPromise);
+    }
+    const documentIds = await Promise.all(writePromises);
+    expect(documentIds.length).to.eql(numberOfWrites);
+    documentIds.forEach(id => {
+        expect(id.length).to.eql(32);
     });
     return {
         'tableName': tableName,
