@@ -30,11 +30,8 @@ function _getLimitString(options) {
         // default limit
         return `LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
     }
-    if(!options.pageOffset || !options.pageLimit){
-        throw new Error("Expected both options.pageOffset and options.pageLimit to be set.");
-    }
     if(!isNumber(options.pageOffset) || !isNumber(options.pageLimit)){
-        throw new Error(`Expected numbers for options.pageOffset and options.pageLimit but got `
+        throw new Error(`Expected required options options.pageOffset and options.pageLimit as numbers but got `
             + typeof options.pageOffset + " and " + typeof options.pageLimit);
     }
     if(options.pageLimit > 1000){
