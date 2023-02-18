@@ -994,14 +994,14 @@ describe('Unit tests for db.js', function () {
         it('getFromNonIndex should fail on invalid page limits', async function () {
             await _validatePageOffsetFail({
                 pageLimit: 1
-            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got undefined and number");
             await _validatePageOffsetFail({
                 pageOffset: 1
-            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got number and undefined");
             await _validatePageOffsetFail({
                 pageOffset: 1,
                 pageLimit: "uo"
-            }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got number and string");
             await _validatePageOffsetFail({
                 pageOffset: 1,
                 pageLimit: 1001
@@ -1519,14 +1519,14 @@ describe('Unit tests for db.js', function () {
         it('getFromIndex should fail on invalid page limits', async function () {
             await _validatePageOffsetFail({
                 pageLimit: 1
-            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got undefined and number");
             await _validatePageOffsetFail({
                 pageOffset: 1
-            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got number and undefined");
             await _validatePageOffsetFail({
                 pageOffset: 1,
                 pageLimit: "uo"
-            }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+            }, "Expected required options options.pageOffset and options.pageLimit as numbers but got number and string");
             await _validatePageOffsetFail({
                 pageOffset: 1,
                 pageLimit: 1001
@@ -2319,13 +2319,13 @@ describe('Unit tests for db.js', function () {
 
         it('getFromIndex should fail on invalid page limits', async function () {
             await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
-                "Expected both options.pageOffset and options.pageLimit to be set.",
+                "Expected required options options.pageOffset and options.pageLimit as numbers but got undefined and number",
                 [], {pageLimit: 1});
             await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
-                "Expected both options.pageOffset and options.pageLimit to be set.",
+                "Expected required options options.pageOffset and options.pageLimit as numbers but got number and undefined",
                 [], {pageOffset: 1});
             await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
-                "Expected numbers for options.pageOffset and options.pageLimit but got number and string",
+                "Expected required options options.pageOffset and options.pageLimit as numbers but got number and string",
                 [], {pageOffset: 1, pageLimit: "uo"});
             await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
                 "options.pageLimit Cannot exceed 1000",
@@ -2339,6 +2339,13 @@ describe('Unit tests for db.js', function () {
                 " WHERE JSON_CONTAINS(document,'{\"name\": \"v\"}') LIMIT 56, 290", {
                     pageOffset: 56,
                     pageLimit: 290
+                });
+            await _validateQueryPass(`JSON_CONTAINS($,'{"name": "v"}')`,
+                ["name"], // the name field index is not used inside JSON_CONTAINS function currently.
+                "SELECT documentID,document FROM test.customer" +
+                " WHERE JSON_CONTAINS(document,'{\"name\": \"v\"}') LIMIT 0, 10", {
+                    pageOffset: 0,
+                    pageLimit: 10
                 });
         });
     });
