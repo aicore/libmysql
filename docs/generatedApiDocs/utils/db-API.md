@@ -206,6 +206,12 @@ NB: This query will return only 1000 entries.
 
 *   `tableName` **[string][1]** The name of the table you want to query.
 *   `queryObject` **[Object][4]** This is the object that you want to query. (optional, default `{}`)
+*   `options` **[Object][4]** Optional parameter to add pagination. (optional, default `{}`)
+
+    *   `options.pageOffset` **[number][5]** specify which row to start retrieving documents from. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+    *   `options.pageLimit` **[number][5]** specify number of documents to retrieve. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
 
 ### Examples
 
@@ -300,6 +306,12 @@ NB: This query will return only 1000 entries.
 
 *   `tableName` **[string][1]** The name of the table in which the data is stored.
 *   `queryObject` **[Object][4]** This is the object that you want to search for.
+*   `options` **[Object][4]** Optional parameter to add pagination. (optional, default `{}`)
+
+    *   `options.pageOffset` **[number][5]** specify which row to start retrieving documents from. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+    *   `options.pageLimit` **[number][5]** specify number of documents to retrieve. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
 
 ### Examples
 
@@ -377,6 +389,12 @@ fields to search on the index instead of scanning the whole table.
 *   `queryString` **[string][1]** The query as string.
 *   `useIndexForFields` **[Array][7]<[String][1]>** A string array of field names for which the index should be used. Note
     that an index should first be created using `createIndexForJsonField` API. Eg. \['customerID', 'price.tax'] (optional, default `[]`)
+*   `options` **[Object][4]** Optional parameter to add pagination. (optional, default `{}`)
+
+    *   `options.pageOffset` **[number][5]** specify which row to start retrieving documents from. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+    *   `options.pageLimit` **[number][5]** specify number of documents to retrieve. Eg: to get 10 documents from
+        the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
 
 ### Examples
 

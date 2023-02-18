@@ -17,6 +17,30 @@ let CONNECTION = null;
 const SIZE_OF_PRIMARY_KEY = 32;
 
 /**
+ * Gets the limit string for sql query pr the default limit 1000 string
+ * @param {Object} options
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @private
+ */
+function _getLimitString(options) {
+    if(!options.pageLimit && !options.pageOffset){
+        // default limit
+        return `LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
+    }
+    if(!options.pageOffset || !options.pageLimit){
+        throw new Error("Expected both options.pageOffset and options.pageLimit to be set.");
+    }
+    if(!isNumber(options.pageOffset) || !isNumber(options.pageLimit)){
+        throw new Error(`Expected numbers for options.pageOffset and options.pageLimit but got `
+            + typeof options.pageOffset + " and " + typeof options.pageLimit);
+    }
+    return `LIMIT ${options.pageOffset}, ${options.pageLimit}`;
+}
+
+/**
  * It creates a database with the name provided as an argument
  * @param {string} databaseName - The name of the database to create.
  * @returns {Promise<boolean>}- A promise which helps to know if createDataBase is successful
@@ -502,20 +526,25 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
  * statement
  * @param {string} tableName - The name of the table to query.
  * @param {Object} queryObject - The query object that you want to run.
+ * @param {Object} options Optional parameter to add pagination.
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @returns {Object} An object with two properties: getQuery and valArray.
  * @private
  */
-function _prepareQueryForScan(tableName, queryObject) {
+function _prepareQueryForScan(tableName, queryObject, options) {
     if (isObjectEmpty(queryObject)) {
         return {
-            'getQuery': `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} LIMIT 1000 `,
+            'getQuery': `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} ${_getLimitString(options)}`,
             'valArray': []
         };
     }
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const subQuery = _queryScanBuilder(queryObject);
     return {
-        'getQuery': getQuery + subQuery.getQuery + ` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
+        'getQuery': getQuery + subQuery.getQuery + ` ${_getLimitString(options)}`,
         'valArray': subQuery.valArray
     };
 }
@@ -542,10 +571,15 @@ function _prepareQueryForScan(tableName, queryObject) {
  *
  * @param {string} tableName - The name of the table you want to query.
  * @param {Object} queryObject - This is the object that you want to query.
+ * @param {Object} options Optional parameter to add pagination.
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @returns {Promise} - A promise; on promise resolution returns array of  matched documents. if there are
  * no match returns empty array
  */
-export function getFromNonIndex(tableName, queryObject = {}) {
+export function getFromNonIndex(tableName, queryObject = {}, options = {}) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before getFromNonIndex');
@@ -560,11 +594,17 @@ export function getFromNonIndex(tableName, queryObject = {}) {
             return;
             //Todo: Emit metrics
         }
+        let queryParseDone = false;
         try {
-            const queryParams = _prepareQueryForScan(tableName, queryObject);
+            const queryParams = _prepareQueryForScan(tableName, queryObject, options);
+            queryParseDone = true;
             _queryIndex(queryParams, resolve, reject);
         } catch (e) {
-            const errorMessage = `Exception occurred while getting data ${e.stack}`;
+            if (!queryParseDone) {
+                reject(e.message); // return helpful error messages from query parser
+                return;
+            }
+            const errorMessage = `Exception occurred while getting data`;
             reject(errorMessage);
             //TODO: Emit Metrics
         }
@@ -818,13 +858,18 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
  * It takes a table name and a query object and returns a query string and an array of values
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param{Object} queryObject - The object that you want to search for.
+ * @param {Object} options Optional parameter to add pagination.
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @private
  */
-function _prepareQueryOfIndexSearch(tableName, queryObject) {
+function _prepareQueryOfIndexSearch(tableName, queryObject, options) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const result = _prepareQueryForNestedObject(queryObject);
     return {
-        'getQuery': getQuery + result.getQuery + ` LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`,
+        'getQuery': getQuery + result.getQuery + ` ${_getLimitString(options)}`,
         'valArray': result.valArray
     };
 }
@@ -878,10 +923,15 @@ function _queryIndex(queryParams, resolve, reject) {
  *
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param {Object} queryObject - This is the object that you want to search for.
+ * @param {Object} options Optional parameter to add pagination.
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */
-export function getFromIndex(tableName, queryObject) {
+export function getFromIndex(tableName, queryObject, options = {}) {
 
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -897,10 +947,16 @@ export function getFromIndex(tableName, queryObject) {
             return;
             //Todo: Emit metrics
         }
+        let queryParseDone = false;
         try {
-            const queryParams = _prepareQueryOfIndexSearch(tableName, queryObject);
+            const queryParams = _prepareQueryOfIndexSearch(tableName, queryObject, options);
+            queryParseDone = true;
             _queryIndex(queryParams, resolve, reject);
         } catch (e) {
+            if (!queryParseDone) {
+                reject(e.message); // return helpful error messages from query parser
+                return;
+            }
             const errorMessage = `Exception occurred while querying index`;
             reject(errorMessage);
             //TODO: Emit Metrics
@@ -1046,13 +1102,18 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
  * @param {string} tableName - The name of the table in which the data is stored.
  * @param {string} queryString - The cocDB query string.
  * @param {Array[string]} indexedFieldsArray - List of indexed fields in the document.
+ * @param {Object} options
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @return {string} the sql query as string
  * @private
  */
-function _prepareQuery(tableName, queryString, indexedFieldsArray) {
+function _prepareQuery(tableName, queryString, indexedFieldsArray, options) {
     let sqlQuery = Query.transformCocoToSQLQuery(queryString, indexedFieldsArray);
     return `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName}`
-        + ` WHERE ${sqlQuery} LIMIT ${MAX_NUMBER_OF_DOCS_ALLOWED}`;
+        + ` WHERE ${sqlQuery} ${_getLimitString(options)}`;
 }
 
 /**
@@ -1135,10 +1196,15 @@ function _executeQuery(sqlQuery, resolve, reject) {
  * @param {string} queryString The query as string.
  * @param {Array<String>} useIndexForFields A string array of field names for which the index should be used. Note
  * that an index should first be created using `createIndexForJsonField` API. Eg. ['customerID', 'price.tax']
+ * @param {Object} options Optional parameter to add pagination.
+ * @param {number} options.pageOffset specify which row to start retrieving documents from. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
+ * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */
-export function query(tableName, queryString, useIndexForFields = []) {
+export function query(tableName, queryString, useIndexForFields = [], options ={}) {
 
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
@@ -1156,7 +1222,7 @@ export function query(tableName, queryString, useIndexForFields = []) {
         }
         let queryParseDone = false;
         try {
-            const sqlQuery = _prepareQuery(tableName, queryString, useIndexForFields);
+            const sqlQuery = _prepareQuery(tableName, queryString, useIndexForFields, options);
             queryParseDone = true;
             _executeQuery(sqlQuery, resolve, reject);
         } catch (e) {

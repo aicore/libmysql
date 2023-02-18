@@ -27,8 +27,8 @@ describe('Unit tests for db.js', function () {
                 "yo\"= \"x\" OR 1 != (SELECT COUNT(*) FROM test.arun) OR not \"1": "x"
             });
         } catch (e) {
-            expect(e.split('\n')[0]).to.eql('Exception occurred while getting data Error:' +
-                ` Invalid filed name yo"= "x" OR 1 != (SELECT COUNT(*) FROM test.arun) OR not "1`);
+            expect(e.split('\n')[0]).to.eql(
+                `Invalid filed name yo"= "x" OR 1 != (SELECT COUNT(*) FROM test.arun) OR not "1`);
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);

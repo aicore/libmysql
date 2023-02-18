@@ -744,8 +744,7 @@ describe('Unit tests for db.js', function () {
         try {
             await getFromNonIndex(tableName, JSON.parse(`{"${name}":"test"}`));
         } catch (e) {
-            expectedErrorMessage = expectedErrorMessage || 'Exception occurred while getting data Error:' +
-                ` Invalid filed name ${name}`;
+            expectedErrorMessage = expectedErrorMessage || `Invalid filed name ${name}`;
             expect(e.split('\n')[0]).to.eql(expectedErrorMessage);
             isExceptionOccurred = true;
         }
@@ -970,6 +969,62 @@ describe('Unit tests for db.js', function () {
 
             }
             expect(exceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        async function _validatePageOffsetFail(pageOptions, expectedFailureMessage) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await getFromNonIndex(tableName, {
+                    id: 100
+                }, pageOptions);
+            } catch (e) {
+                expect(e).to.eql(expectedFailureMessage);
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        }
+
+        it('getFromNonIndex should fail on invalid page limits', async function () {
+            await _validatePageOffsetFail({
+                pageLimit: 1
+            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            await _validatePageOffsetFail({
+                pageOffset: 1
+            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            await _validatePageOffsetFail({
+                pageOffset: 1,
+                pageLimit: "uo"
+            }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+        });
+
+        it('getFromNonIndex should have valid page limits', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await getFromNonIndex(tableName, {
+                    id: 100
+                }, {
+                    pageOffset: 56,
+                    pageLimit: 290
+                });
+            } catch (_e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            expect(savedSQL.includes("LIMIT 56, 290")).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
         });
     });
@@ -1435,6 +1490,62 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        async function _validatePageOffsetFail(pageOptions, expectedFailureMessage) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await getFromIndex(tableName, {
+                    id: 100
+                }, pageOptions);
+            } catch (e) {
+                expect(e).to.eql(expectedFailureMessage);
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        }
+
+        it('getFromIndex should fail on invalid page limits', async function () {
+            await _validatePageOffsetFail({
+                pageLimit: 1
+            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            await _validatePageOffsetFail({
+                pageOffset: 1
+            }, "Expected both options.pageOffset and options.pageLimit to be set.");
+            await _validatePageOffsetFail({
+                pageOffset: 1,
+                pageLimit: "uo"
+            }, "Expected numbers for options.pageOffset and options.pageLimit but got number and string");
+        });
+
+        it('getFromIndex should have valid page limits', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSql;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSql = sql;
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await getFromIndex(tableName, {
+                    id: 100
+                }, {
+                    pageOffset: 56,
+                    pageLimit: 290
+                });
+            } catch (_e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            expect(savedSql.includes("LIMIT 56, 290")).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
         });
     });
@@ -2017,7 +2128,7 @@ describe('Unit tests for db.js', function () {
         async function _validateQueryFail(queryString,
             tableName = 'hello',
             expectedException = 'please provide valid queryString',
-            indexFields = []) {
+            indexFields = [], options) {
             const saveExecute = mockedFunctions.connection.execute;
             mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
@@ -2025,7 +2136,7 @@ describe('Unit tests for db.js', function () {
             let isExceptionOccurred = false;
 
             try {
-                await query(tableName, queryString, indexFields);
+                await query(tableName, queryString, indexFields, options);
             } catch (e) {
                 expect(e).to.eql(expectedException);
                 isExceptionOccurred = true;
@@ -2117,7 +2228,7 @@ describe('Unit tests for db.js', function () {
             mockedFunctions.connection.execute = saveExecute;
         });
 
-        async function _validateQueryPass(queryString, indexedFields, expectedSqlQuery) {
+        async function _validateQueryPass(queryString, indexedFields, expectedSqlQuery, options) {
             const saveExecute = mockedFunctions.connection.execute;
             let sqlQuery;
             mockedFunctions.connection.execute = function (sql, callback) {
@@ -2127,7 +2238,7 @@ describe('Unit tests for db.js', function () {
             const tableName = 'test.customer';
             let isExceptionOccurred = false;
             try {
-                const results = await query(tableName, queryString, indexedFields);
+                const results = await query(tableName, queryString, indexedFields, options);
                 expect(results[0].lastName).to.eql('Alice');
                 expect(results[0].Age).to.eql(100);
                 expect(results[0].active).to.eql(true);
@@ -2196,6 +2307,28 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).to.eql(false);
             mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('getFromIndex should fail on invalid page limits', async function () {
+            await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
+                "Expected both options.pageOffset and options.pageLimit to be set.",
+                [], {pageLimit: 1});
+            await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
+                "Expected both options.pageOffset and options.pageLimit to be set.",
+                [], {pageOffset: 1});
+            await _validateQueryFail("NOT($.x>$.y) AND !$", 'test.customer',
+                "Expected numbers for options.pageOffset and options.pageLimit but got number and string",
+                [], {pageOffset: 1, pageLimit: "uo"});
+        });
+
+        it('getFromIndex should have valid page limits', async function () {
+            await _validateQueryPass(`JSON_CONTAINS($,'{"name": "v"}')`,
+                ["name"], // the name field index is not used inside JSON_CONTAINS function currently.
+                "SELECT documentID,document FROM test.customer" +
+                " WHERE JSON_CONTAINS(document,'{\"name\": \"v\"}') LIMIT 56, 290", {
+                    pageOffset: 56,
+                    pageLimit: 290
+                });
         });
     });
 });
