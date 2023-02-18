@@ -649,7 +649,7 @@ async function populateTestTable(numberOfWrites) {
     const writePromises = [];
     for (let i = 0; i < numberOfWrites; i++) {
         document.counter = i;
-        let retPromise = put(tableName, document);
+        let retPromise = put(tableName, structuredClone(document));
         writePromises.push(retPromise);
     }
     const documentIds = await Promise.all(writePromises);
