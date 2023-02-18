@@ -135,13 +135,19 @@ const queryObject = {
     'Age': 100
 };
 try {
-    const documents = await getFromNonIndex(tableName, queryObject);
+    const documents = await getFromNonIndex(tableName, queryObject);     
     console.log(JSON.stringify(documents));
 } catch (e) {
     console.error(JSON.stringify(e));
 }
 close();
 ```
+Note that only a maximum of 1000 entries will be returned. Use page options to get paginated results.
+To get paginated results past 1000 results, Eg. `getFromNonIndex(tableName, queryObject, {pageOffset: 56,pageLimit: 1000});`
+* pageOffset [number]: specify which row to start retrieving documents from. Eg: to get 10 documents from
+  the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
+* pageLimit [number]: specify number of documents to retrieve. Eg: to get 10 documents from
+  the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
 
 ### How to delete a table?
 
@@ -203,6 +209,13 @@ try {
 }
 close();
 ```
+
+Note that only a maximum of 1000 entries will be returned. Use page options to get paginated results.
+To get paginated results past 1000 results, Eg. `getFromIndex(tableName, queryObject, {pageOffset: 56,pageLimit: 1000});`
+* pageOffset [number]: specify which row to start retrieving documents from. Eg: to get 10 documents from
+  the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
+* pageLimit [number]: specify number of documents to retrieve. Eg: to get 10 documents from
+  the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
 
 ### How to update / re-write an existing document?
 
