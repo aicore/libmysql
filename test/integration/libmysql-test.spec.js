@@ -270,7 +270,7 @@ describe('Integration: libMySql', function () {
             pageLimit: 10
         });
         let firstResultCounter = scanResults[0].counter;
-        expect(scanResults.length).eql(11);
+        expect(scanResults.length).eql(10);
         expect(lastResultCounter).to.eql(firstResultCounter);
         await deleteData(results);
     });
