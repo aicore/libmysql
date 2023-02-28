@@ -237,6 +237,9 @@ const document = {
 
 try {
     const docId = await update(tableName, docId, document);
+    // or if you want to do conditional updates, ie update the document
+    // only if the condition specified is satisfied.
+    const docId1 = await update(tableName, docId, document, "$.Age=20");
 } catch (e) {
     console.error(JSON.stringify(e));
 }
