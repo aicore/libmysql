@@ -965,9 +965,23 @@ export function getFromIndex(tableName, queryObject, options = {}) {
 }
 
 /**
- * It updates the document in the database
- * This api will overwrite current document with new document
+ * Updates the document in the database. Conditional updates are also supported with the optional condition parameter.
+ * This api will overwrite current document with new document.
  * @example <caption> Sample code </caption>
+ *
+ * const docId = 1234;
+ * const document = {
+ *             'lastName': 'Alice1',
+ *             'Age': 140,
+ *             'active': true
+ *              };
+ * try{
+ *      await update(tableName, docId, document);
+ * } catch(e){
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ * @example <caption> Conditional update Sample code </caption>
  *
  * const docId = 1234;
  * const document = {
@@ -983,9 +997,12 @@ export function getFromIndex(tableName, queryObject, options = {}) {
  * @param tableName - The name of the table to update.
  * @param documentId - The primary key of the document to be updated.
  * @param document - The document to be inserted.
- * @returns {Promise} A promise on resolving promise will get documentId
+ * @param {string} [condition] - Optional coco query condition of the form "$.cost<35" that must be satisfied
+ * for update to happen. See query API for more details on how to write coco query strings.
+ * @returns {Promise<string>} A promise resolves with documentId if success, or rejects if update failed
+ * as either document not found or the condition not satisfied.
  */
-export function update(tableName, documentId, document) {
+export function update(tableName, documentId, document, condition) {
     return new Promise((resolve, reject) => {
         if (!CONNECTION) {
             reject('Please call init before update');
@@ -1002,14 +1019,26 @@ export function update(tableName, documentId, document) {
             return;
             //Todo: Emit metrics
         }
-        const updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ?;`;
         try {
+            let updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ?;`;
+            if(condition){
+                const sqlCondition = Query.transformCocoToSQLQuery(condition, []);
+                updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ? AND (${sqlCondition});`;
+            }
             CONNECTION.execute(updateQuery, [document, documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while updating data  ${JSON.stringify(err)}`);
+                        console.error(`Error occurred while updating data  ${JSON.stringify(err)}`);
                         reject(err);
+                        return;
+                    }
+                    if (_results.affectedRows !== 1 && !condition) {
+                        reject('Not updated- unable to find documentId');
+                        return;
+                    }
+                    if (_results.affectedRows !== 1 && condition) {
+                        reject('Not updated- condition failed or unable to find documentId');
                         return;
                     }
                     resolve(documentId);

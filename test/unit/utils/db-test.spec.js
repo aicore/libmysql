@@ -1669,10 +1669,88 @@ describe('Unit tests for db.js', function () {
             expect(isExceptionOccurred).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
         });
+        it('update should fail if document not found', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows:0}, []);
+            };
+            const tableName = 'test.customer';
+            const docId = '1000';
+            let exception;
+            const document = {
+                'lastName': 'Alice',
+                'Age': 100
+            };
+            try {
+                const id = await update(tableName, docId, document);
+                expect(id).to.eql(docId);
+
+            } catch (e) {
+                exception = e;
+            }
+            expect(exception).to.eql("Not updated- unable to find documentId");
+            expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?;');
+            mockedFunctions.connection.execute = saveExecute;
+        });
+        it('update should fail if condition fails', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows:0}, []);
+            };
+            const tableName = 'test.customer';
+            const docId = '1000';
+            let exception;
+            const document = {
+                'lastName': 'Alice',
+                'Age': 100
+            };
+            try {
+                const id = await update(tableName, docId, document, '$.Age>100');
+                expect(id).to.eql(docId);
+
+            } catch (e) {
+                exception = e;
+            }
+            expect(exception).to.eql("Not updated- condition failed or unable to find documentId");
+            expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?' +
+                ' AND (document->>"$.Age">100);');
+            mockedFunctions.connection.execute = saveExecute;
+        });
+        it('update should fail if SQL injection attack in condition string', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let executeCalled = false;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                executeCalled = true;
+                callback(null, {affectedRows:0}, []);
+            };
+            const tableName = 'test.customer';
+            const docId = '1000';
+            let exception;
+            const document = {
+                'lastName': 'Alice',
+                'Age': 100
+            };
+            try {
+                const id = await update(tableName, docId, document, 'SELECT * FROM tab');
+                expect(id).to.eql(docId);
+
+            } catch (e) {
+                exception = e;
+            }
+            expect(exception.startsWith("Exception occurred while writing to database Error: Unknown query function" +
+                " SELECT in query SELECT * FROM tab")).to.be.true;
+            expect(executeCalled).to.be.false;
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
         it('update should pass for valid parameters', async function () {
             const saveExecute = mockedFunctions.connection.execute;
             mockedFunctions.connection.execute = function (sql, values, callback) {
-                callback(null, [], []);
+                callback(null, {affectedRows:1}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -1689,6 +1767,32 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+        it('update should pass for valid parameters and condition', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows:1}, []);
+            };
+            const tableName = 'test.customer';
+            const docId = '1000';
+            let isExceptionOccurred = false;
+            const document = {
+                'lastName': 'Alice',
+                'Age': 100
+            };
+            try {
+                const id = await update(tableName, docId, document, "$.Age>10");
+                expect(id).to.eql(docId);
+
+            } catch (e) {
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(false);
+            expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?' +
+                ' AND (document->>"$.Age">10);');
             mockedFunctions.connection.execute = saveExecute;
         });
     });
