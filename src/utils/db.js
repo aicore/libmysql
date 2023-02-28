@@ -990,7 +990,8 @@ export function getFromIndex(tableName, queryObject, options = {}) {
  *             'active': true
  *              };
  * try{
- *      await update(tableName, docId, document);
+ *      // will update only if the existing document exists and the document has field `Age` with Value 100.
+ *      await update(tableName, docId, document, "$.Age=100");
  * } catch(e){
  *     console.error(JSON.stringify(e));
  * }
