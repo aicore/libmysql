@@ -336,14 +336,16 @@ no matches returns empty array. if there are any errors will throw an exception
 
 ## update
 
-It updates the document in the database
-This api will overwrite current document with new document
+Updates the document in the database. Conditional updates are also supported with the optional condition parameter.
+This api will overwrite current document with new document.
 
 ### Parameters
 
 *   `tableName`  The name of the table to update.
 *   `documentId`  The primary key of the document to be updated.
 *   `document`  The document to be inserted.
+*   `condition` **[string][1]?** Optional coco query condition of the form "$.cost<35" that must be satisfied
+    for update to happen. See query API for more details on how to write coco query strings.
 
 ### Examples
 
@@ -363,7 +365,24 @@ try{
 }
 ```
 
-Returns **[Promise][2]** A promise on resolving promise will get documentId
+Conditional update Sample code
+
+```javascript
+const docId = 1234;
+const document = {
+            'lastName': 'Alice1',
+            'Age': 140,
+            'active': true
+             };
+try{
+     await update(tableName, docId, document);
+} catch(e){
+    console.error(JSON.stringify(e));
+}
+```
+
+Returns **[Promise][2]<[string][1]>** A promise resolves with documentId if success, or rejects if update failed
+as either document not found or the condition not satisfied.
 
 ## mathAdd
 

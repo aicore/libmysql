@@ -228,6 +228,49 @@ describe('Integration: libMySql', function () {
 
 
     });
+    it('should be able to update data on condition', async function () {
+
+        let document = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        const docId1 = await put(tableName, document);
+        let results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
+
+        let document2 = {
+            'lastName': 'Alice1',
+            'Age': 140,
+            'active': true
+        };
+        // this update should fail as condition not satisfied
+        let exceptionOccurred = false;
+        try{
+            await update(tableName, docId1, document2, "NOT($.Age = 100)");
+        } catch(e) {
+            exceptionOccurred = true;
+        }
+        expect(exceptionOccurred).to.be.true;
+        results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
+
+        // this update should pass as condition satisfied
+        await update(tableName, docId1, document2, "$.Age = 100");
+        results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document2.lastName);
+        expect(results.Age).to.eql(document2.Age);
+        expect(results.active).to.eql(document2.active);
+
+        await deleteKey(tableName, docId1);
+
+
+    });
+
     it('should be able to do scan and return results from database', async function () {
         const numberOfEntries = 1500;
         const results = await testReadWrite(numberOfEntries);
