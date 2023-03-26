@@ -425,6 +425,64 @@ export function deleteKey(tableName, documentID) {
 }
 
 /**
+ * Deletes a document from the database based the given query condition and returns the number of documents deleted.
+ * @example <caption> Sample code </caption>
+ *
+ * const tableName = 'dbName:customers';
+ * try {
+ *    // delete all documents with field 'location.city' set to paris
+ *    let deletedDocumentCount = await deleteDocuments(tableName, "$.location.city  = 'paris'", ['location.city']);
+ * } catch(e) {
+ *    console.error(e);
+ * }
+ *
+ * @param {string} tableName - The name of the table in which the key is to be deleted.
+ * @param {string} queryString - The cocDB query string.
+ * @param {Array[string]} useIndexForFields - List of indexed fields in the document.
+ * @returns {Promise} A promise `resolve` with the number of deleted documents or throws an exception for failure.
+ */
+export function deleteDocuments(tableName, queryString, useIndexForFields = []) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before deleteDocuments');
+            return;
+        }
+        if (!_isValidTableName(tableName)) {
+            reject('please provide valid table name');
+            return;
+            //Todo: Emit metrics
+        }
+        if (!isString(queryString) || isStringEmpty(queryString)) {
+            reject(`please provide valid queryString`);
+            return;
+        }
+        let queryParseDone = false;
+        try {
+            let sqlQuery = Query.transformCocoToSQLQuery(queryString, useIndexForFields);
+            queryParseDone = true;
+            const deleteQuery = `DELETE FROM ${tableName} WHERE ${sqlQuery};`;
+            CONNECTION.execute(deleteQuery,
+                function (err, results, _fields) {
+                    //TODO: emit success or failure metrics based on return value
+                    if (err) {
+                        console.error(`Error occurred while while deleteDocuments  ${JSON.stringify(err)}`);
+                        reject(err);
+                        return;
+                    }
+                    resolve(results.affectedRows);
+                });
+        } catch (e) {
+            if (!queryParseDone) {
+                reject(e.message); // return helpful error messages from query parser
+                return;
+            }
+            reject("Exception occurred while deleting");
+            //TODO: Emit Metrics
+        }
+    });
+}
+
+/**
  * It takes in a table name and documentId, and returns a promise that resolves to the document
  * @example <caption> sample code </caption>
  * const tableName = 'customers';
@@ -1274,6 +1332,7 @@ const DB = {
     get,
     put,
     deleteKey,
+    deleteDocuments,
     getFromNonIndex,
     deleteTable,
     createIndexForJsonField,
