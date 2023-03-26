@@ -669,6 +669,24 @@ describe('Integration: libMySql', function () {
         deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10");
         expect(deletedDocCount).eql(0);
     });
+    it('deleteDocuments without index field should delete multiple document', async function () {
+        await populateTestTable(100);
+        let results = await query(tableName, "$.counter  >= 10 AND $.counter  <= 27");
+        expect(results.length).eql(18);
+
+        let deletedDocCount = await deleteDocuments(tableName, "$.counter  >= 10 AND $.counter  <= 27");
+        expect(deletedDocCount).eql(18);
+        results = await query(tableName, "$.counter  >= 10 AND $.counter  <= 27");
+        expect(results.length).eql(0);
+
+        // deleting again should delete no documents as there are none
+        deletedDocCount = await deleteDocuments(tableName, "$.counter  >= 10 AND $.counter  <= 27");
+        expect(deletedDocCount).eql(0);
+
+        // count remaining documents to verify nothing else gets deleted
+        results = await query(tableName, "$.Age  = 100"); // all has age 100
+        expect(results.length).eql(82);
+    });
     it('deleteDocuments with index field should delete single document', async function () {
         const createIndexStatus = await createIndexForJsonField(tableName, 'counter', DATA_TYPES.VARCHAR(), false, true);
         expect(createIndexStatus).eql(true);
@@ -685,6 +703,26 @@ describe('Integration: libMySql', function () {
         // deleting again should delete no documents as there are none
         deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10", ['counter']);
         expect(deletedDocCount).eql(0);
+    });
+    it('deleteDocuments with index field should delete multiple document', async function () {
+        const createIndexStatus = await createIndexForJsonField(tableName, 'counter', DATA_TYPES.VARCHAR(), false, true);
+        expect(createIndexStatus).eql(true);
+        await populateTestTable(100);
+        let results = await query(tableName, "$.counter  >= 10 AND $.counter  <= 27", ['counter']);
+        expect(results.length).eql(18);
+
+        let deletedDocCount = await deleteDocuments(tableName, "$.counter  >= 10 AND $.counter  <= 27", ['counter']);
+        expect(deletedDocCount).eql(18);
+        results = await query(tableName, "$.counter  >= 10 AND $.counter  <= 27", ['counter']);
+        expect(results.length).eql(0);
+
+        // deleting again should delete no documents as there are none
+        deletedDocCount = await deleteDocuments(tableName, "$.counter  >= 10 AND $.counter  <= 27", ['counter']);
+        expect(deletedDocCount).eql(0);
+
+        // count remaining documents to verify nothing else gets deleted
+        results = await query(tableName, "$.Age  = 100"); // all has age 100
+        expect(results.length).eql(82);
     });
 });
 
