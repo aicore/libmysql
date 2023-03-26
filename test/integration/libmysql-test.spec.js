@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close, createDataBase, deleteDataBase, mathAdd, query} from "../../src/utils/db.js";
+import {init, close, createDataBase, deleteDataBase, mathAdd, query, deleteDocuments} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -652,6 +652,39 @@ describe('Integration: libMySql', function () {
         expect(results[0].Age).eql(100);
         expect(results[0].location.state).eql('Karnataka');
 
+    });
+
+    // delete documents tests
+    it('deleteDocuments without index field should delete single document', async function () {
+        await populateTestTable(100);
+        let results = await query(tableName, "$.counter  = 10");
+        expect(results.length).eql(1);
+
+        let deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10");
+        expect(deletedDocCount).eql(1);
+        results = await query(tableName, "$.counter  = 10");
+        expect(results.length).eql(0);
+
+        // deleting again should delete no documents as there are none
+        deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10");
+        expect(deletedDocCount).eql(0);
+    });
+    it('deleteDocuments with index field should delete single document', async function () {
+        const createIndexStatus = await createIndexForJsonField(tableName, 'counter', DATA_TYPES.VARCHAR(), false, true);
+        expect(createIndexStatus).eql(true);
+
+        await populateTestTable(100);
+        let results = await query(tableName, "$.counter  = 10", ['counter']);
+        expect(results.length).eql(1);
+
+        let deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10", ['counter']);
+        expect(deletedDocCount).eql(1);
+        results = await query(tableName, "$.counter  = 10", ['counter']);
+        expect(results.length).eql(0);
+
+        // deleting again should delete no documents as there are none
+        deletedDocCount = await deleteDocuments(tableName, "$.counter  = 10", ['counter']);
+        expect(deletedDocCount).eql(0);
     });
 });
 
