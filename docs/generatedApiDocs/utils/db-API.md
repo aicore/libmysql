@@ -167,6 +167,32 @@ try {
 Returns **[Promise][2]** A promise `resolve` promise to get status of delete. promise will resolve to true
 for success and  throws an exception for failure.
 
+## deleteDocuments
+
+Deletes a document from the database based the given query condition and returns the number of documents deleted.
+
+### Parameters
+
+*   `tableName` **[string][1]** The name of the table in which the key is to be deleted.
+*   `queryString` **[string][1]** The cocDB query string.
+*   `useIndexForFields`   (optional, default `[]`)
+
+### Examples
+
+Sample code
+
+```javascript
+const tableName = 'dbName:customers';
+try {
+   // delete all documents with field 'location.city' set to paris
+   let deletedDocumentCount = await deleteDocuments(tableName, "$.location.city  = 'paris'", ['location.city']);
+} catch(e) {
+   console.error(e);
+}
+```
+
+Returns **[Promise][2]** A promise `resolve` with the number of deleted documents or throws an exception for failure.
+
 ## get
 
 It takes in a table name and documentId, and returns a promise that resolves to the document

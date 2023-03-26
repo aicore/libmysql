@@ -16,7 +16,7 @@ import {
     update,
     createDataBase,
     deleteDataBase,
-    mathAdd, query
+    mathAdd, query, deleteDocuments
 } from "../../../src/utils/db.js";
 import {
     JSON_COLUMN,
@@ -730,6 +730,161 @@ describe('Unit tests for db.js', function () {
             const result = await deleteKey(tableName, documentId);
             expect(result).to.eql(true);
 
+            mockedFunctions.connection.execute = saveExecute;
+        });
+    });
+
+    describe('deleteDocument API tests', function () {
+        it('deleteDocument should fail if connection not initialise', async function () {
+            close();
+            let exceptionOccurred = false;
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                callback(null, {
+                    ResultSetHeader: {
+                        fieldCount: 0,
+                        affectedRows: 0,
+                        insertId: 0,
+                        info: '',
+                        serverStatus: 2,
+                        warningStatus: 0
+                    }
+                }, {});
+            };
+            const tableName = 'hello';
+            try {
+                await deleteDocuments(tableName, '$.x=10');
+            } catch (e) {
+                exceptionOccurred = true;
+                expect(e.toString()).to.eql('Please call init before deleteDocuments');
+            }
+            expect(exceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteDocuments should fail for empty table name', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = '';
+            let isExceptionOccurred = false;
+            try {
+                await deleteDocuments(tableName, '$.x=10');
+            } catch (e) {
+                expect(e).to.eql('please provide valid table name');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+
+        });
+        it('deleteDocuments should fail for null table name', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = null;
+            let isExceptionOccurred = false;
+            try {
+                await deleteDocuments(tableName, '$.x=10');
+            } catch (e) {
+                expect(e).to.eql('please provide valid table name');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteDocuments should fail for number table name', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 1;
+            let isExceptionOccurred = false;
+            try {
+                await deleteDocuments(tableName, '$.x=10');
+            } catch (e) {
+                expect(e).to.eql('please provide valid table name');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteDocuments should fail for null query', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await deleteDocuments(tableName, null);
+            } catch (e) {
+                expect(e).to.eql('please provide valid queryString');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteDocuments should fail empty primary key', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, [], []);
+            };
+            const tableName = 'test.hello';
+            let isExceptionOccurred = false;
+            try {
+                await deleteDocuments(tableName, '');
+            } catch (e) {
+                expect(e).to.eql('please provide valid queryString');
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+        it('deleteDocuments should return the number of affected rows', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let simulatedAffectedRows = 13;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                callback(null, {affectedRows: simulatedAffectedRows});
+            };
+            const tableName = 'test.hello';
+            let affectedRows = await deleteDocuments(tableName, '$.x<10');
+            expect(affectedRows).to.eql(13);
+
+            simulatedAffectedRows = 0;
+            affectedRows = await deleteDocuments(tableName, '$.x<10');
+            expect(affectedRows).to.eql(0);
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteDocuments should generate the correct SQL query with no index', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSql;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                savedSql = sql;
+                callback(null, {affectedRows: 1});
+            };
+            const tableName = 'test.hello';
+            await deleteDocuments(tableName, '$.x<10');
+            expect(savedSql).to.eql("DELETE FROM test.hello WHERE document->>\"$.x\"<10;");
+            mockedFunctions.connection.execute = saveExecute;
+        });
+        it('deleteDocuments should generate the correct SQL query with indexed fields', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSql;
+            mockedFunctions.connection.execute = function (sql, callback) {
+                savedSql = sql;
+                callback(null, {affectedRows: 1});
+            };
+            const tableName = 'test.hello';
+            await deleteDocuments(tableName, "$.x<10 AND $.hotel.name='oyo'", ['hotel.name']);
+            expect(savedSql).to.eql("DELETE FROM test.hello WHERE document->>\"$.x\"<10" +
+                " AND b978c733175ca5d9503b1cc095eece1f='oyo';");
             mockedFunctions.connection.execute = saveExecute;
         });
     });
