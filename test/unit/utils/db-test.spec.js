@@ -732,6 +732,50 @@ describe('Unit tests for db.js', function () {
 
             mockedFunctions.connection.execute = saveExecute;
         });
+
+        it('deleteKey conditional option should work', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSql;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSql = sql;
+                callback(null, {
+                    ResultSetHeader: {
+                        fieldCount: 0,
+                        affectedRows: 0,
+                        insertId: 0,
+                        info: '',
+                        serverStatus: 2,
+                        warningStatus: 0
+                    }
+                }, {});
+            };
+            const tableName = 'test.hello';
+            const documentId = generateStringSequence('a', 16);
+
+            const result = await deleteKey(tableName, documentId, "$.age<10");
+            expect(result).to.eql(true);
+            expect(savedSql).to.eql("DELETE FROM test.hello WHERE documentID= ? AND (document->>\"$.age\"<10);");
+
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('deleteKey condition SQL injection attack should fail', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function () {
+                throw "should never reach here";
+            };
+            const tableName = 'test.hello';
+            const documentId = generateStringSequence('a', 16);
+            let error;
+            try {
+                await deleteKey(tableName, documentId, "DROP table x");
+            } catch (e) {
+                error = e;
+            }
+            expect(error.message).to.eql("Unknown query function DROP in query DROP table x");
+
+            mockedFunctions.connection.execute = saveExecute;
+        });
     });
 
     describe('deleteDocument API tests', function () {

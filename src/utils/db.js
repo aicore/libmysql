@@ -371,7 +371,8 @@ function createDocumentId() {
 }
 
 /**
- * It deletes a document from the database based on the document id
+ * It deletes a document from the database based on the document id. Conditional deletes are also supported
+ * with the optional condition parameter.
  * @example <caption> Sample code </caption>
  *
  * const tableName = 'customers';
@@ -382,12 +383,25 @@ function createDocumentId() {
  *    console.error(JSON.stringify(e));
  * }
  *
+ * @example <caption> Sample code with conditional option</caption>
+ *
+ * const tableName = 'customers';
+ * const documentID = '123456';
+ * try {
+ *    // Eg. delete the document only if the last modified is equals 21
+ *    await deleteKey(tableName, documentID, "$.lastModified=21");
+ * } catch(e) {
+ *    console.error(JSON.stringify(e));
+ * }
+ *
  * @param {string} tableName - The name of the table in which the key is to be deleted.
  * @param {string} documentID -  document id to be deleted
+ * @param {string} [condition] - Optional coco query condition of the form "$.cost<35" that must be satisfied
+ * for delete to happen. See query API for more details on how to write coco query strings.
  * @returns {Promise}A promise `resolve` promise to get status of delete. promise will resolve to true
  * for success and  throws an exception for failure.
  */
-export function deleteKey(tableName, documentID) {
+export function deleteKey(tableName, documentID, condition) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
             reject('Please call init before deleteKey');
@@ -404,7 +418,11 @@ export function deleteKey(tableName, documentID) {
             //Todo: Emit metrics
         }
 
-        const deleteQuery = `DELETE FROM ${tableName} WHERE ${PRIMARY_COLUMN}= ?;`;
+        let deleteQuery = `DELETE FROM ${tableName} WHERE ${PRIMARY_COLUMN}= ?;`;
+        if(condition){
+            const sqlCondition = Query.transformCocoToSQLQuery(condition, []);
+            deleteQuery = `DELETE FROM ${tableName} WHERE ${PRIMARY_COLUMN}= ? AND (${sqlCondition});`;
+        }
         try {
             CONNECTION.execute(deleteQuery, [documentID],
                 function (err, _results, _fields) {
