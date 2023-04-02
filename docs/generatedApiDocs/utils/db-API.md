@@ -143,12 +143,15 @@ otherwise. DocumentId is an alphanumeric string of length 128
 
 ## deleteKey
 
-It deletes a document from the database based on the document id
+It deletes a document from the database based on the document id. Conditional deletes are also supported
+with the optional condition parameter.
 
 ### Parameters
 
 *   `tableName` **[string][1]** The name of the table in which the key is to be deleted.
 *   `documentID` **[string][1]** document id to be deleted
+*   `condition` **[string][1]?** Optional coco query condition of the form "$.cost<35" that must be satisfied
+    for delete to happen. See query API for more details on how to write coco query strings.
 
 ### Examples
 
@@ -159,6 +162,19 @@ const tableName = 'customers';
 const documentID = '123456';
 try {
    await deleteKey(tableName, documentID);
+} catch(e) {
+   console.error(JSON.stringify(e));
+}
+```
+
+Sample code with conditional option
+
+```javascript
+const tableName = 'customers';
+const documentID = '123456';
+try {
+   // Eg. delete the document only if the last modified is equals 21
+   await deleteKey(tableName, documentID, "$.lastModified=21");
 } catch(e) {
    console.error(JSON.stringify(e));
 }
