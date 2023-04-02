@@ -228,6 +228,41 @@ describe('Integration: libMySql', function () {
 
 
     });
+
+    it('should delete data only if condition is satisfied', async function () {
+
+        let document = {
+            'lastName': 'Alice',
+            'Age': 100,
+            'active': true
+        };
+        const docId1 = await put(tableName, document);
+        let results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document.lastName);
+        expect(results.Age).to.eql(document.Age);
+        expect(results.active).to.eql(document.active);
+
+        // no delete with condition that doesn't match
+        let status = await deleteKey(tableName, docId1, "$.Age=200");
+        expect(status).to.be.true;
+        // document should be present
+        results = await get(tableName, docId1);
+        expect(results.lastName).to.eql(document.lastName);
+
+        // now delete with valid condition
+        status = await deleteKey(tableName, docId1, "$.Age=100");
+        expect(status).to.be.true;
+        // document should not be present
+        let err;
+        try{
+            await get(tableName, docId1);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).to.exist;
+
+    });
+
     it('should be able to update data on condition', async function () {
 
         let document = {
