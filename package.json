@@ -1,6 +1,6 @@
 {
   "name": "@aicore/libmysql",
-  "version": "1.0.39",
+  "version": "1.0.40",
   "description": "MySql Library used by core.ai to write to DB",
   "main": "src/index.js",
   "type": "module",
