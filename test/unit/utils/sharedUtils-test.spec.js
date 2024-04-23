@@ -4,7 +4,7 @@ import {
     isAlphaNumChar, isAlphaChar, isVariableNameLike,
     isNestedVariableNameLike, isDigitChar
 } from "../../../src/utils/sharedUtils.js";
-import chai from "chai";
+import * as chai from 'chai';
 let expect = chai.expect;
 
 describe('Shared Utils test', function () {

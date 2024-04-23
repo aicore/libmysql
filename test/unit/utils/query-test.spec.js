@@ -1,7 +1,7 @@
 /*global describe, it*/
 import mockedFunctions from '../setup-mocks.js';
 import Query, {QueryTokenizer} from "../../../src/utils/query.js";
-import chai from "chai";
+import * as chai from 'chai';
 let expect = chai.expect;
 
 describe('Query Utils test', function () {
