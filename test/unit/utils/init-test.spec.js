@@ -2,7 +2,8 @@
 import mockedFunctions from '../setup-mocks.js';
 import {close, init} from "../../../src/utils/db.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
-import chai from "chai";
+import * as chai from 'chai';
+
 let expect = chai.expect;
 describe('init test', function () {
     before(function () {
