@@ -413,7 +413,7 @@ describe('Integration: libMySql', function () {
         isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false);
         expect(isSuccess).to.eql(true);
         const queryResults = await getFromIndex(tableName, {
-            'lastName': 'Alice',
+            'userId': 'ABC',
             'Age': 100
         });
         expect(queryResults.length).to.eql(numberOfEntries);
