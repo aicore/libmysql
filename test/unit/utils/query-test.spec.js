@@ -269,7 +269,8 @@ describe('Query Utils test', function () {
 
         it('should transformCocoToSQLQuery success cases with index field', function () {
             expect(Query.transformCocoToSQLQuery("$.y>5 || $.x > 10 && $.price.tax = 18", ["x", "price.tax"]))
-                .to.eql('document->>"$.y">5 || 9dd4e461268c8034f5c8564e155c67a6 > 10 && 6a1a731895e201b727851bc567ac1e8a = 18');
+                // eslint-disable-next-line max-len
+                .to.eql('document->>"$.y">5 || col_9dd4e461268c8034f5c8564e155c67a6 > 10 && col_6a1a731895e201b727851bc567ac1e8a = 18');
         });
 
         it('should transformCocoToSQLQuery error cases', function () {

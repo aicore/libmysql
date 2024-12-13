@@ -928,7 +928,7 @@ describe('Unit tests for db.js', function () {
             const tableName = 'test.hello';
             await deleteDocuments(tableName, "$.x<10 AND $.hotel.name='oyo'", ['hotel.name']);
             expect(savedSql).to.eql("DELETE FROM test.hello WHERE document->>\"$.x\"<10" +
-                " AND b978c733175ca5d9503b1cc095eece1f='oyo';");
+                " AND col_b978c733175ca5d9503b1cc095eece1f='oyo';");
             mockedFunctions.connection.execute = saveExecute;
         });
     });
@@ -2566,7 +2566,7 @@ describe('Unit tests for db.js', function () {
             await _validateQueryPass("$.s<10 && !$.j.k || $.y!='hello'",
                 ["s", "j.k"],
                 "SELECT documentID,document FROM test.customer " +
-                "WHERE 03c7c0ace395d80182db07ae2c30f034<10 && !91e12519d4a93e0ce72a98c42383e747 " +
+                "WHERE col_03c7c0ace395d80182db07ae2c30f034<10 && !col_91e12519d4a93e0ce72a98c42383e747 " +
                 "|| document->>\"$.y\"!='hello' LIMIT 1000");
         });
 
