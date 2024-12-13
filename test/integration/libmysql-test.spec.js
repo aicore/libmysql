@@ -404,6 +404,28 @@ describe('Integration: libMySql', function () {
         });
         await deleteData(results);
     });
+    it('create and validate Index should pass', async function () {
+        const numberOfEntries = 1000;
+        const results = await testReadWrite(numberOfEntries);
+        let isSuccess = await createIndexForJsonField(tableName, 'userId', DATA_TYPES.VARCHAR(50),
+            false);
+        expect(isSuccess).to.eql(true);
+        isSuccess = await createIndexForJsonField(tableName, 'Age', DATA_TYPES.INT, false);
+        expect(isSuccess).to.eql(true);
+        const queryResults = await getFromIndex(tableName, {
+            'lastName': 'Alice',
+            'Age': 100
+        });
+        expect(queryResults.length).to.eql(numberOfEntries);
+        queryResults.forEach(result => {
+            expect(result.lastName).to.eql('Alice');
+            expect(results.userId).to.eql("ABC");
+            expect(result.Age).to.eql(100);
+            expect(result.active).to.eql(true);
+            expect(result.documentId.length).gt(0);
+        });
+        await deleteData(results);
+    });
 
     it('create and validate Index return empty list if nothing matches', async function () {
         let isSuccess = await createIndexForJsonField(tableName, 'location.layout.block', DATA_TYPES.VARCHAR(50),
@@ -786,6 +808,7 @@ async function testReadWrite(numberOfWrites) {
 async function populateTestTable(numberOfWrites) {
     const document = {
         'lastName': 'Alice',
+        'userId': "ABCD",
         'Age': 100,
         'active': true,
         'location': {
