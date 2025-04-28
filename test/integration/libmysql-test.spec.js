@@ -605,6 +605,166 @@ describe('Integration: libMySql', function () {
         expect(modifiedDoc.total).eql(-100);
         expect(modifiedDoc.count).eql(-2);
     });
+    it('should be able to increment json field with condition that passes', async function () {
+        // First create a document with initial values
+        const docId = await put(tableName, {age: 10, total: 100, active: true});
+
+        // Test increment with condition that should pass
+        let incStatus = await mathAdd(tableName, docId, {
+            age: 2,
+            total: 100
+        }, "$.age=10");
+
+        expect(incStatus).eql(true);
+
+        // Verify that the increments were applied
+        let modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(12);
+        expect(modifiedDoc.total).eql(200);
+
+        // Test with a different condition format
+        incStatus = await mathAdd(tableName, docId, {
+            age: 1
+        }, "$.total>150");
+
+        expect(incStatus).eql(true);
+
+        // Verify the increment was applied
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(13);
+        expect(modifiedDoc.total).eql(200);
+
+        // Test with condition on boolean field
+        incStatus = await mathAdd(tableName, docId, {
+            total: 50
+        }, "$.active=true");
+
+        expect(incStatus).eql(true);
+
+        // Verify the increment was applied
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.age).eql(13);
+        expect(modifiedDoc.total).eql(250);
+    });
+
+    it('should not increment json field when condition fails', async function () {
+        // First create a document with initial values
+        const docId = await put(tableName, {age: 20, total: 200, active: true});
+
+        // Test increment with condition that should fail
+        try {
+            await mathAdd(tableName, docId, {
+                age: 5,
+                total: 50
+            }, "$.age>50");
+
+            // Should not reach here
+            expect.fail('Should have thrown an error when condition failed');
+        } catch (err) {
+            expect(err).to.eql('Not updated - condition failed or unable to find documentId');
+        }
+
+        // Verify that the document wasn't modified
+        let doc = await get(tableName, docId);
+        expect(doc.age).eql(20);
+        expect(doc.total).eql(200);
+
+        // Try another condition that fails
+        try {
+            await mathAdd(tableName, docId, {
+                total: 100
+            }, "$.active=false");
+
+            // Should not reach here
+            expect.fail('Should have thrown an error when condition failed');
+        } catch (err) {
+            expect(err).to.eql('Not updated - condition failed or unable to find documentId');
+        }
+
+        // Verify the document wasn't modified
+        doc = await get(tableName, docId);
+        expect(doc.age).eql(20);
+        expect(doc.total).eql(200);
+    });
+
+    it('should handle complex conditions for json increment', async function () {
+        // First create a document with initial values
+        const docId = await put(tableName, {
+            age: 25,
+            visits: 10,
+            balance: 500,
+            status: {
+                premium: true,
+                lastLogin: 1000
+            }
+        });
+
+        // Test increment with a more complex condition
+        let incStatus = await mathAdd(tableName, docId, {
+            visits: 1,
+            balance: 100
+        }, "$.age>20 && $.balance<1000");
+
+        expect(incStatus).eql(true);
+
+        // Verify that increments were applied
+        let modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.visits).eql(11);
+        expect(modifiedDoc.balance).eql(600);
+
+        // Test with negative increments and condition
+        incStatus = await mathAdd(tableName, docId, {
+            balance: -50
+        }, "$.visits>10");
+
+        expect(incStatus).eql(true);
+
+        // Verify that increment was applied
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.balance).eql(550);
+
+        // Test with nested field in condition
+        incStatus = await mathAdd(tableName, docId, {
+            visits: 2
+        }, "$.status.premium=true");
+
+        expect(incStatus).eql(true);
+
+        // Verify that increment was applied
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.visits).eql(13);
+    });
+
+    it('should handle new fields and field initialization with conditions', async function () {
+        // First create a document with initial values
+        const docId = await put(tableName, {score: 100, level: 5});
+
+        // Test increment of non-existent field with condition
+        let incStatus = await mathAdd(tableName, docId, {
+            points: 10
+        }, "$.level>3");
+
+        expect(incStatus).eql(true);
+
+        // Verify that the new field was created with the increment value
+        let modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.points).eql(10); // Should start at 0 and increment by 10
+        expect(modifiedDoc.level).eql(5);   // Should be unchanged
+
+        // Test with multiple fields including non-existent ones
+        incStatus = await mathAdd(tableName, docId, {
+            score: 50,
+            coins: 100
+        }, "$.points=10");
+
+        expect(incStatus).eql(true);
+
+        // Verify the changes
+        modifiedDoc = await get(tableName, docId);
+        expect(modifiedDoc.score).eql(150);
+        expect(modifiedDoc.coins).eql(100);
+        expect(modifiedDoc.points).eql(10); // Unchanged since it was used in condition
+    });
     it('basic query test should pass', async function () {
         const docId = await put(tableName, {age: 10, total: 100});
         const results = await query(tableName, '$.age = 10');
