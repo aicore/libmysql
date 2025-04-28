@@ -1186,7 +1186,7 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap, condition) 
  * };
  * try {
  *     // will increment only if the existing document has field `active` with value true
- *     await mathAdd(tableName, docId, increments, "$.active=true");
+ *     await mathAdd(tableName, docId, increments, "$.visits=1");
  * } catch(e) {
  *     console.error(JSON.stringify(e));
  * }
@@ -1195,7 +1195,7 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap, condition) 
  * @param {string} documentId - The primary key of the document you want to update.
  * @param {Object} jsonFieldsIncrements - This is a JSON object that contains the fields to be incremented and the
  * value by which they should be incremented.
- * @param {string} [condition] - Optional coco query condition of the form "$.active=true" that must be satisfied
+ * @param {string} [condition] - Optional coco query condition of the form "$.visits=1" that must be satisfied
  * for increment to happen. See query API for more details on how to write coco query strings.
  * @returns {Promise<boolean>} A promise resolves with true if success, or rejects if increment failed
  * as either document not found or the condition not satisfied.
