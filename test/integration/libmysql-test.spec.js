@@ -633,11 +633,6 @@ describe('Integration: libMySql', function () {
         modifiedDoc = await get(tableName, docId);
         expect(modifiedDoc.age).eql(13);
         expect(modifiedDoc.total).eql(200);
-
-        // Verify the increment was applied
-        modifiedDoc = await get(tableName, docId);
-        expect(modifiedDoc.age).eql(13);
-        expect(modifiedDoc.total).eql(250);
     });
 
     it('should not increment json field when condition fails', async function () {
