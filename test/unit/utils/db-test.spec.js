@@ -2524,6 +2524,31 @@ describe('Unit tests for db.js', function () {
             expect(executeCalled).to.be.false;
             mockedFunctions.connection.execute = saveExecute;
         });
+        it('mathAdd should fail when document not found without condition', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                // Return affectedRows=0 to simulate document not found
+                callback(null, {affectedRows: 0}, []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                age: 100
+            };
+            // No condition provided here
+
+            let isExceptionOccurred = false;
+            let errorMessage;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap);
+            } catch (e) {
+                errorMessage = e;
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).eql(true);
+            expect(errorMessage).to.eql('unable to find documentId');
+            mockedFunctions.connection.execute = saveExecute;
+        });
     });
 
     describe('query API tests', function () {
