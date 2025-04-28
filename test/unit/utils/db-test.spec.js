@@ -1,4 +1,4 @@
-/*global describe, it, beforeEach*/
+/*global */
 import mockedFunctions from '../setup-mocks.js';
 import * as chai from 'chai';
 import {
@@ -1104,7 +1104,7 @@ describe('Unit tests for db.js', function () {
                     lastName: 'Alice'
                 });
                 expect(result).to.eql([]);
-            } catch (e) {
+            } catch (_e) {
                 isExceptionOccured = true;
             }
             expect(isExceptionOccured).eql(false);
@@ -1873,7 +1873,7 @@ describe('Unit tests for db.js', function () {
             let savedSQL;
             mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
-                callback(null, {affectedRows:0}, []);
+                callback(null, {affectedRows: 0}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -1898,7 +1898,7 @@ describe('Unit tests for db.js', function () {
             let savedSQL;
             mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
-                callback(null, {affectedRows:0}, []);
+                callback(null, {affectedRows: 0}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -1924,7 +1924,7 @@ describe('Unit tests for db.js', function () {
             let executeCalled = false;
             mockedFunctions.connection.execute = function (sql, values, callback) {
                 executeCalled = true;
-                callback(null, {affectedRows:0}, []);
+                callback(null, {affectedRows: 0}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -1949,7 +1949,7 @@ describe('Unit tests for db.js', function () {
         it('update should pass for valid parameters', async function () {
             const saveExecute = mockedFunctions.connection.execute;
             mockedFunctions.connection.execute = function (sql, values, callback) {
-                callback(null, {affectedRows:1}, []);
+                callback(null, {affectedRows: 1}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -1973,7 +1973,7 @@ describe('Unit tests for db.js', function () {
             let savedSQL;
             mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
-                callback(null, {affectedRows:1}, []);
+                callback(null, {affectedRows: 1}, []);
             };
             const tableName = 'test.customer';
             const docId = '1000';
@@ -2388,7 +2388,7 @@ describe('Unit tests for db.js', function () {
                     await mathAdd(tableName, documentId, fieldsToIncrementMap);
                 } catch (e) {
                     expect(e.toString().split('\n')[0].trim())
-                        .eql('Please call init before get');
+                        .eql('Please call init before mathAdd');
                     isExceptionOccurred = true;
 
                 }
@@ -2421,6 +2421,109 @@ describe('Unit tests for db.js', function () {
                 mockedFunctions.connection.execute = saveExecute;
 
             });
+        it('mathAdd should pass for valid params with condition that succeeds', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows: 1}, []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                age: 100,
+                id: 10
+            };
+            // Using numeric condition from update tests
+            const condition = "$.Age>10";
+
+            const status = await mathAdd(tableName, documentId, fieldsToIncrementMap, condition);
+            expect(status).eql(true);
+            expect(savedSQL).to.include("WHERE documentID = ? AND");
+            expect(savedSQL).to.include('AND (document->>"$.Age">10)');
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('mathAdd should fail when condition is not met', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows: 0}, []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                age: 100
+            };
+            // Using numeric condition from update tests
+            const condition = "$.Age>100";
+
+            let isExceptionOccurred = false;
+            let errorMessage;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap, condition);
+            } catch (e) {
+                errorMessage = e;
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).eql(true);
+            expect(errorMessage).to.eql('Not updated - condition failed or unable to find documentId');
+            expect(savedSQL).to.include("WHERE documentID = ? AND");
+            expect(savedSQL).to.include('AND (document->>"$.Age">100)');
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('mathAdd should handle complex conditions correctly', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, {affectedRows: 1}, []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                age: 100,
+                visits: 1
+            };
+            // Similar to update test but with a more complex numeric condition
+            const condition = "$.balance<1000";
+
+            const status = await mathAdd(tableName, documentId, fieldsToIncrementMap, condition);
+            expect(status).eql(true);
+            expect(savedSQL).to.include("WHERE documentID = ? AND");
+            expect(savedSQL).to.include('AND (document->>"$.balance"<1000)');
+            mockedFunctions.connection.execute = saveExecute;
+        });
+
+        it('mathAdd should reject invalid SQL injection in condition', async function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            let executeCalled = false;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                executeCalled = true;
+                callback(null, {affectedRows: 1}, []);
+            };
+            const tableName = 'test.customers';
+            const documentId = '100';
+            const fieldsToIncrementMap = {
+                age: 1
+            };
+            const condition = "SELECT * FROM tab";
+
+            let isExceptionOccurred = false;
+            let errorMessage;
+            try {
+                await mathAdd(tableName, documentId, fieldsToIncrementMap, condition);
+            } catch (e) {
+                errorMessage = e;
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).eql(true);
+            expect(errorMessage.toString()).to.include("Unknown query function SELECT");
+            expect(executeCalled).to.be.false;
+            mockedFunctions.connection.execute = saveExecute;
+        });
     });
 
     describe('query API tests', function () {

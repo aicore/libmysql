@@ -1128,7 +1128,15 @@ export function update(tableName, documentId, document, condition) {
     });
 }
 
-function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
+/**
+ * Modifies the sql query for JSON increment. includes a condition if provided
+ * @param {string} tableName - The name of the table in which the document is stored.
+ * @param {Object} fieldToIncrementMap - JSON object that contains fields to increment and their values.
+ * @param {string} [condition] - Optional coco query condition that must be satisfied for increment to happen.
+ * @returns {string} The SQL query string for the increment operation.
+ * @private
+ */
+function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap, condition) {
     let query = `UPDATE ${tableName} SET document = JSON_SET(document,`;
     let numberOfKeys = Object.keys(fieldToIncrementMap).length;
 
@@ -1143,21 +1151,59 @@ function _prepareSqlForJsonIncrement(tableName, fieldToIncrementMap) {
     //mysql> UPDATE customers SET document = json_set(document, '$.age', JSON_EXTRACT(document, '$.age') + 1,'$.id',
     // JSON_EXTRACT(document,'$.id') +1) where documentID = '2';
     query += `) WHERE ${PRIMARY_COLUMN} = ?`;
+
+    // Add condition if provided
+    if (condition) {
+        const sqlCondition = Query.transformCocoToSQLQuery(condition, []);
+        query += ` AND (${sqlCondition})`;
+    }
+
     return query;
 }
 
 /**
- * It increments the value of a field in a JSON column in a MySQL table
- * @param {string}tableName - The name of the table in which the document is stored.
+ * mathAdd increments the value of a field in the document.
+ * Conditional increments are also supported with the optional condition parameter.
+ * @example <caption> Sample code </caption>
+ *
+ * const docId = 1234;
+ * const increments = {
+ *     'visits': 1,
+ *     'score': 5
+ * };
+ * try {
+ *     await mathAdd(tableName, docId, increments);
+ * } catch(e) {
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ * @example <caption> Conditional increment Sample code </caption>
+ *
+ * const docId = 1234;
+ * const increments = {
+ *     'visits': 1,
+ *     'score': 5
+ * };
+ * try {
+ *     // will increment only if the existing document has field `active` with value true
+ *     await mathAdd(tableName, docId, increments, "$.active=true");
+ * } catch(e) {
+ *     console.error(JSON.stringify(e));
+ * }
+ *
+ * @param {string} tableName - The name of the table in which the document is stored.
  * @param {string} documentId - The primary key of the document you want to update.
  * @param {Object} jsonFieldsIncrements - This is a JSON object that contains the fields to be incremented and the
  * value by which they should be incremented.
- * @returns {Promise<boolean>}A promise
+ * @param {string} [condition] - Optional coco query condition of the form "$.active=true" that must be satisfied
+ * for increment to happen. See query API for more details on how to write coco query strings.
+ * @returns {Promise<boolean>} A promise resolves with true if success, or rejects if increment failed
+ * as either document not found or the condition not satisfied.
  */
-export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
+export function mathAdd(tableName, documentId, jsonFieldsIncrements, condition) {
     return new Promise(function (resolve, reject) {
         if (!CONNECTION) {
-            reject('Please call init before get');
+            reject('Please call init before mathAdd');
             return;
         }
         if (!_isValidTableName(tableName)) {
@@ -1181,7 +1227,7 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
             }
         }
         try {
-            const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFieldsIncrements);
+            const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFieldsIncrements, condition);
             CONNECTION.execute(incQuery, [documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
@@ -1189,8 +1235,12 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements) {
                         reject(err);
                         return;
                     }
-                    if (_results.affectedRows === 0) {
+                    if (_results.affectedRows === 0 && !condition) {
                         reject('unable to find documentId');
+                        return;
+                    }
+                    if (_results.affectedRows === 0 && condition) {
+                        reject('Not updated - condition failed or unable to find documentId');
                         return;
                     }
                     resolve(true);
