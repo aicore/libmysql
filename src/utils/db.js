@@ -12,6 +12,7 @@ import {
 // @INCLUDE_IN_API_DOCS
 
 let CONNECTION = null;
+let LOGGER = console; // Default fallback for backward compatibility
 
 /* Defining a constant variable called SIZE_OF_PRIMARY_KEY and assigning it the value of 32. */
 const SIZE_OF_PRIMARY_KEY = 32;
@@ -62,7 +63,7 @@ export function createDataBase(databaseName) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while creating database ${JSON.stringify(err)}`);
+                        LOGGER.error({err, databaseName, operation: 'createDataBase'}, 'Error creating database');
                         reject(err);
                         return;
                     }
@@ -98,7 +99,7 @@ export function deleteDataBase(databaseName) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while deleting database ${JSON.stringify(err)}`);
+                        LOGGER.error({err, databaseName, operation: 'deleteDataBase'}, 'Error deleting database');
                         reject(err);
                         return;
                     }
@@ -154,11 +155,14 @@ function _isValidDatBaseName(databaseName) {
  * @param {string} config.user - username of database
  * @param {string} config.password - password of database username
  * @param {Number} config.connectionLimit - Maximum MySql connection that can be open to the server default value is 10
+ * @param {Object} logger - Logger instance for structured logging
  * @returns {boolean}  true if connection is successful false otherwise
  *
  *
  **/
-export function init(config) {
+export function init(config, logger) {
+    // Store logger (fallback to console if not provided)
+    LOGGER = logger || console;
 
     if (!isObject(config)) {
         throw new Error('Please provide valid config');
@@ -176,7 +180,7 @@ export function init(config) {
         throw new Error('Please provide valid password');
     }
     if (CONNECTION) {
-        console.log(`${CONNECTION}`);
+        LOGGER.warn({connection: 'already_active'}, 'Connection already active');
         throw  new Error('One connection is active please close it before reinitializing it');
     }
     try {
@@ -187,7 +191,7 @@ export function init(config) {
         CONNECTION = mysql.createPool(config);
         return true;
     } catch (e) {
-        console.error(e);
+        LOGGER.error({err: e}, 'Failed to initialize MySQL connection');
         return false;
     }
 }
@@ -282,7 +286,7 @@ export function createTable(tableName) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while creating table ${JSON.stringify(err)}`);
+                        LOGGER.error({err, tableName, operation: 'createTable'}, 'Error creating table');
                         reject(err);
                         return;
                     }
@@ -345,7 +349,7 @@ export function put(tableName, document) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while put  ${JSON.stringify(err)}`);
+                        LOGGER.error({err, tableName, operation: 'put'}, 'Error putting document');
                         reject(err);
                         return;
                     }
@@ -428,7 +432,7 @@ export function deleteKey(tableName, documentID, condition) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while delete key  ${JSON.stringify(err)}`);
+                        LOGGER.error({err, tableName, documentID, operation: 'deleteKey'}, 'Error deleting key');
                         reject(err);
                         return;
                     }
@@ -483,7 +487,7 @@ export function deleteDocuments(tableName, queryString, useIndexForFields = []) 
                 function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while while deleteDocuments  ${JSON.stringify(err)}`);
+                        LOGGER.error({err, tableName, operation: 'deleteDocuments'}, 'Error deleting documents');
                         reject(err);
                         return;
                     }
@@ -880,7 +884,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
                     return _createIndex(resolve, reject, tableName, sqlJsonColumn, isUnique);
                 });
         } catch (e) {
-            console.error(JSON.stringify(e));
+            LOGGER.error({err: e, tableName, jsonField, operation: 'createIndexForJsonField'}, 'Error creating index');
             const errorMessage = `Exception occurred while creating column for JSON field`;
             reject(errorMessage);
             //TODO: Emit Metrics
@@ -1106,7 +1110,7 @@ export function update(tableName, documentId, document, condition) {
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
-                        console.error(`Error occurred while updating data  ${JSON.stringify(err)}`);
+                        LOGGER.error({err, tableName, documentId, operation: 'update'}, 'Error updating document');
                         reject(err);
                         return;
                     }
