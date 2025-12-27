@@ -1,11 +1,14 @@
-# When anyone pushes to npm branch in this repo, the package will be published to npm. This action requires
-# access to NPM_TOKEN secret. Contact core.ai admins to get access to core.ais org tokens.
-# To publish to your own npm account, follow this https://docs.npmjs.com/creating-and-viewing-access-tokens
+# When anyone pushes to npm branch in this repo, the package will be published to npm.
+# https://docs.npmjs.com/trusted-publishers is active in this repo
 name: Publish package to npm
 
 on:
   push:
     branches: [ npm ]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   build-tasks:
@@ -25,5 +28,3 @@ jobs:
         run: |
           node .github/workflows/js/validatePackage.cjs
           npm publish --access public
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
