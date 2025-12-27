@@ -39,14 +39,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aicore/template-nodejs.git"
+    "url": "git+https://github.com/aicore/libmysql"
   },
   "author": "charly, core.ai",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/aicore/template-nodejs/issues"
+    "url": "https://github.com/aicore/libmysql/issues"
   },
-  "homepage": "https://github.com/aicore/template-nodejs#readme",
+  "homepage": "https://github.com/aicore/libmysql#readme",
   "devDependencies": {
     "@aicore/libtestutils": "1.0.16",
     "@commitlint/cli": "19.8.1",
