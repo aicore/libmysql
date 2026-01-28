@@ -29,7 +29,7 @@ const put = LibMySql.put;
 const update = LibMySql.update;
 const DATA_TYPES = LibMySql.DATA_TYPES;
 
-import {init, close, createDataBase, deleteDataBase, mathAdd, query, deleteDocuments} from "../../src/utils/db.js";
+import {init, close, createDataBase, deleteDataBase, mathAdd, query, deleteDocuments, listDatabases, listTables, getTableIndexes} from "../../src/utils/db.js";
 import {isObjectEmpty} from "@aicore/libcommonutils";
 import * as crypto from "crypto";
 
@@ -911,6 +911,292 @@ describe('Integration: libMySql', function () {
         // count remaining documents to verify nothing else gets deleted
         results = await query(tableName, "$.Age  = 100"); // all has age 100
         expect(results.length).eql(82);
+    });
+
+    // listDatabases, listTables, getTableIndexes integration tests
+    it('listDatabases should return list including the test database', async function () {
+        const databases = await listDatabases();
+        expect(databases).to.be.an('array');
+        expect(databases.length).to.be.greaterThan(0);
+        expect(databases).to.include(database);
+    });
+
+    it('listTables should return list including the test table', async function () {
+        const tables = await listTables(database);
+        expect(tables).to.be.an('array');
+        expect(tables).to.include('customers');
+    });
+
+    it('listTables should return empty array for database with no tables', async function () {
+        const emptyDbName = 'emptydb';
+        await createDataBase(emptyDbName);
+        try {
+            const tables = await listTables(emptyDbName);
+            expect(tables).to.be.an('array');
+            expect(tables.length).to.eql(0);
+        } finally {
+            await deleteDataBase(emptyDbName);
+        }
+    });
+
+    it('listTables should fail for non-existent database', async function () {
+        let isExceptionOccurred = false;
+        try {
+            await listTables('nonexistentdb12345');
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.code).to.eql('ER_BAD_DB_ERROR');
+        }
+        expect(isExceptionOccurred).to.eql(true);
+    });
+
+    it('getTableIndexes should return PRIMARY key for table', async function () {
+        const indexes = await getTableIndexes(tableName);
+        expect(indexes).to.be.an('array');
+        expect(indexes.length).to.be.greaterThan(0);
+
+        // Find the PRIMARY index
+        const primaryIndex = indexes.find(idx => idx.indexName === 'PRIMARY');
+        expect(primaryIndex).to.exist;
+        expect(primaryIndex.columnName).to.eql('documentID');
+        expect(primaryIndex.isUnique).to.eql(true);
+        expect(primaryIndex.isPrimary).to.eql(true);
+        expect(primaryIndex.jsonField).to.eql(null);
+    });
+
+    it('getTableIndexes should return JSON field mapping for indexed fields', async function () {
+        // Create an index on a JSON field
+        const isSuccess = await createIndexForJsonField(tableName, 'lastName', DATA_TYPES.VARCHAR(50), false);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        expect(indexes).to.be.an('array');
+        expect(indexes.length).to.be.greaterThan(1);
+
+        // Find the index on lastName
+        const lastNameIndex = indexes.find(idx => idx.jsonField === 'lastName');
+        expect(lastNameIndex).to.exist;
+        expect(lastNameIndex.isUnique).to.eql(false);
+        expect(lastNameIndex.isPrimary).to.eql(false);
+        expect(lastNameIndex.indexType).to.eql('BTREE');
+    });
+
+    it('getTableIndexes should return nested JSON field mapping', async function () {
+        // Create an index on a nested JSON field
+        const isSuccess = await createIndexForJsonField(tableName, 'location.city', DATA_TYPES.VARCHAR(100), false);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        expect(indexes).to.be.an('array');
+
+        // Find the index on location.city
+        const cityIndex = indexes.find(idx => idx.jsonField === 'location.city');
+        expect(cityIndex).to.exist;
+        expect(cityIndex.isUnique).to.eql(false);
+        expect(cityIndex.isPrimary).to.eql(false);
+    });
+
+    it('getTableIndexes should fail for non-existent table', async function () {
+        let isExceptionOccurred = false;
+        try {
+            await getTableIndexes(database + '.nonexistenttable12345');
+        } catch (e) {
+            isExceptionOccurred = true;
+            expect(e.code).to.eql('ER_NO_SUCH_TABLE');
+        }
+        expect(isExceptionOccurred).to.eql(true);
+    });
+
+    // === listDatabases extended tests ===
+    it('listDatabases should return system databases', async function () {
+        const databases = await listDatabases();
+        expect(databases).to.include('information_schema');
+        expect(databases).to.include('mysql');
+    });
+
+    it('listDatabases should return multiple user databases', async function () {
+        const db1 = 'listdb1';
+        const db2 = 'listdb2';
+        await createDataBase(db1);
+        await createDataBase(db2);
+        try {
+            const databases = await listDatabases();
+            expect(databases).to.include(db1);
+            expect(databases).to.include(db2);
+        } finally {
+            await deleteDataBase(db1);
+            await deleteDataBase(db2);
+        }
+    });
+
+    // === listTables extended tests ===
+    it('listTables should return tables with underscores and numbers', async function () {
+        const specialTableName = database + '.test_table_123';
+        await createTable(specialTableName);
+        try {
+            const tables = await listTables(database);
+            expect(tables).to.include('test_table_123');
+        } finally {
+            await deleteTable(specialTableName);
+        }
+    });
+
+    it('listTables should return multiple tables', async function () {
+        const table1 = database + '.listtable1';
+        const table2 = database + '.listtable2';
+        const table3 = database + '.listtable3';
+        await createTable(table1);
+        await createTable(table2);
+        await createTable(table3);
+        try {
+            const tables = await listTables(database);
+            expect(tables).to.include('listtable1');
+            expect(tables).to.include('listtable2');
+            expect(tables).to.include('listtable3');
+        } finally {
+            await deleteTable(table1);
+            await deleteTable(table2);
+            await deleteTable(table3);
+        }
+    });
+
+    it('listTables should return empty array after all tables deleted', async function () {
+        const tempDb = 'tempdbfortabletest';
+        const tempTable = tempDb + '.temptable';
+        await createDataBase(tempDb);
+        try {
+            await createTable(tempTable);
+            let tables = await listTables(tempDb);
+            expect(tables).to.include('temptable');
+
+            await deleteTable(tempTable);
+            tables = await listTables(tempDb);
+            expect(tables).to.be.an('array');
+            expect(tables.length).to.eql(0);
+        } finally {
+            await deleteDataBase(tempDb);
+        }
+    });
+
+    // === getTableIndexes extended tests ===
+    it('getTableIndexes should return unique index with isUnique true', async function () {
+        const isSuccess = await createIndexForJsonField(tableName, 'email', DATA_TYPES.VARCHAR(100), true);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        const emailIndex = indexes.find(idx => idx.jsonField === 'email');
+        expect(emailIndex).to.exist;
+        expect(emailIndex.isUnique).to.eql(true);
+    });
+
+    it('getTableIndexes should return isNullable true for nullable columns', async function () {
+        // Create nullable index (default - isNotNull = false)
+        const isSuccess = await createIndexForJsonField(tableName, 'optionalField', DATA_TYPES.VARCHAR(50), false);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        const optionalIndex = indexes.find(idx => idx.jsonField === 'optionalField');
+        expect(optionalIndex).to.exist;
+        expect(optionalIndex.isNullable).to.eql(true);
+    });
+
+    it('getTableIndexes should return isNullable false for NOT NULL columns', async function () {
+        // Create non-null index
+        const isSuccess = await createIndexForJsonField(tableName, 'requiredField', DATA_TYPES.VARCHAR(50), false, true);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        const requiredIndex = indexes.find(idx => idx.jsonField === 'requiredField');
+        expect(requiredIndex).to.exist;
+        expect(requiredIndex.isNullable).to.eql(false);
+    });
+
+    it('getTableIndexes should handle deep nested JSON fields (3+ levels)', async function () {
+        const isSuccess = await createIndexForJsonField(tableName, 'location.address.street.name', DATA_TYPES.VARCHAR(100), false);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        const deepIndex = indexes.find(idx => idx.jsonField === 'location.address.street.name');
+        expect(deepIndex).to.exist;
+        expect(deepIndex.isPrimary).to.eql(false);
+    });
+
+    it('getTableIndexes should handle field names with underscores and numbers', async function () {
+        const isSuccess = await createIndexForJsonField(tableName, 'user_id_123', DATA_TYPES.INT, false);
+        expect(isSuccess).to.eql(true);
+
+        const indexes = await getTableIndexes(tableName);
+        const fieldIndex = indexes.find(idx => idx.jsonField === 'user_id_123');
+        expect(fieldIndex).to.exist;
+    });
+
+    it('getTableIndexes should return multiple indexes with correct properties', async function () {
+        // Create multiple indexes
+        await createIndexForJsonField(tableName, 'firstName', DATA_TYPES.VARCHAR(50), false);
+        await createIndexForJsonField(tableName, 'uniqueId', DATA_TYPES.VARCHAR(50), true);
+        await createIndexForJsonField(tableName, 'count', DATA_TYPES.INT, false);
+
+        const indexes = await getTableIndexes(tableName);
+
+        // Verify PRIMARY key
+        const primary = indexes.find(idx => idx.isPrimary);
+        expect(primary).to.exist;
+        expect(primary.isUnique).to.eql(true);
+
+        // Verify non-unique index
+        const firstNameIdx = indexes.find(idx => idx.jsonField === 'firstName');
+        expect(firstNameIdx).to.exist;
+        expect(firstNameIdx.isUnique).to.eql(false);
+
+        // Verify unique index
+        const uniqueIdIdx = indexes.find(idx => idx.jsonField === 'uniqueId');
+        expect(uniqueIdIdx).to.exist;
+        expect(uniqueIdIdx.isUnique).to.eql(true);
+
+        // Verify all have correct indexType
+        indexes.forEach(idx => {
+            expect(idx.indexType).to.eql('BTREE');
+        });
+    });
+
+    it('getTableIndexes should return jsonField null for non-generated columns', async function () {
+        const indexes = await getTableIndexes(tableName);
+
+        // PRIMARY key on documentID is not a generated column
+        const primary = indexes.find(idx => idx.isPrimary);
+        expect(primary).to.exist;
+        expect(primary.jsonField).to.eql(null);
+        expect(primary.columnName).to.eql('documentID');
+    });
+
+    it('getTableIndexes should verify sequenceInIndex for all indexes', async function () {
+        await createIndexForJsonField(tableName, 'seqTest', DATA_TYPES.VARCHAR(50), false);
+
+        const indexes = await getTableIndexes(tableName);
+
+        // All single-column indexes should have sequenceInIndex = 1
+        indexes.forEach(idx => {
+            expect(idx.sequenceInIndex).to.eql(1);
+        });
+    });
+
+    it('getTableIndexes should handle both unique and non-unique indexes on same table', async function () {
+        // Create a unique index
+        await createIndexForJsonField(tableName, 'uniqueEmail', DATA_TYPES.VARCHAR(100), true, true);
+        // Create a non-unique index
+        await createIndexForJsonField(tableName, 'category', DATA_TYPES.VARCHAR(50), false);
+
+        const indexes = await getTableIndexes(tableName);
+
+        const uniqueEmailIdx = indexes.find(idx => idx.jsonField === 'uniqueEmail');
+        expect(uniqueEmailIdx).to.exist;
+        expect(uniqueEmailIdx.isUnique).to.eql(true);
+        expect(uniqueEmailIdx.isNullable).to.eql(false);
+
+        const categoryIdx = indexes.find(idx => idx.jsonField === 'category');
+        expect(categoryIdx).to.exist;
+        expect(categoryIdx.isUnique).to.eql(false);
+        expect(categoryIdx.isNullable).to.eql(true);
     });
 });
 
