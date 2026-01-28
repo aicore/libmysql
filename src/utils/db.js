@@ -1396,6 +1396,169 @@ export function query(tableName, queryString, useIndexForFields = [], options ={
     });
 }
 
+/**
+ * Lists all databases on the MySQL server.
+ * @example <caption> Sample code </caption>
+ * try {
+ *     const databases = await listDatabases();
+ *     console.log(databases); // ['information_schema', 'mysql', 'myapp', ...]
+ * } catch (e) {
+ *     console.error(e);
+ * }
+ *
+ * @returns {Promise<string[]>} A promise that resolves to an array of database names
+ */
+export function listDatabases() {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before listDatabases');
+            return;
+        }
+        try {
+            CONNECTION.execute('SHOW DATABASES',
+                function (err, results, _fields) {
+                    if (err) {
+                        LOGGER.error({err, operation: 'listDatabases'}, 'Error listing databases');
+                        reject(err);
+                        return;
+                    }
+                    const databases = results.map(row => row.Database);
+                    resolve(databases);
+                });
+        } catch (e) {
+            reject(`Exception occurred while listing databases: ${e.stack}`);
+        }
+    });
+}
+
+/**
+ * Lists all tables in a specific database.
+ * @example <caption> Sample code </caption>
+ * try {
+ *     const tables = await listTables('mydb');
+ *     console.log(tables); // ['customers', 'orders', 'products', ...]
+ * } catch (e) {
+ *     console.error(e);
+ * }
+ *
+ * @param {string} databaseName - The name of the database to list tables from
+ * @returns {Promise<string[]>} A promise that resolves to an array of table names
+ */
+export function listTables(databaseName) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before listTables');
+            return;
+        }
+        if (!_isValidDatBaseName(databaseName)) {
+            reject('Please provide valid data base name');
+            return;
+        }
+        try {
+            CONNECTION.execute(`SHOW TABLES FROM ${databaseName}`,
+                function (err, results, _fields) {
+                    if (err) {
+                        LOGGER.error({err, databaseName, operation: 'listTables'}, 'Error listing tables');
+                        reject(err);
+                        return;
+                    }
+                    const columnName = `Tables_in_${databaseName}`;
+                    const tables = results.map(row => row[columnName]);
+                    resolve(tables);
+                });
+        } catch (e) {
+            reject(`Exception occurred while listing tables: ${e.stack}`);
+        }
+    });
+}
+
+/**
+ * Gets all indexes for a specific table, including reverse mapping of JSON field names.
+ * For columns generated from JSON fields (via createIndexForJsonField), this will extract
+ * the original JSON field name from the GENERATION_EXPRESSION.
+ *
+ * @example <caption> Sample code </caption>
+ * try {
+ *     const indexes = await getTableIndexes('mydb.users');
+ *     console.log(indexes);
+ *     // [
+ *     //   { indexName: 'PRIMARY', columnName: 'documentID', jsonField: null, isUnique: true, isPrimary: true, ... },
+ *     //   { indexName: 'idx_col_abc...', columnName: 'col_abc...', jsonField: 'lastName', isUnique: false, ... }
+ *     // ]
+ * } catch (e) {
+ *     console.error(e);
+ * }
+ *
+ * @param {string} tableName - The table name in database.tableName format
+ * @returns {Promise<Array<Object>>} A promise that resolves to an array of index information objects
+ */
+export function getTableIndexes(tableName) {
+    return new Promise(function (resolve, reject) {
+        if (!CONNECTION) {
+            reject('Please call init before getTableIndexes');
+            return;
+        }
+        if (!_isValidTableName(tableName)) {
+            reject('please provide valid table name in database.tableName format');
+            return;
+        }
+
+        const [databaseName, tableNameOnly] = tableName.split('.');
+
+        try {
+            // Step 1: Get index information
+            CONNECTION.execute(`SHOW INDEX FROM ${tableName}`,
+                function (err, indexResults, _fields) {
+                    if (err) {
+                        LOGGER.error({err, tableName, operation: 'getTableIndexes'}, 'Error getting table indexes');
+                        reject(err);
+                        return;
+                    }
+
+                    // Step 2: Get column generation expressions for JSON field mapping
+                    const columnQuery = `SELECT COLUMN_NAME, GENERATION_EXPRESSION
+                        FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+                        AND GENERATION_EXPRESSION IS NOT NULL AND GENERATION_EXPRESSION != ''`;
+
+                    CONNECTION.execute(columnQuery, [databaseName, tableNameOnly],
+                        function (err2, columnResults, _fields2) {
+                            if (err2) {
+                                LOGGER.error({err: err2, tableName, operation: 'getTableIndexes'}, 'Error getting column info');
+                                reject(err2);
+                                return;
+                            }
+
+                            // Build column -> jsonField mapping
+                            // Generation expression looks like: document->>"$.lastName"
+                            const columnToJsonField = {};
+                            for (const col of columnResults) {
+                                const match = col.GENERATION_EXPRESSION.match(/\$\.([^"'\)]+)/);
+                                if (match) {
+                                    columnToJsonField[col.COLUMN_NAME] = match[1];
+                                }
+                            }
+
+                            // Map indexes with JSON field names
+                            const indexes = indexResults.map(row => ({
+                                indexName: row.Key_name,
+                                columnName: row.Column_name,
+                                jsonField: columnToJsonField[row.Column_name] || null,
+                                isUnique: row.Non_unique === 0,
+                                isPrimary: row.Key_name === 'PRIMARY',
+                                sequenceInIndex: row.Seq_in_index,
+                                indexType: row.Index_type,
+                                isNullable: row.Null === 'YES'
+                            }));
+                            resolve(indexes);
+                        });
+                });
+        } catch (e) {
+            reject(`Exception occurred while getting table indexes: ${e.stack}`);
+        }
+    });
+}
+
 // public APIs.
 const DB = {
     deleteDataBase,
@@ -1414,7 +1577,10 @@ const DB = {
     init,
     close,
     DATA_TYPES,
-    mathAdd
+    mathAdd,
+    listDatabases,
+    listTables,
+    getTableIndexes
 };
 
 export default DB;
