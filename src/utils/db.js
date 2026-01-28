@@ -1516,7 +1516,8 @@ export function getTableIndexes(tableName) {
                     }
 
                     // Step 2: Get column generation expressions for JSON field mapping
-                    const columnQuery = `SELECT COLUMN_NAME, GENERATION_EXPRESSION
+                    // Use aliases to ensure consistent column names regardless of MySQL server settings
+                    const columnQuery = `SELECT COLUMN_NAME AS colName, GENERATION_EXPRESSION AS genExpr
                         FROM information_schema.COLUMNS
                         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
                         AND GENERATION_EXPRESSION IS NOT NULL AND GENERATION_EXPRESSION != ''`;
@@ -1530,12 +1531,16 @@ export function getTableIndexes(tableName) {
                             }
 
                             // Build column -> jsonField mapping
-                            // Generation expression looks like: document->>"$.lastName"
+                            // Generation expression can be in different formats:
+                            // - document->>"$.lastName" (shorthand)
+                            // - json_unquote(json_extract(`document`,'$.lastName')) (expanded)
+                            // - json_unquote(json_extract(`document`,_utf8mb4'$.lastName')) (with charset)
                             const columnToJsonField = {};
                             for (const col of columnResults) {
-                                const match = col.GENERATION_EXPRESSION.match(/\$\.([^"'\)]+)/);
+                                // Match $.fieldName pattern, capturing valid field name characters
+                                const match = col.genExpr.match(/\$\.([a-zA-Z0-9_.]+)/);
                                 if (match) {
-                                    columnToJsonField[col.COLUMN_NAME] = match[1];
+                                    columnToJsonField[col.colName] = match[1];
                                 }
                             }
 
