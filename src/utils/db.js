@@ -881,6 +881,12 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
                         reject(err);
                         return;
                     }
+                    // Skip creating separate index if isUnique is true, because
+                    // UNIQUE KEY constraint already creates an index automatically
+                    if (isUnique) {
+                        resolve(true);
+                        return;
+                    }
                     return _createIndex(resolve, reject, tableName, sqlJsonColumn, isUnique);
                 });
         } catch (e) {
