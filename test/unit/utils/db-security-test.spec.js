@@ -16,8 +16,8 @@ describe('Unit tests for db.js', function () {
     });
 
     it('getFromNonIndex key sql injection attack test', async function () {
-        const saveExecute = mockedFunctions.connection.query;
-        mockedFunctions.connection.query = function (sql, values, callback) {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'test.hello';
@@ -32,6 +32,6 @@ describe('Unit tests for db.js', function () {
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(true);
-        mockedFunctions.connection.query = saveExecute;
+        mockedFunctions.connection.execute = saveExecute;
     });
 });

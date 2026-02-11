@@ -4,7 +4,7 @@ let setupDone = false;
 
 let mockedFunctions = {
     connection: {
-        query: function (sql, callback) {
+        execute: function (sql, callback) {
             callback(null, {
                 ResultSetHeader: {
                     fieldCount: 0,

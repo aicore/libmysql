@@ -99,8 +99,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('createTable should fail when there is an external error', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
                 throw  new Error('error');
             };
             const tableName = 'a.hello';
@@ -113,7 +113,7 @@ describe('Unit tests for db.js', function () {
                 expect(firstErrorLine).to.eql('execution occurred while creating table Error: error');
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('create table api should pass for valid data', async function () {
@@ -123,8 +123,8 @@ describe('Unit tests for db.js', function () {
         });
         it('create table api should fail when error happens', async function () {
 
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback('err', [], []);
             };
             const tableName = 'test.hello';
@@ -134,14 +134,14 @@ describe('Unit tests for db.js', function () {
             } catch (e) {
                 expect(e).to.eql('err');
             }
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('put API tests', function () {
         it('put should fail for empty table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '';
@@ -154,12 +154,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('put should fail for null table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = null;
@@ -172,12 +172,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should fail for number table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 1;
@@ -191,11 +191,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('put should fail for boolean table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = true;
@@ -208,11 +208,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('put for invalid document', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -225,12 +225,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should fail document  is string', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -243,11 +243,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('put should fail json value is invalid json', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -260,12 +260,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {
                     ResultSetHeader: {
                         fieldCount: 0,
@@ -285,14 +285,14 @@ describe('Unit tests for db.js', function () {
             const result = await put(tableName, document);
             expect(result.length).to.eql(32);
 
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should fail if connection not initialise', async function () {
             close();
             let exceptionOccurred = false;
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {
                     ResultSetHeader: {
                         fieldCount: 0,
@@ -316,12 +316,12 @@ describe('Unit tests for db.js', function () {
                 expect(e.toString()).to.eql('Please call init before put');
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should fail when there is error in connecting to MySQL', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _values, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _values, _callback) {
                 throw  new Error('error');
             };
             const tableName = 'test.hello';
@@ -335,12 +335,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('put should fail for boolean table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = true;
@@ -354,15 +354,15 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('get API tests', function () {
         it('get should fail if connection is not initialized', async function () {
             close();
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '';
@@ -375,13 +375,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
 
         it('get should fail for empty table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '';
@@ -394,13 +394,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
 
         it('get should fail for null table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = null;
@@ -413,12 +413,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('get should fail if table name gt 65', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = generateAValidString(65);
@@ -431,11 +431,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('get should fail if primary key is empty', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -448,12 +448,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('get should fail if primary key is null', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -466,11 +466,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('get should fail if primary key is number', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -483,11 +483,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('get should fail if primary key is boolean', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -500,11 +500,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('get should fail if primary key is Object', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -517,12 +517,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('get should fail if primary key has more than 128 valid characters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.users';
@@ -535,12 +535,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('get should  give valid result if all parameters are correct', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null,
                     [{'document': {customerData: 'bob'}}], []);
             };
@@ -548,12 +548,12 @@ describe('Unit tests for db.js', function () {
             const documentId = '100';
             const result = await get(tableName, documentId);
             expect(result.customerData).to.eql('bob');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('get should fail if there are any errors while executing get query', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _values, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _values, _callback) {
                 throw new Error('Error occurred while connecting');
             };
             const tableName = 'test.users';
@@ -568,7 +568,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -576,8 +576,8 @@ describe('Unit tests for db.js', function () {
         it('deleteKey should fail if connection not initialise', async function () {
             close();
             let exceptionOccurred = false;
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {
                     ResultSetHeader: {
                         fieldCount: 0,
@@ -598,12 +598,12 @@ describe('Unit tests for db.js', function () {
                 expect(e.toString()).to.eql('Please call init before deleteKey');
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey should fail for empty table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '';
@@ -617,12 +617,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('deleteKey should fail for null table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = null;
@@ -636,12 +636,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey should fail for number table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 1;
@@ -654,12 +654,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey should fail for null primary key', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -672,12 +672,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey should fail empty primary key', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -690,11 +690,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('deleteKey should fail if length of primary key is greater than 128', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -707,12 +707,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {
                     ResultSetHeader: {
                         fieldCount: 0,
@@ -730,13 +730,13 @@ describe('Unit tests for db.js', function () {
             const result = await deleteKey(tableName, documentId);
             expect(result).to.eql(true);
 
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey conditional option should work', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSql;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSql = sql;
                 callback(null, {
                     ResultSetHeader: {
@@ -756,12 +756,12 @@ describe('Unit tests for db.js', function () {
             expect(result).to.eql(true);
             expect(savedSql).to.eql("DELETE FROM test.hello WHERE documentID= ? AND (document->>\"$.age\"<10);");
 
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteKey condition SQL injection attack should fail', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function () {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function () {
                 throw "should never reach here";
             };
             const tableName = 'test.hello';
@@ -774,7 +774,7 @@ describe('Unit tests for db.js', function () {
             }
             expect(error.message).to.eql("Unknown query function DROP in query DROP table x");
 
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -782,8 +782,8 @@ describe('Unit tests for db.js', function () {
         it('deleteDocument should fail if connection not initialise', async function () {
             close();
             let exceptionOccurred = false;
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {
                     ResultSetHeader: {
                         fieldCount: 0,
@@ -803,12 +803,12 @@ describe('Unit tests for db.js', function () {
                 expect(e.toString()).to.eql('Please call init before deleteDocuments');
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteDocuments should fail for empty table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = '';
@@ -820,12 +820,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('deleteDocuments should fail for null table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = null;
@@ -837,12 +837,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteDocuments should fail for number table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 1;
@@ -854,12 +854,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteDocuments should fail for null query', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -871,12 +871,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteDocuments should fail empty primary key', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -888,12 +888,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('deleteDocuments should return the number of affected rows', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let simulatedAffectedRows = 13;
-            mockedFunctions.connection.query = function (sql, callback) {
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, {affectedRows: simulatedAffectedRows});
             };
             const tableName = 'test.hello';
@@ -903,25 +903,25 @@ describe('Unit tests for db.js', function () {
             simulatedAffectedRows = 0;
             affectedRows = await deleteDocuments(tableName, '$.x<10');
             expect(affectedRows).to.eql(0);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteDocuments should generate the correct SQL query with no index', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSql;
-            mockedFunctions.connection.query = function (sql, callback) {
+            mockedFunctions.connection.execute = function (sql, callback) {
                 savedSql = sql;
                 callback(null, {affectedRows: 1});
             };
             const tableName = 'test.hello';
             await deleteDocuments(tableName, '$.x<10');
             expect(savedSql).to.eql("DELETE FROM test.hello WHERE document->>\"$.x\"<10;");
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('deleteDocuments should generate the correct SQL query with indexed fields', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSql;
-            mockedFunctions.connection.query = function (sql, callback) {
+            mockedFunctions.connection.execute = function (sql, callback) {
                 savedSql = sql;
                 callback(null, {affectedRows: 1});
             };
@@ -929,13 +929,13 @@ describe('Unit tests for db.js', function () {
             await deleteDocuments(tableName, "$.x<10 AND $.hotel.name='oyo'", ['hotel.name']);
             expect(savedSql).to.eql("DELETE FROM test.hello WHERE document->>\"$.x\"<10" +
                 " AND col_b978c733175ca5d9503b1cc095eece1f='oyo';");
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     async function _validateFailsOnVarName(name, expectedErrorMessage, exceptionExpected = true) {
-        const saveExecute = mockedFunctions.connection.query;
-        mockedFunctions.connection.query = function (sql, values, callback) {
+        const saveExecute = mockedFunctions.connection.execute;
+        mockedFunctions.connection.execute = function (sql, values, callback) {
             callback(null, [], []);
         };
         const tableName = 'test.hello';
@@ -948,13 +948,13 @@ describe('Unit tests for db.js', function () {
             isExceptionOccurred = true;
         }
         expect(isExceptionOccurred).to.eql(exceptionExpected);
-        mockedFunctions.connection.query = saveExecute;
+        mockedFunctions.connection.execute = saveExecute;
     }
 
     describe('getFromNonIndex API tests', function () {
         it('getFromNonIndex should fail null query value', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -966,12 +966,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should fail String query value', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -983,7 +983,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should fail if key is not valid variable name', async function () {
@@ -997,8 +997,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('getFromNonIndex should fail boolean query value', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -1011,12 +1011,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should fail number query value', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -1028,11 +1028,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('getFromNonIndex should fail invalid table Name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '@';
@@ -1046,11 +1046,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('getFromNonIndex should fail empty object', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '@';
@@ -1063,13 +1063,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
 
         it('getFromNonIndex should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}, {
                     "document": {
                         "Age": 100,
@@ -1088,12 +1088,12 @@ describe('Unit tests for db.js', function () {
                 expect(result[i].active).to.eql(true);
                 expect(result[i].lastName).to.eql('Alice');
             }
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should return empty array if there are no results', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], {});
             };
             const tableName = 'test.hello';
@@ -1108,12 +1108,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccured = true;
             }
             expect(isExceptionOccured).eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should fail when exception occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _values, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _values, _callback) {
                 throw new Error('external');
             };
             const tableName = 'hello';
@@ -1130,7 +1130,7 @@ describe('Unit tests for db.js', function () {
 
             expect(exceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromNonIndex should fail if connection not initialized', async function () {
@@ -1145,8 +1145,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('getFromNonIndex should fail when  error occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback({}, [], {});
 
             };
@@ -1168,12 +1168,12 @@ describe('Unit tests for db.js', function () {
 
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         async function _validatePageOffsetFail(pageOptions, expectedFailureMessage) {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -1187,7 +1187,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         }
 
         it('getFromNonIndex should fail on invalid page limits', async function () {
@@ -1208,9 +1208,9 @@ describe('Unit tests for db.js', function () {
         });
 
         it('getFromNonIndex should have valid page limits', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, [], []);
             };
@@ -1228,7 +1228,7 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).to.eql(false);
             expect(savedSQL.includes("LIMIT 56, 290")).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -1246,8 +1246,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('deleteTable should fail invalid table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
 
             };
@@ -1261,12 +1261,12 @@ describe('Unit tests for db.js', function () {
                 exceptionOccurred = true;
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteTable should pass for valid table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
 
             };
@@ -1280,12 +1280,12 @@ describe('Unit tests for db.js', function () {
                 exceptionOccurred = true;
             }
             expect(exceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteTable should fail if exception occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
                 throw new Error('exception occurred');
 
             };
@@ -1298,12 +1298,12 @@ describe('Unit tests for db.js', function () {
                 exceptionOccurred = true;
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('deleteTable should fail if error occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback({}, [], []);
 
             };
@@ -1316,14 +1316,14 @@ describe('Unit tests for db.js', function () {
                 exceptionOccurred = true;
             }
             expect(exceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('createIndexForJsonField API tests', function () {
         it('createIndexForJsonField should fail invalid tableName', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '@';
@@ -1338,12 +1338,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('createIndexForJsonField should fail invalid id', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1358,12 +1358,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('createIndexForJsonField should fail invalid dataType', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1378,11 +1378,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('createIndexForJsonField should fail invalid jsonfield', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1397,12 +1397,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('createIndexForJsonField should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1417,11 +1417,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('createIndexForJsonField should pass for valid parameters isUnique is false', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1436,12 +1436,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('createIndexForJsonField should fail if error occurred', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback('Error', [], []);
             };
             const tableName = 'test.customer';
@@ -1457,12 +1457,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('createIndexForJsonField should fail if exception occur while executing query', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
                 throw new Error('Exception');
             };
             const tableName = 'test.customer';
@@ -1478,12 +1478,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('_createIndex should fail if exception occur while executing query', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
                 throw new Error('Exception');
             };
             const tableName = 'customer';
@@ -1502,12 +1502,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('_createIndex should fail if exception occur while during call back', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback('Error', [], []);
             };
             const tableName = 'customer';
@@ -1526,7 +1526,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -1547,8 +1547,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('getFromIndex should fail null query object', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -1561,11 +1561,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('getFromIndex should fail empty query object', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'hello';
@@ -1578,12 +1578,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should fail invalid table name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '@';
@@ -1599,12 +1599,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should fail if error occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback("error", [], []);
             };
             const tableName = 'test.customer';
@@ -1620,12 +1620,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should fail if exception  occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _values, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _values, _callback) {
                 throw  new Error('error');
             };
             const tableName = 'test.customer';
@@ -1641,12 +1641,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should pass  for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
             };
             const tableName = 'test.customer';
@@ -1671,12 +1671,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should return empty array if no data matches', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1693,12 +1693,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         async function _validatePageOffsetFail(pageOptions, expectedFailureMessage) {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.hello';
@@ -1712,7 +1712,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         }
 
         it('getFromIndex should fail on invalid page limits', async function () {
@@ -1733,9 +1733,9 @@ describe('Unit tests for db.js', function () {
         });
 
         it('getFromIndex should have valid page limits', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSql;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSql = sql;
                 callback(null, [], []);
             };
@@ -1753,14 +1753,14 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).to.eql(false);
             expect(savedSql.includes("LIMIT 56, 1000")).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('update API tests', function () {
         it('update should fail if connection not initialized', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             close();
@@ -1779,12 +1779,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('update should fail if table name is invalid', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = '@';
@@ -1802,11 +1802,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if document is invalid', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -1821,11 +1821,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if error occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback("Error", [], []);
             };
             const tableName = 'test.customer';
@@ -1843,11 +1843,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if exception occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 throw new Error('Error');
             };
             const tableName = 'test.customer';
@@ -1866,12 +1866,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if document not found', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 0}, []);
             };
@@ -1891,12 +1891,12 @@ describe('Unit tests for db.js', function () {
             }
             expect(exception).to.eql("Not updated- unable to find documentId");
             expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?;');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if condition fails', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 0}, []);
             };
@@ -1917,12 +1917,12 @@ describe('Unit tests for db.js', function () {
             expect(exception).to.eql("Not updated- condition failed or unable to find documentId");
             expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?' +
                 ' AND (document->>"$.Age">100);');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should fail if SQL injection attack in condition string', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let executeCalled = false;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 executeCalled = true;
                 callback(null, {affectedRows: 0}, []);
             };
@@ -1943,12 +1943,12 @@ describe('Unit tests for db.js', function () {
             expect(exception.startsWith("Exception occurred while writing to database Error: Unknown query function" +
                 " SELECT in query SELECT * FROM tab")).to.be.true;
             expect(executeCalled).to.be.false;
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('update should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, {affectedRows: 1}, []);
             };
             const tableName = 'test.customer';
@@ -1966,12 +1966,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('update should pass for valid parameters and condition', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 1}, []);
             };
@@ -1992,7 +1992,7 @@ describe('Unit tests for db.js', function () {
             expect(isExceptionOccurred).to.eql(false);
             expect(savedSQL).to.eql('UPDATE test.customer SET document = ? WHERE documentID = ?' +
                 ' AND (document->>"$.Age">10);');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -2005,8 +2005,8 @@ describe('Unit tests for db.js', function () {
 
     describe('createDataBase API tests', function () {
         it('create database should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = 'test';
@@ -2019,11 +2019,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('create database should fail for invalid db name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = '@';
@@ -2036,11 +2036,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('create database should fail for invalid empty db name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = '';
@@ -2053,11 +2053,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('create database should fail if there is an error', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback('Error occurred', [], []);
             };
             const database = 'test';
@@ -2070,12 +2070,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('create database should fail if there is an external error', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 throw new Error('Error Occurred');
             };
             const database = 'test';
@@ -2089,13 +2089,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('create database should fail if connection not initialized', async function () {
             close();
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = 'test';
@@ -2108,14 +2108,14 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('deleteDataBase API tests', function () {
         it('delete database should pass for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = 'test';
@@ -2128,12 +2128,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('delete database should fail for invalid db name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = '@';
@@ -2146,11 +2146,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('delete database should fail for invalid empty db name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = '';
@@ -2163,11 +2163,11 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('delete database should fail if there is an error', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback('Error occurred', [], []);
             };
             const database = 'test';
@@ -2180,12 +2180,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('delete database should fail if there is an external error', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 throw new Error('Error Occurred');
             };
             const database = 'test';
@@ -2199,13 +2199,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('delete database should fail if connection not initialized', async function () {
             close();
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const database = 'test';
@@ -2218,14 +2218,14 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
     describe('mathAdd API tests', function () {
         it('mathAdd should pass for valid params', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customers';
@@ -2237,13 +2237,13 @@ describe('Unit tests for db.js', function () {
 
             const status = await mathAdd(tableName, documentId, fieldsToIncrementMap);
             expect(status).eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
 
         it('mathAdd should pass for valid params with single field', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customers';
@@ -2254,13 +2254,13 @@ describe('Unit tests for db.js', function () {
 
             const status = await mathAdd(tableName, documentId, fieldsToIncrementMap);
             expect(status).eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
 
         it('mathAdd should fail  for invalid table Name', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'customers';
@@ -2277,12 +2277,12 @@ describe('Unit tests for db.js', function () {
 
             }
             expect(isExceptionOccurred).eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('mathAdd should fail  for invalid docid', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customers';
@@ -2299,12 +2299,12 @@ describe('Unit tests for db.js', function () {
 
             }
             expect(isExceptionOccurred).eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('mathAdd should fail  for invalid field increment object', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customers';
@@ -2319,13 +2319,13 @@ describe('Unit tests for db.js', function () {
 
             }
             expect(isExceptionOccurred).eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
 
         });
         it('mathAdd should fail  for invalid field fieldsToIncrementMap contains non number fields',
             async function () {
-                const saveExecute = mockedFunctions.connection.query;
-                mockedFunctions.connection.query = function (sql, values, callback) {
+                const saveExecute = mockedFunctions.connection.execute;
+                mockedFunctions.connection.execute = function (sql, values, callback) {
                     callback(null, [], []);
                 };
                 const tableName = 'test.customers';
@@ -2343,13 +2343,13 @@ describe('Unit tests for db.js', function () {
 
                 }
                 expect(isExceptionOccurred).eql(true);
-                mockedFunctions.connection.query = saveExecute;
+                mockedFunctions.connection.execute = saveExecute;
 
             });
         it('mathAdd should fail  for invalid field fieldsToIncrementMap contains when there is an error',
             async function () {
-                const saveExecute = mockedFunctions.connection.query;
-                mockedFunctions.connection.query = function (sql, values, callback) {
+                const saveExecute = mockedFunctions.connection.execute;
+                mockedFunctions.connection.execute = function (sql, values, callback) {
                     callback('Error', [], []);
                 };
                 const tableName = 'test.customers';
@@ -2367,14 +2367,14 @@ describe('Unit tests for db.js', function () {
 
                 }
                 expect(isExceptionOccurred).eql(true);
-                mockedFunctions.connection.query = saveExecute;
+                mockedFunctions.connection.execute = saveExecute;
 
             });
         it('mathAdd should fail  if not initalized',
             async function () {
                 close();
-                const saveExecute = mockedFunctions.connection.query;
-                mockedFunctions.connection.query = function (sql, values, callback) {
+                const saveExecute = mockedFunctions.connection.execute;
+                mockedFunctions.connection.execute = function (sql, values, callback) {
                     throw  new Error('Error');
                 };
                 const tableName = 'test.customers';
@@ -2393,13 +2393,13 @@ describe('Unit tests for db.js', function () {
 
                 }
                 expect(isExceptionOccurred).eql(true);
-                mockedFunctions.connection.query = saveExecute;
+                mockedFunctions.connection.execute = saveExecute;
 
             });
         it('mathAdd should fail  for invalid field fieldsToIncrementMap contains when there is an External error',
             async function () {
-                const saveExecute = mockedFunctions.connection.query;
-                mockedFunctions.connection.query = function (sql, values, callback) {
+                const saveExecute = mockedFunctions.connection.execute;
+                mockedFunctions.connection.execute = function (sql, values, callback) {
                     throw  new Error('Error');
                 };
                 const tableName = 'test.customers';
@@ -2418,13 +2418,13 @@ describe('Unit tests for db.js', function () {
 
                 }
                 expect(isExceptionOccurred).eql(true);
-                mockedFunctions.connection.query = saveExecute;
+                mockedFunctions.connection.execute = saveExecute;
 
             });
         it('mathAdd should pass for valid params with condition that succeeds', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 1}, []);
             };
@@ -2441,13 +2441,13 @@ describe('Unit tests for db.js', function () {
             expect(status).eql(true);
             expect(savedSQL).to.include("WHERE documentID = ? AND");
             expect(savedSQL).to.include('AND (document->>"$.Age">10)');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('mathAdd should fail when condition is not met', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 0}, []);
             };
@@ -2471,13 +2471,13 @@ describe('Unit tests for db.js', function () {
             expect(errorMessage).to.eql('Not updated - condition failed or unable to find documentId');
             expect(savedSQL).to.include("WHERE documentID = ? AND");
             expect(savedSQL).to.include('AND (document->>"$.Age">100)');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('mathAdd should handle complex conditions correctly', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let savedSQL;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 savedSQL = sql;
                 callback(null, {affectedRows: 1}, []);
             };
@@ -2494,13 +2494,13 @@ describe('Unit tests for db.js', function () {
             expect(status).eql(true);
             expect(savedSQL).to.include("WHERE documentID = ? AND");
             expect(savedSQL).to.include('AND (document->>"$.balance"<1000)');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('mathAdd should reject invalid SQL injection in condition', async function () {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let executeCalled = false;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 executeCalled = true;
                 callback(null, {affectedRows: 1}, []);
             };
@@ -2522,11 +2522,11 @@ describe('Unit tests for db.js', function () {
             expect(isExceptionOccurred).eql(true);
             expect(errorMessage.toString()).to.include("Unknown query function SELECT");
             expect(executeCalled).to.be.false;
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
         it('mathAdd should fail when document not found without condition', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, values, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
                 // Return affectedRows=0 to simulate document not found
                 callback(null, {affectedRows: 0}, []);
             };
@@ -2547,7 +2547,7 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).eql(true);
             expect(errorMessage).to.eql('unable to find documentId');
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
     });
 
@@ -2568,8 +2568,8 @@ describe('Unit tests for db.js', function () {
             tableName = 'hello',
             expectedException = 'please provide valid queryString',
             indexFields = [], options) {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             let isExceptionOccurred = false;
@@ -2581,7 +2581,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         }
 
         it('query should fail null query string', async function () {
@@ -2613,8 +2613,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('query should fail if error occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback("error", [], []);
             };
             const tableName = 'test.customer';
@@ -2627,12 +2627,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('query should fail if exception  occurs', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (_sql, _callback) {
                 throw  new Error('error');
             };
             const tableName = 'test.customer';
@@ -2644,12 +2644,12 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(true);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('query should pass  for valid parameters', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
             };
             const tableName = 'test.customer';
@@ -2664,13 +2664,13 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         async function _validateQueryPass(queryString, indexedFields, expectedSqlQuery, options) {
-            const saveExecute = mockedFunctions.connection.query;
+            const saveExecute = mockedFunctions.connection.execute;
             let sqlQuery;
-            mockedFunctions.connection.query = function (sql, callback) {
+            mockedFunctions.connection.execute = function (sql, callback) {
                 sqlQuery = sql;
                 callback(null, [{"document": {"Age": 100, "active": true, "lastName": "Alice"}}], []);
             };
@@ -2687,7 +2687,7 @@ describe('Unit tests for db.js', function () {
             }
             expect(isExceptionOccurred).to.eql(false);
             expect(sqlQuery).to.eql(expectedSqlQuery);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         }
 
         it('query should pass for valid parameters with index fields', async function () {
@@ -2731,8 +2731,8 @@ describe('Unit tests for db.js', function () {
         });
 
         it('query should return empty array if no data matches', async function () {
-            const saveExecute = mockedFunctions.connection.query;
-            mockedFunctions.connection.query = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.execute;
+            mockedFunctions.connection.execute = function (sql, callback) {
                 callback(null, [], []);
             };
             const tableName = 'test.customer';
@@ -2745,7 +2745,7 @@ describe('Unit tests for db.js', function () {
                 isExceptionOccurred = true;
             }
             expect(isExceptionOccurred).to.eql(false);
-            mockedFunctions.connection.query = saveExecute;
+            mockedFunctions.connection.execute = saveExecute;
         });
 
         it('getFromIndex should fail on invalid page limits', async function () {
