@@ -346,7 +346,7 @@ export function put(tableName, document) {
         const updateQuery = `INSERT INTO ${tableName} (${PRIMARY_COLUMN}, ${JSON_COLUMN}) values(?,?)`;
         try {
             const documentID = createDocumentId();
-            CONNECTION.query(updateQuery, [documentID, document],
+            CONNECTION.query(updateQuery, [documentID, JSON.stringify(document)],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -1113,7 +1113,7 @@ export function update(tableName, documentId, document, condition) {
                 const sqlCondition = Query.transformCocoToSQLQuery(condition, []);
                 updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ? AND (${sqlCondition});`;
             }
-            CONNECTION.query(updateQuery, [document, documentId],
+            CONNECTION.query(updateQuery, [JSON.stringify(document), documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
