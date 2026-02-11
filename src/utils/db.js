@@ -59,7 +59,7 @@ export function createDataBase(databaseName) {
 
         try {
             const createDataBaseSql = `CREATE DATABASE ${databaseName}`;
-            CONNECTION.execute(createDataBaseSql,
+            CONNECTION.query(createDataBaseSql,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -95,7 +95,7 @@ export function deleteDataBase(databaseName) {
         }
         try {
             const createDataBaseSql = `DROP DATABASE ${databaseName}`;
-            CONNECTION.execute(createDataBaseSql,
+            CONNECTION.query(createDataBaseSql,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -187,6 +187,7 @@ export function init(config, logger) {
         config.waitForConnections = true;
         config.connectionLimit = !config.connectionLimit ? 10 : config.connectionLimit;
         config.queueLimit = 0;
+        config.maxPreparedStatements = config.maxPreparedStatements || 200;
 
         CONNECTION = mysql.createPool(config);
         return true;
@@ -282,7 +283,7 @@ export function createTable(tableName) {
             const createTableSql = `CREATE TABLE ${tableName} 
                                         (${PRIMARY_COLUMN} VARCHAR(${SIZE_OF_PRIMARY_KEY}) NOT NULL PRIMARY KEY, 
                                         ${JSON_COLUMN} JSON NOT NULL)`;
-            CONNECTION.execute(createTableSql,
+            CONNECTION.query(createTableSql,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -345,7 +346,7 @@ export function put(tableName, document) {
         const updateQuery = `INSERT INTO ${tableName} (${PRIMARY_COLUMN}, ${JSON_COLUMN}) values(?,?)`;
         try {
             const documentID = createDocumentId();
-            CONNECTION.execute(updateQuery, [documentID, document],
+            CONNECTION.query(updateQuery, [documentID, document],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -428,7 +429,7 @@ export function deleteKey(tableName, documentID, condition) {
             deleteQuery = `DELETE FROM ${tableName} WHERE ${PRIMARY_COLUMN}= ? AND (${sqlCondition});`;
         }
         try {
-            CONNECTION.execute(deleteQuery, [documentID],
+            CONNECTION.query(deleteQuery, [documentID],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -483,7 +484,7 @@ export function deleteDocuments(tableName, queryString, useIndexForFields = []) 
             let sqlQuery = Query.transformCocoToSQLQuery(queryString, useIndexForFields);
             queryParseDone = true;
             const deleteQuery = `DELETE FROM ${tableName} WHERE ${sqlQuery};`;
-            CONNECTION.execute(deleteQuery,
+            CONNECTION.query(deleteQuery,
                 function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -538,7 +539,7 @@ export function get(tableName, documentID) {
         }
         try {
             const getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE ${PRIMARY_COLUMN} = ?`;
-            CONNECTION.execute(getQuery, [documentID],
+            CONNECTION.query(getQuery, [documentID],
                 function (err, results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -720,7 +721,7 @@ export function deleteTable(tableName) {
 
         try {
             const deleteTableQuery = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
-            CONNECTION.execute(deleteTableQuery,
+            CONNECTION.query(deleteTableQuery,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -801,7 +802,7 @@ export function _createIndex(resolve, reject, tableName, jsonField, isUnique) {
 
     try {
         const indexQuery = _buildCreateIndexQuery(tableName, jsonField, isUnique);
-        CONNECTION.execute(indexQuery,
+        CONNECTION.query(indexQuery,
             function (err, _results, _fields) {
                 //TODO: emit success or failure metrics based on return value
                 if (err) {
@@ -874,7 +875,7 @@ export function createIndexForJsonField(tableName, jsonField, dataTypeOfNewColum
                 sqlJsonColumn,
                 jsonField,
                 dataTypeOfNewColumn, isNotNull, isUnique);
-            CONNECTION.execute(createColumnQuery,
+            CONNECTION.query(createColumnQuery,
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -971,7 +972,7 @@ function _prepareQueryOfIndexSearch(tableName, queryObject, options) {
  * @private
  */
 function _queryIndex(queryParams, resolve, reject) {
-    CONNECTION.execute(queryParams.getQuery, queryParams.valArray,
+    CONNECTION.query(queryParams.getQuery, queryParams.valArray,
         function (err, results, _fields) {
             //TODO: emit success or failure metrics based on return value
             if (err) {
@@ -1112,7 +1113,7 @@ export function update(tableName, documentId, document, condition) {
                 const sqlCondition = Query.transformCocoToSQLQuery(condition, []);
                 updateQuery = `UPDATE ${tableName} SET ${JSON_COLUMN} = ? WHERE ${PRIMARY_COLUMN} = ? AND (${sqlCondition});`;
             }
-            CONNECTION.execute(updateQuery, [document, documentId],
+            CONNECTION.query(updateQuery, [document, documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -1238,7 +1239,7 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements, condition) 
         }
         try {
             const incQuery = _prepareSqlForJsonIncrement(tableName, jsonFieldsIncrements, condition);
-            CONNECTION.execute(incQuery, [documentId],
+            CONNECTION.query(incQuery, [documentId],
                 function (err, _results, _fields) {
                     //TODO: emit success or failure metrics based on return value
                     if (err) {
@@ -1293,7 +1294,7 @@ function _prepareQuery(tableName, queryString, indexedFieldsArray, options) {
  * @private
  */
 function _executeQuery(sqlQuery, resolve, reject) {
-    CONNECTION.execute(sqlQuery,
+    CONNECTION.query(sqlQuery,
         function (err, results, _fields) {
             //TODO: emit success or failure metrics based on return value
             if (err) {
@@ -1421,7 +1422,7 @@ export function listDatabases() {
             return;
         }
         try {
-            CONNECTION.execute('SHOW DATABASES',
+            CONNECTION.query('SHOW DATABASES',
                 function (err, results, _fields) {
                     if (err) {
                         LOGGER.error({err, operation: 'listDatabases'}, 'Error listing databases');
@@ -1461,7 +1462,7 @@ export function listTables(databaseName) {
             return;
         }
         try {
-            CONNECTION.execute(`SHOW TABLES FROM ${databaseName}`,
+            CONNECTION.query(`SHOW TABLES FROM ${databaseName}`,
                 function (err, results, _fields) {
                     if (err) {
                         LOGGER.error({err, databaseName, operation: 'listTables'}, 'Error listing tables');
@@ -1513,7 +1514,7 @@ export function getTableIndexes(tableName) {
 
         try {
             // Step 1: Get index information
-            CONNECTION.execute(`SHOW INDEX FROM ${tableName}`,
+            CONNECTION.query(`SHOW INDEX FROM ${tableName}`,
                 function (err, indexResults, _fields) {
                     if (err) {
                         LOGGER.error({err, tableName, operation: 'getTableIndexes'}, 'Error getting table indexes');
@@ -1528,7 +1529,7 @@ export function getTableIndexes(tableName) {
                         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
                         AND GENERATION_EXPRESSION IS NOT NULL AND GENERATION_EXPRESSION != ''`;
 
-                    CONNECTION.execute(columnQuery, [databaseName, tableNameOnly],
+                    CONNECTION.query(columnQuery, [databaseName, tableNameOnly],
                         function (err2, columnResults, _fields2) {
                             if (err2) {
                                 LOGGER.error({err: err2, tableName, operation: 'getTableIndexes'}, 'Error getting column info');

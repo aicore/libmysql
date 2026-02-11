@@ -32,8 +32,8 @@ describe('Unit tests for list APIs', function () {
         });
 
         it('listDatabases should return array of database names on success', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(null, [
                     {Database: 'information_schema'},
                     {Database: 'mysql'},
@@ -44,24 +44,24 @@ describe('Unit tests for list APIs', function () {
             const databases = await listDatabases();
             expect(databases).to.eql(['information_schema', 'mysql', 'test']);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listDatabases should return empty array when no databases', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(null, [], []);
             };
 
             const databases = await listDatabases();
             expect(databases).to.eql([]);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listDatabases should reject on database error', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(new Error('Database error'), null, null);
             };
 
@@ -74,12 +74,12 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listDatabases should reject on execute exception', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (_sql, _callback) {
                 throw new Error('Execute exception');
             };
 
@@ -92,7 +92,7 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
     });
 
@@ -143,8 +143,8 @@ describe('Unit tests for list APIs', function () {
         });
 
         it('listTables should return array of table names on success', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(null, [
                     {Tables_in_test: 'customers'},
                     {Tables_in_test: 'orders'},
@@ -155,24 +155,24 @@ describe('Unit tests for list APIs', function () {
             const tables = await listTables('test');
             expect(tables).to.eql(['customers', 'orders', 'products']);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listTables should return empty array when no tables', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(null, [], []);
             };
 
             const tables = await listTables('test');
             expect(tables).to.eql([]);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listTables should reject on database error', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (sql, callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(new Error('Database error'), null, null);
             };
 
@@ -185,12 +185,12 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('listTables should reject on execute exception', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (_sql, _callback) {
                 throw new Error('Execute exception');
             };
 
@@ -203,7 +203,7 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
     });
 
@@ -254,10 +254,10 @@ describe('Unit tests for list APIs', function () {
         });
 
         it('getTableIndexes should return indexes with JSON field mapping', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
+            const saveExecute = mockedFunctions.connection.query;
             let callCount = 0;
 
-            mockedFunctions.connection.execute = function (sql, arg2, arg3) {
+            mockedFunctions.connection.query = function (sql, arg2, arg3) {
                 callCount++;
                 if (callCount === 1) {
                     // First call: SHOW INDEX FROM
@@ -291,14 +291,14 @@ describe('Unit tests for list APIs', function () {
             expect(indexes[1].isUnique).to.eql(false);
             expect(indexes[1].isPrimary).to.eql(false);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('getTableIndexes should handle nested JSON fields', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
+            const saveExecute = mockedFunctions.connection.query;
             let callCount = 0;
 
-            mockedFunctions.connection.execute = function (sql, arg2, arg3) {
+            mockedFunctions.connection.query = function (sql, arg2, arg3) {
                 callCount++;
                 if (callCount === 1) {
                     const callback = arg2;
@@ -318,14 +318,14 @@ describe('Unit tests for list APIs', function () {
             expect(indexes).to.have.lengthOf(1);
             expect(indexes[0].jsonField).to.eql('address.city');
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('getTableIndexes should return empty array when no indexes', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
+            const saveExecute = mockedFunctions.connection.query;
             let callCount = 0;
 
-            mockedFunctions.connection.execute = function (sql, arg2, arg3) {
+            mockedFunctions.connection.query = function (sql, arg2, arg3) {
                 callCount++;
                 if (callCount === 1) {
                     const callback = arg2;
@@ -339,13 +339,13 @@ describe('Unit tests for list APIs', function () {
             const indexes = await getTableIndexes('test.customers');
             expect(indexes).to.eql([]);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('getTableIndexes should reject on first query error', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
+            const saveExecute = mockedFunctions.connection.query;
 
-            mockedFunctions.connection.execute = function (sql, callback) {
+            mockedFunctions.connection.query = function (sql, callback) {
                 callback(new Error('Index query error'), null, null);
             };
 
@@ -358,14 +358,14 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('getTableIndexes should reject on second query error', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
+            const saveExecute = mockedFunctions.connection.query;
             let callCount = 0;
 
-            mockedFunctions.connection.execute = function (sql, arg2, arg3) {
+            mockedFunctions.connection.query = function (sql, arg2, arg3) {
                 callCount++;
                 if (callCount === 1) {
                     const callback = arg2;
@@ -385,12 +385,12 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
 
         it('getTableIndexes should reject on execute exception', async function () {
-            const saveExecute = mockedFunctions.connection.execute;
-            mockedFunctions.connection.execute = function (_sql, _callback) {
+            const saveExecute = mockedFunctions.connection.query;
+            mockedFunctions.connection.query = function (_sql, _callback) {
                 throw new Error('Execute exception');
             };
 
@@ -403,7 +403,7 @@ describe('Unit tests for list APIs', function () {
             }
             expect(isExceptionOccurred).to.eql(true);
 
-            mockedFunctions.connection.execute = saveExecute;
+            mockedFunctions.connection.query = saveExecute;
         });
     });
 });
