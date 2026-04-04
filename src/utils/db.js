@@ -187,6 +187,7 @@ export function init(config, logger) {
         config.waitForConnections = true;
         config.connectionLimit = !config.connectionLimit ? 10 : config.connectionLimit;
         config.queueLimit = 0;
+        config.maxPreparedStatements = config.maxPreparedStatements || 200;
 
         CONNECTION = mysql.createPool(config);
         return true;
