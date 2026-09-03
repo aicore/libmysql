@@ -42,6 +42,46 @@ function _getLimitString(options) {
 }
 
 /**
+ * Gets the `ORDER BY` string for the sql query, or an empty string if `options.orderByIndexedField` is not specified.
+ * Ordering is only supported on indexed json fields as only indexed fields have a real (generated) column in the
+ * table. The primary key is appended as a tie-breaker so that paginated results are stable.
+ * @param {Object} options
+ * @param {Object} [options.orderByIndexedField] optional sort order of the results.
+ * @param {string} options.orderByIndexedField.field the json field to sort on. Must be an indexed field.
+ * Eg. `count` or `price.tax`
+ * @param {string} [options.orderByIndexedField.direction='ASC'] sort direction, `ASC` or `DESC` (case-insensitive).
+ * @return {string} the order by clause or empty string
+ * @private
+ */
+function _getOrderByString(options) {
+    if(!options || !options.orderByIndexedField){
+        return '';
+    }
+    const orderBy = options.orderByIndexedField;
+    if(!isNestedVariableNameLike(orderBy.field)){
+        throw new Error("options.orderByIndexedField.field should be a valid indexed json field name");
+    }
+    let direction = 'ASC';
+    if(orderBy.direction !== undefined && orderBy.direction !== null){
+        direction = isString(orderBy.direction) ? orderBy.direction.toUpperCase() : orderBy.direction;
+        if(direction !== 'ASC' && direction !== 'DESC'){
+            throw new Error("options.orderByIndexedField.direction should be 'ASC' or 'DESC'");
+        }
+    }
+    return `ORDER BY ${getColumNameForJsonField(orderBy.field)} ${direction}, ${PRIMARY_COLUMN} ASC`;
+}
+
+/**
+ * Gets the sql suffix (`ORDER BY ... LIMIT ...`) to be appended to select queries.
+ * @param {Object} options pagination and ordering options. See `_getLimitString` and `_getOrderByString`
+ * @return {string} the query suffix
+ * @private
+ */
+function _getQuerySuffix(options) {
+    return [_getOrderByString(options), _getLimitString(options)].filter(Boolean).join(' ');
+}
+
+/**
  * It creates a database with the name provided as an argument
  * @param {string} databaseName - The name of the database to create.
  * @returns {Promise<boolean>}- A promise which helps to know if createDataBase is successful
@@ -611,10 +651,15 @@ function _queryScanBuilder(subQueryObject, parentKey = "") {
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] NOT supported by this scan API; passing it rejects with an error.
+ * Use `getFromIndex` or `query` to get ordered results.
  * @returns {Object} An object with two properties: getQuery and valArray.
  * @private
  */
 function _prepareQueryForScan(tableName, queryObject, options) {
+    if (options && options.orderByIndexedField) {
+        throw new Error("options.orderByIndexedField is not supported by getFromNonIndex, use getFromIndex or query");
+    }
     if (isObjectEmpty(queryObject)) {
         return {
             'getQuery': `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} ${_getLimitString(options)}`,
@@ -624,7 +669,7 @@ function _prepareQueryForScan(tableName, queryObject, options) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const subQuery = _queryScanBuilder(queryObject);
     return {
-        'getQuery': getQuery + subQuery.getQuery + ` ${_getLimitString(options)}`,
+        'getQuery': getQuery + subQuery.getQuery.trimEnd() + ` ${_getLimitString(options)}`,
         'valArray': subQuery.valArray
     };
 }
@@ -656,6 +701,8 @@ function _prepareQueryForScan(tableName, queryObject, options) {
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] NOT supported by this scan API; passing it rejects with an error.
+ * Use `getFromIndex` or `query` to get ordered results.
  * @returns {Promise} - A promise; on promise resolution returns array of  matched documents. if there are
  * no match returns empty array
  */
@@ -949,13 +996,22 @@ function _prepareQueryForNestedObject(subQueryObject, parentKey = "") {
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] optional sort order of the results. Sorting is only allowed on
+ * indexed fields (see `createIndexForJsonField`) as only indexed fields have a real column; ordering on a non-indexed
+ * field fails in MySQL with an `Unknown column` error and the promise rejects. Ordering is index-backed (no filesort)
+ * when the WHERE clause uses the same index, Eg.
+ * `query(table, "$.count >= 0", ["count"], {orderByIndexedField: {field: "count", direction: "DESC"}})`; other
+ * combinations filesort the filtered subset, so keep those result sets small. The primary key is appended as a
+ * tie-breaker so paginated results are stable.
+ * @param {string} options.orderByIndexedField.field the indexed json field to sort on. Eg. `count` or `price.tax`
+ * @param {string} [options.orderByIndexedField.direction='ASC'] sort direction, `ASC` or `DESC`
  * @private
  */
 function _prepareQueryOfIndexSearch(tableName, queryObject, options) {
     let getQuery = `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName} WHERE `;
     const result = _prepareQueryForNestedObject(queryObject);
     return {
-        'getQuery': getQuery + result.getQuery + ` ${_getLimitString(options)}`,
+        'getQuery': getQuery + result.getQuery.trimEnd() + ` ${_getQuerySuffix(options)}`,
         'valArray': result.valArray
     };
 }
@@ -1014,6 +1070,15 @@ function _queryIndex(queryParams, resolve, reject) {
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] optional sort order of the results. Sorting is only allowed on
+ * indexed fields (see `createIndexForJsonField`) as only indexed fields have a real column; ordering on a non-indexed
+ * field fails in MySQL with an `Unknown column` error and the promise rejects. Ordering is index-backed (no filesort)
+ * when the WHERE clause uses the same index, Eg.
+ * `query(table, "$.count >= 0", ["count"], {orderByIndexedField: {field: "count", direction: "DESC"}})`; other
+ * combinations filesort the filtered subset, so keep those result sets small. The primary key is appended as a
+ * tie-breaker so paginated results are stable.
+ * @param {string} options.orderByIndexedField.field the indexed json field to sort on. Eg. `count` or `price.tax`
+ * @param {string} [options.orderByIndexedField.direction='ASC'] sort direction, `ASC` or `DESC`
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */
@@ -1273,13 +1338,22 @@ export function mathAdd(tableName, documentId, jsonFieldsIncrements, condition) 
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] optional sort order of the results. Sorting is only allowed on
+ * indexed fields (see `createIndexForJsonField`) as only indexed fields have a real column; ordering on a non-indexed
+ * field fails in MySQL with an `Unknown column` error and the promise rejects. Ordering is index-backed (no filesort)
+ * when the WHERE clause uses the same index, Eg.
+ * `query(table, "$.count >= 0", ["count"], {orderByIndexedField: {field: "count", direction: "DESC"}})`; other
+ * combinations filesort the filtered subset, so keep those result sets small. The primary key is appended as a
+ * tie-breaker so paginated results are stable.
+ * @param {string} options.orderByIndexedField.field the indexed json field to sort on. Eg. `count` or `price.tax`
+ * @param {string} [options.orderByIndexedField.direction='ASC'] sort direction, `ASC` or `DESC`
  * @return {string} the sql query as string
  * @private
  */
 function _prepareQuery(tableName, queryString, indexedFieldsArray, options) {
     let sqlQuery = Query.transformCocoToSQLQuery(queryString, indexedFieldsArray);
     return `SELECT ${PRIMARY_COLUMN},${JSON_COLUMN} FROM ${tableName}`
-        + ` WHERE ${sqlQuery} ${_getLimitString(options)}`;
+        + ` WHERE ${sqlQuery} ${_getQuerySuffix(options)}`;
 }
 
 /**
@@ -1367,6 +1441,15 @@ function _executeQuery(sqlQuery, resolve, reject) {
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
  * @param {number} options.pageLimit specify number of documents to retrieve. Eg: to get 10 documents from
  * the 100'th document, you should specify `pageOffset = 100` and `pageLimit = 10`
+ * @param {Object} [options.orderByIndexedField] optional sort order of the results. Sorting is only allowed on
+ * indexed fields (see `createIndexForJsonField`) as only indexed fields have a real column; ordering on a non-indexed
+ * field fails in MySQL with an `Unknown column` error and the promise rejects. Ordering is index-backed (no filesort)
+ * when the WHERE clause uses the same index, Eg.
+ * `query(table, "$.count >= 0", ["count"], {orderByIndexedField: {field: "count", direction: "DESC"}})`; other
+ * combinations filesort the filtered subset, so keep those result sets small. The primary key is appended as a
+ * tie-breaker so paginated results are stable.
+ * @param {string} options.orderByIndexedField.field the indexed json field to sort on. Eg. `count` or `price.tax`
+ * @param {string} [options.orderByIndexedField.direction='ASC'] sort direction, `ASC` or `DESC`
  * @returns {Promise} - A promise; on promise resolution returns array of matched  values in json column. if there are
  * no matches returns empty array. if there are any errors will throw an exception
  */

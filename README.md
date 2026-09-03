@@ -216,6 +216,17 @@ To get paginated results past 1000 results, Eg. `getFromIndex(tableName, queryOb
   the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
 * pageLimit [number]: specify number of documents to retrieve. Eg: to get 10 documents from
   the 100'th document, you should specify pageOffset = 100 and pageLimit = 10
+* orderByIndexedField [Object]: optional sort order of the results,
+  Eg. `getFromIndex(tableName, {count: 5}, {orderByIndexedField: {field: 'count', direction: 'DESC'}})`
+  * orderByIndexedField.field [string]: the JSON field to sort on. **Must be an indexed field**
+    (see `createIndexForJsonField`). Only indexed fields have a real column in the table, so ordering on a
+    non-indexed field fails in MySQL with an `Unknown column` error and the promise rejects.
+  * orderByIndexedField.direction [string]: `ASC` (default) or `DESC`.
+  * Ordering is index-backed (no filesort) when the WHERE clause uses the same index, Eg.
+    `query(table, "$.count >= 0", ["count"], {orderByIndexedField: {field: "count", direction: "DESC"}})`; other
+    combinations filesort the filtered subset, so keep those result sets small. The primary key `documentID` is
+    appended as a tie-breaker so paginated results are stable.
+  * `orderByIndexedField` is not supported by the scan API `getFromNonIndex`; use `getFromIndex` or `query`.
 
 ### How to update / re-write an existing document?
 
