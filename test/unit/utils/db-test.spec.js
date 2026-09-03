@@ -23,6 +23,7 @@ import {
     DATA_TYPES
 } from "../../../src/utils/constants.js";
 import {getMySqlConfigs} from "@aicore/libcommonutils";
+import {getColumNameForJsonField} from "../../../src/utils/sharedUtils.js";
 
 let expect = chai.expect;
 
@@ -1230,6 +1231,45 @@ describe('Unit tests for db.js', function () {
             expect(savedSQL.includes("LIMIT 56, 290")).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
         });
+
+        async function _captureNonIndexSQL(queryObject, options) {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, [], []);
+            };
+            try {
+                await getFromNonIndex('test.hello', queryObject, options);
+            } finally {
+                mockedFunctions.connection.execute = saveExecute;
+            }
+            return savedSQL;
+        }
+
+        it('getFromNonIndex should emit only LIMIT and no ORDER BY', async function () {
+            let sql = await _captureNonIndexSQL({});
+            expect(sql).to.eql("SELECT documentID,document FROM test.hello LIMIT 1000");
+            sql = await _captureNonIndexSQL({id: 100}, {});
+            expect(sql).to.eql("SELECT documentID,document FROM test.hello WHERE document->\"$.id\" = ? LIMIT 1000");
+            sql = await _captureNonIndexSQL({id: 100}, {pageOffset: 56, pageLimit: 290});
+            expect(sql).to.eql("SELECT documentID,document FROM test.hello WHERE document->\"$.id\" = ? LIMIT 56, 290");
+        });
+
+        it('getFromNonIndex should reject orderByIndexedField option', async function () {
+            const expectedError = "options.orderByIndexedField is not supported by getFromNonIndex,"
+                + " use getFromIndex or query";
+            for (const queryObject of [{}, {id: 100}]) {
+                let isExceptionOccurred = false;
+                try {
+                    await _captureNonIndexSQL(queryObject, {orderByIndexedField: {field: 'count', direction: 'DESC'}});
+                } catch (e) {
+                    expect(e).to.eql(expectedError);
+                    isExceptionOccurred = true;
+                }
+                expect(isExceptionOccurred).to.eql(true);
+            }
+        });
     });
 
     describe('deleteTable API tests', function () {
@@ -1754,6 +1794,75 @@ describe('Unit tests for db.js', function () {
             expect(isExceptionOccurred).to.eql(false);
             expect(savedSql.includes("LIMIT 56, 1000")).to.eql(true);
             mockedFunctions.connection.execute = saveExecute;
+        });
+
+        async function _captureIndexSQL(queryObject, options) {
+            const saveExecute = mockedFunctions.connection.execute;
+            let savedSQL;
+            mockedFunctions.connection.execute = function (sql, values, callback) {
+                savedSQL = sql;
+                callback(null, [], []);
+            };
+            try {
+                await getFromIndex('test.hello', queryObject, options);
+            } finally {
+                mockedFunctions.connection.execute = saveExecute;
+            }
+            return savedSQL;
+        }
+
+        async function _validateIndexOrderByIndexedFieldFail(options, expectedFailureMessage) {
+            let isExceptionOccurred = false;
+            try {
+                await _captureIndexSQL({id: 100}, options);
+            } catch (e) {
+                expect(e).to.eql(expectedFailureMessage);
+                isExceptionOccurred = true;
+            }
+            expect(isExceptionOccurred).to.eql(true);
+        }
+
+        it('getFromIndex should not add ORDER BY if orderByIndexedField option is absent', async function () {
+            const sql = await _captureIndexSQL({id: 100}, {});
+            expect(sql).to.eql(`SELECT documentID,document FROM test.hello WHERE ${getColumNameForJsonField('id')} = ? `
+                + "LIMIT 1000");
+        });
+
+        it('getFromIndex should add ORDER BY for orderByIndexedField option', async function () {
+            const sql = await _captureIndexSQL({id: 100}, {orderByIndexedField: {field: 'count', direction: 'DESC'}});
+            expect(sql).to.eql(`SELECT documentID,document FROM test.hello WHERE ${getColumNameForJsonField('id')} = ? `
+                + `ORDER BY ${getColumNameForJsonField('count')} DESC, documentID ASC LIMIT 1000`);
+        });
+
+        it('getFromIndex orderByIndexedField should default to ASC and accept lower case direction', async function () {
+            let sql = await _captureIndexSQL({id: 100}, {orderByIndexedField: {field: 'count'}});
+            expect(sql.includes(`ORDER BY ${getColumNameForJsonField('count')} ASC, documentID ASC LIMIT 1000`))
+                .to.eql(true);
+            sql = await _captureIndexSQL({id: 100}, {orderByIndexedField: {field: 'count', direction: 'desc'}});
+            expect(sql.includes(`ORDER BY ${getColumNameForJsonField('count')} DESC, documentID ASC LIMIT 1000`))
+                .to.eql(true);
+        });
+
+        it('getFromIndex should fail for invalid orderByIndexedField direction', async function () {
+            await _validateIndexOrderByIndexedFieldFail({orderByIndexedField: {field: 'count', direction: 'sideways'}},
+                "options.orderByIndexedField.direction should be 'ASC' or 'DESC'");
+        });
+
+        it('getFromIndex should fail for invalid orderByIndexedField field', async function () {
+            const expectedError = "options.orderByIndexedField.field should be a valid indexed json field name";
+            await _validateIndexOrderByIndexedFieldFail({orderByIndexedField: {field: 'a b'}}, expectedError);
+            await _validateIndexOrderByIndexedFieldFail({orderByIndexedField: {field: '1x'}}, expectedError);
+            await _validateIndexOrderByIndexedFieldFail({orderByIndexedField: {field: '$.x'}}, expectedError);
+        });
+
+        it('getFromIndex should combine orderByIndexedField with pagination', async function () {
+            const sql = await _captureIndexSQL({id: 100}, {
+                orderByIndexedField: {field: 'count', direction: 'DESC'},
+                pageOffset: 56,
+                pageLimit: 290
+            });
+            expect(sql).to.eql(`SELECT documentID,document FROM test.hello WHERE ${getColumNameForJsonField('id')} = ? `
+                + `ORDER BY ${getColumNameForJsonField('count')} DESC, documentID ASC LIMIT 56, 290`);
         });
     });
 
@@ -2778,6 +2887,49 @@ describe('Unit tests for db.js', function () {
                     pageOffset: 0,
                     pageLimit: 10
                 });
+        });
+
+        it('query should not add ORDER BY if orderByIndexedField option is absent', async function () {
+            await _validateQueryPass("$.a<10", [],
+                "SELECT documentID,document FROM test.customer" +
+                " WHERE document->>\"$.a\"<10 LIMIT 1000", {});
+        });
+
+        it('query should add ORDER BY for orderByIndexedField option', async function () {
+            await _validateQueryPass("$.a<10", [],
+                "SELECT documentID,document FROM test.customer" +
+                ` WHERE document->>\"$.a\"<10 ORDER BY ${getColumNameForJsonField('count')} DESC, documentID ASC LIMIT 1000`,
+                {orderByIndexedField: {field: 'count', direction: 'DESC'}});
+            // lower case direction and default direction
+            await _validateQueryPass("$.a<10", [],
+                "SELECT documentID,document FROM test.customer" +
+                ` WHERE document->>\"$.a\"<10 ORDER BY ${getColumNameForJsonField('count')} DESC, documentID ASC LIMIT 1000`,
+                {orderByIndexedField: {field: 'count', direction: 'desc'}});
+            await _validateQueryPass("$.a<10", [],
+                "SELECT documentID,document FROM test.customer" +
+                ` WHERE document->>\"$.a\"<10 ORDER BY ${getColumNameForJsonField('count')} ASC, documentID ASC LIMIT 1000`,
+                {orderByIndexedField: {field: 'count'}});
+        });
+
+        it('query should fail for invalid orderByIndexedField direction', async function () {
+            await _validateQueryFail("$.a<10", 'test.customer',
+                "options.orderByIndexedField.direction should be 'ASC' or 'DESC'",
+                [], {orderByIndexedField: {field: 'count', direction: 'sideways'}});
+        });
+
+        it('query should fail for invalid orderByIndexedField field', async function () {
+            const expectedError = "options.orderByIndexedField.field should be a valid indexed json field name";
+            await _validateQueryFail("$.a<10", 'test.customer', expectedError, [], {orderByIndexedField: {field: 'a b'}});
+            await _validateQueryFail("$.a<10", 'test.customer', expectedError, [], {orderByIndexedField: {field: '1x'}});
+            await _validateQueryFail("$.a<10", 'test.customer', expectedError, [], {orderByIndexedField: {field: '$.x'}});
+        });
+
+        it('query should combine orderByIndexedField with pagination', async function () {
+            await _validateQueryPass("$.count<10", ["count"],
+                "SELECT documentID,document FROM test.customer" +
+                ` WHERE ${getColumNameForJsonField('count')}<10 ORDER BY ${getColumNameForJsonField('count')} DESC,` +
+                " documentID ASC LIMIT 56, 290",
+                {orderByIndexedField: {field: 'count', direction: 'DESC'}, pageOffset: 56, pageLimit: 290});
         });
     });
 });
